@@ -233,7 +233,6 @@ public class HeapWalker {
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
 		testCount++;
-		DependencyInfo.CURRENT_TEST_COUNT++;
 		// First - clean up from last generation: make sure that all static
 		// field up-pointers are cleared out
 		for (WeakReference<DependencyInfo> inf : lastGenReachable) {
@@ -325,6 +324,7 @@ public class HeapWalker {
 			// }
 		}
 
+		DependencyInfo.CURRENT_TEST_COUNT++;
 		DependencyInfo.IN_CAPTURE = false;
 		return deps;
 	}
