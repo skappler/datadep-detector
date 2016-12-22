@@ -26,6 +26,9 @@ public class WrappedPrimitiveConverter implements Converter {
 		DependencyInfo dep = ((WrappedPrimitive) source).inf;
 		if (dep != null && dep.isConflict())
 			writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(dep.getWriteGen()) + "." + HeapWalker.testNumToMethod.get(dep.getWriteGen()));
-		writer.setValue(((WrappedPrimitive) source).prim.toString());
+		String val = ((WrappedPrimitive) source).prim.toString();
+		if(val != null && !val.trim().equals("")){
+			writer.setValue(val);
+		}
 	}
 }

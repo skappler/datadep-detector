@@ -60,7 +60,9 @@ public class HeapWalker {
 			try {
 				s = new Scanner(new File(f));
 				while (s.hasNextLine()) {
-					ret.add(s.nextLine());
+					String l = s.nextLine();
+					if(!l.trim().equals(""))
+						ret.add(l);
 				}
 				s.close();
 			} catch (FileNotFoundException e) {
