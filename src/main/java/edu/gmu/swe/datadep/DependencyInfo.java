@@ -65,8 +65,12 @@ public final class DependencyInfo {
 								// heap roots
 				for (StaticField sf : fields)
 					if (sf != null) {
-						if (xmlEl != null)
-							xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "." + HeapWalker.testNumToMethod.get(getWriteGen()));
+						if (xmlEl != null){
+							if(HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
+								System.out.println("FOUND NULL DI "+getWriteGen()+" "+HeapWalker.testNumToTestClass.size());
+							else
+								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "." + HeapWalker.testNumToMethod.get(getWriteGen()));
+						}
 						if (sf.isConflict()) {
 							// TODO(gyori): The xmlEl is somehow null. When can
 							// this be null?

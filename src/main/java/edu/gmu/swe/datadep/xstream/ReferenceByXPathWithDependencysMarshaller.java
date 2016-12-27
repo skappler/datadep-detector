@@ -43,7 +43,10 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						if (source instanceof WrappedPrimitive)
 							inf = ((WrappedPrimitive) source).inf;
 						if (inf != null && inf.isConflict()) {
-							writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+							if(HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
+								System.out.println("FOUND NULL RBXPath "+inf.getWriteGen()+" "+HeapWalker.testNumToTestClass.size());
+							else
+								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
 						}
 						if (source instanceof Map) {
 							try {
@@ -60,7 +63,10 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								writer.addAttribute("size", "" + m.size());
 								inf = (DependencyInfo) finf.get(source);
 								if (inf != null && inf.isConflict()) {
-									writer.addAttribute("size_dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+									if(HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
+										System.out.println("FOUND NULL SDO "+inf.getWriteGen()+" "+HeapWalker.testNumToTestClass.size());
+									else
+										writer.addAttribute("size_dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
 								}
 							} catch (NoSuchFieldException e) {
 								System.err.println("Source "+source.getClass());
