@@ -1,8 +1,13 @@
 package edu.gmu.swe.datadep;
 
+import java.io.Serializable;
+
 import org.jdom2.Element;
 
-public final class DependencyInfo {
+public final class DependencyInfo implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+
 	public static int CURRENT_TEST_COUNT = 1;
 
 	private boolean ignored;

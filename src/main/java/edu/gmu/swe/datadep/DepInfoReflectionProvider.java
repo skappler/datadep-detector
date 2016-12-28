@@ -16,6 +16,9 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			if (!fieldModifiersSupported(field)) {
 				continue;
 			}
+			if(field.getClass().getPackage().getName().contains("java.lang"))
+				continue;
+
 			validateFieldAccess(field);
 			try {
 				Object value = field.get(object);
