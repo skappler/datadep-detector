@@ -16,8 +16,8 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			if (!fieldModifiersSupported(field)) {
 				continue;
 			}
-			if(field.getClass().getPackage().getName().contains("java.lang"))
-				continue;
+//			if(field.getClass().getPackage().getName().contains("java.lang"))
+//				continue;
 
 			validateFieldAccess(field);
 			try {
@@ -34,7 +34,9 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			} catch (IllegalAccessException e) {
 				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
 			} catch (NoSuchFieldException e) {
-				throw new ObjectAccessException("Could not get dep info field " + field.getClass() + "." + field.getName(), e);
+				System.out.println("[WARNING] Could not get dep info field " + field.getClass() + "." + field.getName());
+				continue;
+//				throw new ObjectAccessException("Could not get dep info field " + field.getClass() + "." + field.getName(), e);
 			} catch (SecurityException e) {
 				throw new ObjectAccessException("Could not get dep info field " + field.getClass() + "." + field.getName(), e);
 			}
