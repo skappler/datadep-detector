@@ -272,7 +272,7 @@ public class HeapWalker {
 			for (Field f : allFields) {
 				String fieldName = getFieldFQN(f);
 				// if (!ignores.contains(fieldName)) {
-				if ((Modifier.isStatic(f.getModifiers())) && !((Modifier.isFinal(f.getModifiers())) /*&& (f.getType().isPrimitive())*/))
+				if ((Modifier.isStatic(f.getModifiers())) && !((Modifier.isFinal(f.getModifiers())) && (f.getType().isPrimitive())))
 					try {
 						if (isBlackListedSF(f)) {
 							if (f.getType().isPrimitive()) {
