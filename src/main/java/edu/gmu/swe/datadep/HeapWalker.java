@@ -425,9 +425,11 @@ public class HeapWalker {
 
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
 		for (StaticField sf : sfPool) {
-//			if (sf.toString().contains("crystal.model.DataSourceTestAlessio.data")) {
-//				System.out.println("");
-//			}
+			// if
+			// (sf.toString().contains("crystal.model.DataSourceTestAlessio.data"))
+			// {
+			// System.out.println("");
+			// }
 
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();
@@ -437,7 +439,14 @@ public class HeapWalker {
 				dep.field = sf.field;
 				dep.value = sf.getValue();
 				deps.add(dep);
-				sf.clearConflict();
+				// This thing clear previous conflicts informations, however, in
+				// case of reads in subsequent tests
+				// only the former test report the dep, while all of them should
+				// have done. So we clear conflict data ONLY for fields that we wrote.
+				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
+					
+					sf.clearConflict();
+				}
 			}
 		}
 		sfPool.clear();
