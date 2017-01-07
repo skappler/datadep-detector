@@ -6,8 +6,10 @@ public class StaticFieldDependency {
 	public Field field;
 	public String value;
 	public int depGen;
+	public String on; // Textual description
+
 	@Override
 	public String toString() {
-		return field.toString() + ", dependsOn " + depGen +", value: " + value;
+		return field.toString() + ", dependsOn " + on + "(" + depGen + ")" + ", value: " + value;
 	}
 }

@@ -45,7 +45,9 @@ public class Instrumenter {
 				|| owner.startsWith("java/lang/Integer") || owner.startsWith("java/lang/StackTraceElement") || (owner.startsWith("edu/gmu/swe/datadep")) || owner.startsWith("sun/awt/image/codec/") || (owner.startsWith("sun/reflect/Reflection"))
 				|| owner.equals("java/lang/reflect/Proxy") || owner.startsWith("sun/reflection/annotation/AnnotationParser") || owner.startsWith("sun/reflect/MethodAccessor") || owner.startsWith("sun/reflect/ConstructorAccessor")
 				|| owner.startsWith("sun/reflect/SerializationConstructorAccessor") || owner.startsWith("sun/reflect/GeneratedMethodAccessor") || owner.startsWith("sun/reflect/GeneratedConstructorAccessor") || owner.startsWith("sun/reflect/GeneratedSerializationConstructor")
-				|| owner.startsWith("java/lang/reflect/Field") || owner.startsWith("sun/reflect/Unsafe") || owner.startsWith("java/lang/Class") || owner.startsWith("java/lang/reflect/Method") || owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long");
+				|| owner.startsWith("java/lang/reflect/Field") || owner.startsWith("sun/reflect/Unsafe") || owner.startsWith("java/lang/Class") || owner.startsWith("java/lang/reflect/Method") || owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long") //
+				// Ignore string type 
+				|| owner.equals("java/lang/String") || owner.equals("java/lang/String.class");
 	}
 
 	static int n = 0;
@@ -486,7 +488,8 @@ public class Instrumenter {
 						} catch (ZipException exxxx) {
 							System.out.println("Ignoring exception: " + exxxx.getMessage());
 						}
-					} else if (e.getName().startsWith("META-INF") && (e.getName().endsWith(".SF") || e.getName().endsWith(".RSA"))) {
+					} else if (e.getName().startsWith("META-INF")
+							&& (e.getName().endsWith(".SF") || e.getName().endsWith(".RSA"))) {
 						// don't copy this
 					} else if (e.getName().equals("META-INF/MANIFEST.MF")) {
 						Scanner s = new Scanner(zip.getInputStream(e));

@@ -14,7 +14,7 @@ public final class TagHelper {
 			return ((DependencyInstrumented) obj).getDEPENDENCY_INFO();
 		else if (obj instanceof DependencyInfo)
 			return (DependencyInfo) obj;
-		else if (obj instanceof WrappedPrimitive)
+		else if ( (obj instanceof WrappedPrimitive) && obj != null ) // We need to check for null since String objects might be null
 			return ((WrappedPrimitive) obj).inf;
 		return getOrInitTag(obj);
 	}

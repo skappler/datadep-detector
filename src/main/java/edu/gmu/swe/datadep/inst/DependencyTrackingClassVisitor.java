@@ -42,13 +42,25 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			addTaintField = false;
 		}
 		// Add interface
-		if (!Instrumenter.isIgnoredClass(name) && isClass && (access & Opcodes.ACC_ENUM) == 0) {
+		if (!Instrumenter.isIgnoredClass(name) && isClass) { // && (access &
+																// Opcodes.ACC_ENUM)
+																// == 0) {
 			String[] iface = new String[interfaces.length + 1];
 			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
 			iface[interfaces.length] = Type.getInternalName(DependencyInstrumented.class);
 			interfaces = iface;
 			if (signature != null)
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
+
+			if (name.equals("java/lang/String")) {
+				System.err.println("Transforing String.class");
+			} else {
+
+			}
+		} else {
+			if (name.equals("java/lang/String")) {
+				System.out.println("DependencyTrackingClassVisitor.visit() Ignoring String.class");
+			}
 		}
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
@@ -57,11 +69,46 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
-
 		Type t = Type.getType(desc);
-		if ((access & Opcodes.ACC_STATIC) != 0 || (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT))
-			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null));
+
+		// if (name.equals("a")) {
+		// System.out.println("DependencyTrackingClassVisitor.visitField() A " +
+		// value + " " + desc);
+		// System.out.println("DependencyTrackingClassVisitor.visitField()
+		// (access & Opcodes.ACC_STATIC) != 0 "
+		// + ((access & Opcodes.ACC_STATIC) != 0));
+		// System.out.println("DependencyTrackingClassVisitor.visitField()"
+		// + ((t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)));
+		// }
+
+		// if (name.equals("_parent")) {
+		// System.out.println("DependencyTrackingClassVisitor.visitField()
+		// _parent " + value + " " + desc);
+		// System.out.println("DependencyTrackingClassVisitor.visitField()
+		// (access & Opcodes.ACC_STATIC) != 0 "
+		// + ((access & Opcodes.ACC_STATIC) != 0));
+		// System.out.println("DependencyTrackingClassVisitor.visitField()"
+		// + ((t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)));
+		// }
+
+		// No static or primitive field ?
+		// NOT SURE ABOUT THE MEANING OF: (access & Opcodes.ACC_STATIC) != 0 --
+		// non-static ?
+		// (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT) - it's a
+		// primitive
+		// So if you are STATIC OR PRIMITIVE (OR STRING) the container class
+		// (which we are visiting) gets attached ad DEP INFO for that field
+		// (which might have it's own DEP field as well, that's how you get 2 of
+		// them
+		//
+		if ((access & Opcodes.ACC_STATIC) != 0 || (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)
+				|| (desc.equals("Ljava/lang/String;"))) {
+			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
+					null, null));
+		}
+
 		return super.visitField(access, name, desc, signature, value);
+
 	}
 
 	@Override
@@ -91,11 +138,14 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 			// Add field to store dep info
 			if (addTaintField)
-				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null);
-			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO", "()" + Type.getDescriptor(DependencyInfo.class), null, null);
+				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
+						null, null);
+			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO",
+					"()" + Type.getDescriptor(DependencyInfo.class), null, null);
 			mv.visitCode();
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
-			mv.visitFieldInsn(Opcodes.GETFIELD, className, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class));
+			mv.visitFieldInsn(Opcodes.GETFIELD, className, "__DEPENDENCY_INFO",
+					Type.getDescriptor(DependencyInfo.class));
 			mv.visitInsn(Opcodes.DUP);
 			Label ok = new Label();
 			mv.visitJumpInsn(Opcodes.IFNONNULL, ok);
@@ -105,10 +155,13 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
 			mv.visitInsn(Opcodes.DUP_X1);
 			mv.visitInsn(Opcodes.DUP);
-			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V", false);
-			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class));
+			mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V",
+					false);
+			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO",
+					Type.getDescriptor(DependencyInfo.class));
 			mv.visitLabel(ok);
-			mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1, new Object[] { Type.getInternalName(DependencyInfo.class) });
+			mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1,
+					new Object[] { Type.getInternalName(DependencyInfo.class) });
 			mv.visitInsn(Opcodes.ARETURN);
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
@@ -120,9 +173,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
 					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V", false);
+					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+							"()V", false);
 					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write", "()V", false);
+					mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
+							"()V", false);
 					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
 				}
 			}

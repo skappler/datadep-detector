@@ -61,7 +61,7 @@ public class HeapWalker {
 				s = new Scanner(new File(f));
 				while (s.hasNextLine()) {
 					String l = s.nextLine();
-					if(!l.trim().equals(""))
+					if (!l.trim().equals(""))
 						ret.add(l);
 				}
 				s.close();
@@ -79,7 +79,8 @@ public class HeapWalker {
 	}
 
 	protected static boolean shouldCapture(Field f) {
-		if (f.getDeclaringClass().getName().startsWith("java") || f.getDeclaringClass().getName().startsWith("sun") || f.getDeclaringClass().getName().startsWith("edu.gmu.swe.datadep."))
+		if (f.getDeclaringClass().getName().startsWith("java") || f.getDeclaringClass().getName().startsWith("sun")
+				|| f.getDeclaringClass().getName().startsWith("edu.gmu.swe.datadep."))
 			return false;
 		String fieldName = getFieldFQN(f);
 		String fldLower = fieldName.toLowerCase();
@@ -106,111 +107,285 @@ public class HeapWalker {
 		String className = f.getDeclaringClass().getName();
 		String fieldName = f.getName();
 
-		return "java.lang.reflect.Field".equals(className) || "java.lang.reflect.Method".equals(className) || "java.lang.Class".equals(className) || ("java.lang.System".equals(className) && "out".equals(fieldName))
-				|| ("java.io.BufferedInputStream".equals(className) && "bufUpdater".equals(fieldName)) || ("java.io.BufferedReader".equals(className) && "defaultExpectedLineLength".equals(fieldName)) || ("java.io.File".equals(className) && "separatorChar".equals(fieldName))
-				|| ("java.io.File".equals(className) && "fs".equals(fieldName)) || ("java.io.File".equals(className) && "separator".equals(fieldName)) || ("java.io.File$PathStatus".equals(className) && "CHECKED".equals(fieldName))
-				|| ("java.io.File$PathStatus".equals(className) && "INVALID".equals(fieldName)) || ("java.io.FileDescriptor".equals(className) && "err".equals(fieldName)) || ("java.io.FileDescriptor".equals(className) && "out".equals(fieldName))
-				|| ("java.io.FileDescriptor".equals(className) && "in".equals(fieldName)) || ("java.io.ObjectInputStream".equals(className) && "unsharedMarker".equals(fieldName)) || ("java.io.ObjectOutputStream".equals(className) && "extendedDebugInfo".equals(fieldName))
-				|| ("java.io.ObjectStreamClass".equals(className) && "reflFactory".equals(fieldName)) || ("java.io.ObjectStreamClass".equals(className) && "NO_FIELDS".equals(fieldName)) || ("java.io.ObjectStreamClass$Caches".equals(className) && "reflectors".equals(fieldName))
-				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "reflectorsQueue".equals(fieldName)) || ("java.io.ObjectStreamClass$Caches".equals(className) && "localDescs".equals(fieldName))
-				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "localDescsQueue".equals(fieldName)) || ("java.io.ObjectStreamClass$EntryFuture".equals(className) && "unset".equals(fieldName))
-				|| ("java.io.ObjectStreamClass$FieldReflector".equals(className) && "unsafe".equals(fieldName)) || ("java.lang.annotation.RetentionPolicy".equals(className) && "RUNTIME".equals(fieldName))
-				|| ("java.lang.Class".equals(className) && "reflectionFactory".equals(fieldName)) || ("java.lang.Class".equals(className) && "useCaches".equals(fieldName)) || ("java.lang.Class".equals(className) && "initted".equals(fieldName))
-				|| ("java.lang.Class$Atomic".equals(className) && "annotationTypeOffset".equals(fieldName)) || ("java.lang.Class$Atomic".equals(className) && "annotationDataOffset".equals(fieldName))
-				|| ("java.lang.Class$Atomic".equals(className) && "reflectionDataOffset".equals(fieldName)) || ("java.lang.Class$Atomic".equals(className) && "unsafe".equals(fieldName)) || ("java.lang.ClassLoader".equals(className) && "nocerts".equals(fieldName))
-				|| ("java.lang.ClassLoader".equals(className) && "scl".equals(fieldName)) || ("java.lang.ClassLoader".equals(className) && "sclSet".equals(fieldName)) || ("java.lang.ClassLoader$ParallelLoaders".equals(className) && "loaderTypes".equals(fieldName))
-				|| ("java.lang.Double".equals(className) && "TYPE".equals(fieldName)) || ("java.lang.Long".equals(className) && "TYPE".equals(fieldName)) || ("java.lang.Long$LongCache".equals(className) && "cache".equals(fieldName))
-				|| ("java.lang.Math".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.lang.Math$RandomNumberGeneratorHolder".equals(className) && "randomNumberGenerator".equals(fieldName))
-				|| ("java.lang.Package".equals(className) && "pkgs".equals(fieldName)) || ("java.lang.ref.Finalizer".equals(className) && "queue".equals(fieldName)) || ("java.lang.ref.Finalizer".equals(className) && "unfinalized".equals(fieldName))
-				|| ("java.lang.ref.Finalizer".equals(className) && "lock".equals(fieldName)) || ("java.lang.reflect.AccessibleObject".equals(className) && "reflectionFactory".equals(fieldName))
-				|| ("java.lang.reflect.Proxy$ProxyClassFactory".equals(className) && "nextUniqueNumber".equals(fieldName)) || ("java.lang.reflect.WeakCache$CacheKey".equals(className) && "NULL_KEY".equals(fieldName))
-				|| ("java.lang.reflect.WeakCache$Factory".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.lang.StringCoding".equals(className) && "decoder".equals(fieldName)) || ("java.lang.StringCoding".equals(className) && "encoder".equals(fieldName))
-				|| ("java.lang.Thread".equals(className) && "threadSeqNumber".equals(fieldName)) || ("java.lang.ThreadLocal".equals(className) && "nextHashCode".equals(fieldName)) || ("java.lang.Throwable".equals(className) && "SUPPRESSED_SENTINEL".equals(fieldName))
-				|| ("java.lang.Throwable".equals(className) && "UNASSIGNED_STACK".equals(fieldName)) || ("java.lang.Void".equals(className) && "TYPE".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "threadLocalStringBuilderHelper".equals(fieldName))
-				|| ("java.math.BigDecimal".equals(className) && "ZERO".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "ZERO_SCALED_BY".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "TEN".equals(fieldName))
-				|| ("java.math.BigDecimal".equals(className) && "BIG_TEN_POWERS_TABLE".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "BIG_TEN_POWERS_TABLE_MAX".equals(fieldName))
-				|| ("java.math.BigDecimal".equals(className) && "THRESHOLDS_TABLE".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "LONG_TEN_POWERS_TABLE".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "zeroThroughTen".equals(fieldName))
-				|| ("java.math.BigDecimal".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "ONE".equals(fieldName)) || ("java.math.BigDecimal".equals(className) && "LONGLONG_TEN_POWERS_TABLE".equals(fieldName))
-				|| ("java.math.BigInteger".equals(className) && "digitsPerLong".equals(fieldName)) || ("java.math.BigInteger".equals(className) && "longRadix".equals(fieldName)) || ("java.math.BigInteger".equals(className) && "negConst".equals(fieldName))
-				|| ("java.math.BigInteger".equals(className) && "TEN".equals(fieldName)) || ("java.math.BigInteger".equals(className) && "posConst".equals(fieldName)) || ("java.math.BigInteger".equals(className) && "ONE".equals(fieldName))
-				|| ("java.math.BigInteger".equals(className) && "ZERO".equals(fieldName)) || ("java.math.BigInteger".equals(className) && "zeros".equals(fieldName)) || ("java.math.MutableBigInteger".equals(className) && "ONE".equals(fieldName))
-				|| ("java.math.MutableBigInteger".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "HALF_EVEN".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "HALF_UP".equals(fieldName))
-				|| ("java.math.RoundingMode".equals(className) && "UNNECESSARY".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "HALF_DOWN".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "FLOOR".equals(fieldName))
-				|| ("java.math.RoundingMode".equals(className) && "CEILING".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "DOWN".equals(fieldName)) || ("java.math.RoundingMode".equals(className) && "UP".equals(fieldName))
-				|| ("java.math.RoundingMode".equals(className) && "$VALUES".equals(fieldName)) || ("java.net.URI".equals(className) && "H_SCHEME".equals(fieldName)) || ("java.net.URI".equals(className) && "L_SCHEME".equals(fieldName))
-				|| ("java.net.URI".equals(className) && "H_ALPHA".equals(fieldName)) || ("java.net.URI".equals(className) && "H_PATH".equals(fieldName)) || ("java.net.URI".equals(className) && "L_PATH".equals(fieldName))
-				|| ("java.net.URL".equals(className) && "handlers".equals(fieldName)) || ("java.nio.Bits".equals(className) && "byteOrder".equals(fieldName)) || ("java.nio.ByteOrder".equals(className) && "BIG_ENDIAN".equals(fieldName))
-				|| ("java.nio.ByteOrder".equals(className) && "LITTLE_ENDIAN".equals(fieldName)) || ("java.nio.charset.Charset".equals(className) && "defaultCharset".equals(fieldName)) || ("java.nio.charset.Charset".equals(className) && "bugLevel".equals(fieldName))
-				|| ("java.nio.charset.Charset".equals(className) && "cache1".equals(fieldName)) || ("java.nio.charset.CoderResult".equals(className) && "UNDERFLOW".equals(fieldName)) || ("java.nio.charset.CoderResult".equals(className) && "OVERFLOW".equals(fieldName))
-				|| ("java.nio.charset.CodingErrorAction".equals(className) && "REPORT".equals(fieldName)) || ("java.nio.charset.CodingErrorAction".equals(className) && "REPLACE".equals(fieldName)) || ("java.nio.DirectLongBufferU".equals(className) && "unsafe".equals(fieldName))
-				|| ("java.security.Provider".equals(className) && "knownEngines".equals(fieldName)) || ("java.security.Provider".equals(className) && "previousKey".equals(fieldName)) || ("java.security.Security".equals(className) && "spiMap".equals(fieldName))
-				|| ("java.text.DecimalFormat".equals(className) && "EmptyFieldPositionArray".equals(fieldName)) || ("java.text.DecimalFormat".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitHundreds1000".equals(fieldName)) || ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitTens1000".equals(fieldName))
-				|| ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitOnes1000".equals(fieldName)) || ("java.text.DigitList".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("java.text.DigitList$1".equals(className) && "$SwitchMap$java$math$RoundingMode".equals(fieldName)) || ("java.text.DontCareFieldPosition".equals(className) && "INSTANCE".equals(fieldName))
-				|| ("java.text.NumberFormat$Field".equals(className) && "FRACTION".equals(fieldName)) || ("java.text.NumberFormat$Field".equals(className) && "INTEGER".equals(fieldName)) || ("java.text.NumberFormat$Field".equals(className) && "SIGN".equals(fieldName))
-				|| ("java.text.NumberFormat$Field".equals(className) && "DECIMAL_SEPARATOR".equals(fieldName)) || ("java.util.ArrayList".equals(className) && "EMPTY_ELEMENTDATA".equals(fieldName))
-				|| ("java.util.Arrays$LegacyMergeSort".equals(className) && "userRequested".equals(fieldName)) || ("java.util.BitSet".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.util.Collections".equals(className) && "EMPTY_SET".equals(fieldName))
-				|| ("java.util.Collections".equals(className) && "EMPTY_MAP".equals(fieldName)) || ("java.util.Collections".equals(className) && "EMPTY_LIST".equals(fieldName)) || ("java.util.Collections$EmptyIterator".equals(className) && "EMPTY_ITERATOR".equals(fieldName))
-				|| ("java.util.ComparableTimSort".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.util.concurrent.atomic.AtomicReference".equals(className) && "unsafe".equals(fieldName))
-				|| ("java.util.concurrent.atomic.AtomicReference".equals(className) && "valueOffset".equals(fieldName)) || ("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl".equals(className) && "unsafe".equals(fieldName))
-				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "BASECOUNT".equals(fieldName)) || ("java.util.concurrent.ConcurrentHashMap".equals(className) && "ABASE".equals(fieldName))
-				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "ASHIFT".equals(fieldName)) || ("java.util.concurrent.ConcurrentHashMap".equals(className) && "U".equals(fieldName))
-				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "SIZECTL".equals(fieldName)) || ("java.util.concurrent.ConcurrentHashMap".equals(className) && "TRANSFERINDEX".equals(fieldName))
-				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "NCPU".equals(fieldName)) || ("java.util.concurrent.ConcurrentHashMap".equals(className) && "RESIZE_STAMP_SHIFT".equals(fieldName))
-				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "RESIZE_STAMP_BITS".equals(fieldName)) || ("java.util.concurrent.FutureTask".equals(className) && "UNSAFE".equals(fieldName))
-				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className) && "unsafe".equals(fieldName)) || ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className) && "stateOffset".equals(fieldName))
-				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className) && "tailOffset".equals(fieldName)) || ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className) && "waitStatusOffset".equals(fieldName))
-				|| ("java.util.concurrent.locks.LockSupport".equals(className) && "UNSAFE".equals(fieldName)) || ("java.util.concurrent.locks.LockSupport".equals(className) && "parkBlockerOffset".equals(fieldName))
-				|| ("java.util.Currency".equals(className) && "instances".equals(fieldName)) || ("java.util.Currency".equals(className) && "mainTable".equals(fieldName)) || ("java.util.Currency$CurrencyNameGetter".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("java.util.Currency$CurrencyNameGetter".equals(className) && "INSTANCE".equals(fieldName)) || ("java.util.Date".equals(className) && "gcal".equals(fieldName)) || ("java.util.Formatter".equals(className) && "fsPattern".equals(fieldName))
-				|| ("java.util.Formatter$Flags".equals(className) && "UPPERCASE".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "ALTERNATE".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "PARENTHESES".equals(fieldName))
-				|| ("java.util.Formatter$Flags".equals(className) && "GROUP".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "ZERO_PAD".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "LEADING_SPACE".equals(fieldName))
-				|| ("java.util.Formatter$Flags".equals(className) && "PLUS".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "LEFT_JUSTIFY".equals(fieldName)) || ("java.util.Formatter$Flags".equals(className) && "PREVIOUS".equals(fieldName))
-				|| ("java.util.Formatter$Flags".equals(className) && "NONE".equals(fieldName)) || ("java.util.HashMap$TreeNode".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.util.HashSet".equals(className) && "PRESENT".equals(fieldName))
-				|| ("java.util.jar.Attributes$Name".equals(className) && "SEALED".equals(fieldName)) || ("java.util.Locale".equals(className) && "US".equals(fieldName)) || ("java.util.Locale".equals(className) && "ENGLISH".equals(fieldName))
-				|| ("java.util.Locale".equals(className) && "ROOT".equals(fieldName)) || ("java.util.Locale".equals(className) && "LOCALECACHE".equals(fieldName)) || ("java.util.Locale$1".equals(className) && "$SwitchMap$java$util$Locale$Category".equals(fieldName))
-				|| ("java.util.Locale$Category".equals(className) && "FORMAT".equals(fieldName)) || ("java.util.Locale$Category".equals(className) && "DISPLAY".equals(fieldName)) || ("java.util.Random".equals(className) && "seedUniquifier".equals(fieldName))
-				|| ("java.util.regex.ASCII".equals(className) && "ctype".equals(fieldName)) || ("java.util.regex.Pattern".equals(className) && "accept".equals(fieldName)) || ("java.util.regex.Pattern".equals(className) && "lastAccept".equals(fieldName))
-				|| ("java.util.ResourceBundle".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.util.ResourceBundle".equals(className) && "NONEXISTENT_BUNDLE".equals(fieldName))
-				|| ("java.util.ResourceBundle".equals(className) && "cacheList".equals(fieldName)) || ("java.util.ResourceBundle".equals(className) && "referenceQueue".equals(fieldName))
-				|| ("java.util.ResourceBundle$Control".equals(className) && "CANDIDATES_CACHE".equals(fieldName)) || ("java.util.ResourceBundle$Control".equals(className) && "FORMAT_DEFAULT".equals(fieldName))
-				|| ("java.util.ResourceBundle$Control".equals(className) && "INSTANCE".equals(fieldName)) || ("java.util.ResourceBundle$RBClassLoader".equals(className) && "loader".equals(fieldName))
-				|| ("java.util.ResourceBundle$RBClassLoader".equals(className) && "INSTANCE".equals(fieldName)) || ("java.util.TimeZone".equals(className) && "defaultTimeZone".equals(fieldName))
-				|| ("java.util.TimSort".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("java.util.zip.Inflater".equals(className) && "defaultBuf".equals(fieldName)) || ("java.util.zip.Inflater".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.misc.FDBigInteger".equals(className) && "LONG_5_POW".equals(fieldName)) || ("sun.misc.FDBigInteger".equals(className) && "ZERO".equals(fieldName)) || ("sun.misc.FDBigInteger".equals(className) && "POW_5_CACHE".equals(fieldName))
-				|| ("sun.misc.FDBigInteger".equals(className) && "SMALL_5_POW".equals(fieldName)) || ("sun.misc.FDBigInteger".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.misc.FloatingDecimal".equals(className) && "threadLocalBinaryToASCIIBuffer".equals(fieldName)) || ("sun.misc.FloatingDecimal".equals(className) && "B2AC_POSITIVE_ZERO".equals(fieldName))
-				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_POSITIVE_INFINITY".equals(fieldName)) || ("sun.misc.FloatingDecimal".equals(className) && "B2AC_NEGATIVE_INFINITY".equals(fieldName))
-				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_NOT_A_NUMBER".equals(fieldName)) || ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className) && "TINY_10_POW".equals(fieldName))
-				|| ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className) && "SMALL_10_POW".equals(fieldName)) || ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className) && "MAX_SMALL_TEN".equals(fieldName))
-				|| ("sun.misc.FloatingDecimal$BinaryToASCIIBuffer".equals(className) && "N_5_BITS".equals(fieldName)) || ("sun.misc.FloatingDecimal$BinaryToASCIIBuffer".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "lc".equals(fieldName)) || ("sun.misc.PerfCounter$CoreCounters".equals(className) && "lct".equals(fieldName)) || ("sun.misc.PerfCounter$CoreCounters".equals(className) && "pdt".equals(fieldName))
-				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "rcbt".equals(fieldName)) || ("sun.misc.ProxyGenerator".equals(className) && "saveGeneratedFiles".equals(fieldName))
-				|| ("sun.misc.ProxyGenerator".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("sun.misc.ProxyGenerator".equals(className) && "toStringMethod".equals(fieldName)) || ("sun.misc.ProxyGenerator".equals(className) && "equalsMethod".equals(fieldName))
-				|| ("sun.misc.ProxyGenerator".equals(className) && "hashCodeMethod".equals(fieldName)) || ("sun.misc.ProxyGenerator$PrimitiveTypeInfo".equals(className) && "table".equals(fieldName))
-				|| ("sun.misc.SharedSecrets".equals(className) && "javaLangAccess".equals(fieldName)) || ("sun.misc.Unsafe".equals(className) && "theUnsafe".equals(fieldName)) || ("sun.misc.URLClassPath".equals(className) && "DEBUG".equals(fieldName))
-				|| ("sun.misc.VM".equals(className) && "allowArraySyntax".equals(fieldName)) || ("sun.misc.VM".equals(className) && "peakFinalRefCount".equals(fieldName)) || ("sun.misc.VM".equals(className) && "finalRefCount".equals(fieldName))
-				|| ("sun.net.www.ParseUtil".equals(className) && "encodedInPath".equals(fieldName)) || ("sun.nio.cs.StreamEncoder".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.reflect.AccessorGenerator".equals(className) && "primitiveTypes".equals(fieldName)) || ("sun.reflect.annotation.AnnotationInvocationHandler".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.reflect.annotation.AnnotationParser".equals(className) && "EMPTY_ANNOTATION_ARRAY".equals(fieldName)) || ("sun.reflect.ClassDefiner".equals(className) && "unsafe".equals(fieldName))
-				|| ("sun.reflect.generics.parser.SignatureParser".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("sun.reflect.generics.visitor.Reifier".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.reflect.MethodAccessorGenerator".equals(className) && "constructorSymnum".equals(fieldName)) || ("sun.reflect.MethodAccessorGenerator".equals(className) && "serializationConstructorSymnum".equals(fieldName))
-				|| ("sun.reflect.MethodAccessorGenerator".equals(className) && "methodSymnum".equals(fieldName)) || ("sun.reflect.UnsafeFieldAccessorImpl".equals(className) && "unsafe".equals(fieldName))
-				|| ("sun.security.jca.Providers".equals(className) && "providerList".equals(fieldName)) || ("sun.security.provider.ByteArrayAccess".equals(className) && "unsafe".equals(fieldName))
-				|| ("sun.security.provider.ByteArrayAccess".equals(className) && "byteArrayOfs".equals(fieldName)) || ("sun.security.provider.ByteArrayAccess".equals(className) && "littleEndianUnaligned".equals(fieldName))
-				|| ("sun.security.provider.DigestBase".equals(className) && "padding".equals(fieldName)) || ("sun.util.calendar.BaseCalendar".equals(className) && "$assertionsDisabled".equals(fieldName))
-				|| ("sun.util.calendar.BaseCalendar".equals(className) && "ACCUMULATED_DAYS_IN_MONTH".equals(fieldName)) || ("sun.util.calendar.BaseCalendar".equals(className) && "FIXED_DATES".equals(fieldName))
-				|| ("sun.util.locale.BaseLocale".equals(className) && "CACHE".equals(fieldName)) || ("sun.util.locale.provider.LocaleDataMetaInfo".equals(className) && "resourceNameToLocales".equals(fieldName))
-				|| ("sun.util.locale.provider.LocaleProviderAdapter".equals(className) && "jreLocaleProviderAdapter".equals(fieldName)) || ("sun.util.locale.provider.LocaleProviderAdapter".equals(className) && "adapterCache".equals(fieldName))
-				|| ("sun.util.locale.provider.LocaleProviderAdapter".equals(className) && "defaultLocaleProviderAdapter".equals(fieldName))
-				|| ("sun.util.locale.provider.LocaleProviderAdapter$1".equals(className) && "$SwitchMap$sun$util$locale$provider$LocaleProviderAdapter$Type".equals(fieldName)) || ("sun.util.locale.provider.LocaleProviderAdapter$Type".equals(className) && "JRE".equals(fieldName))
-				|| ("sun.util.locale.provider.LocaleResources".equals(className) && "NULLOBJECT".equals(fieldName)) || ("sun.util.locale.provider.LocaleServiceProviderPool".equals(className) && "poolOfPools".equals(fieldName))
-				|| ("sun.util.resources.LocaleData$LocaleDataResourceBundleControl".equals(className) && "$assertionsDisabled".equals(fieldName)) || ("sun.util.resources.LocaleData$LocaleDataResourceBundleControl".equals(className) && "INSTANCE".equals(fieldName));
+		return "java.lang.reflect.Field".equals(className) || "java.lang.reflect.Method".equals(className)
+				|| "java.lang.Class".equals(className)
+				|| ("java.lang.System".equals(className) && "out".equals(fieldName))
+				|| ("java.io.BufferedInputStream".equals(className) && "bufUpdater".equals(fieldName))
+				|| ("java.io.BufferedReader".equals(className) && "defaultExpectedLineLength".equals(fieldName))
+				|| ("java.io.File".equals(className) && "separatorChar".equals(fieldName))
+				|| ("java.io.File".equals(className) && "fs".equals(fieldName))
+				|| ("java.io.File".equals(className) && "separator".equals(fieldName))
+				|| ("java.io.File$PathStatus".equals(className) && "CHECKED".equals(fieldName))
+				|| ("java.io.File$PathStatus".equals(className) && "INVALID".equals(fieldName))
+				|| ("java.io.FileDescriptor".equals(className) && "err".equals(fieldName))
+				|| ("java.io.FileDescriptor".equals(className) && "out".equals(fieldName))
+				|| ("java.io.FileDescriptor".equals(className) && "in".equals(fieldName))
+				|| ("java.io.ObjectInputStream".equals(className) && "unsharedMarker".equals(fieldName))
+				|| ("java.io.ObjectOutputStream".equals(className) && "extendedDebugInfo".equals(fieldName))
+				|| ("java.io.ObjectStreamClass".equals(className) && "reflFactory".equals(fieldName))
+				|| ("java.io.ObjectStreamClass".equals(className) && "NO_FIELDS".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "reflectors".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "reflectorsQueue".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "localDescs".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$Caches".equals(className) && "localDescsQueue".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$EntryFuture".equals(className) && "unset".equals(fieldName))
+				|| ("java.io.ObjectStreamClass$FieldReflector".equals(className) && "unsafe".equals(fieldName))
+				|| ("java.lang.annotation.RetentionPolicy".equals(className) && "RUNTIME".equals(fieldName))
+				|| ("java.lang.Class".equals(className) && "reflectionFactory".equals(fieldName))
+				|| ("java.lang.Class".equals(className) && "useCaches".equals(fieldName))
+				|| ("java.lang.Class".equals(className) && "initted".equals(fieldName))
+				|| ("java.lang.Class$Atomic".equals(className) && "annotationTypeOffset".equals(fieldName))
+				|| ("java.lang.Class$Atomic".equals(className) && "annotationDataOffset".equals(fieldName))
+				|| ("java.lang.Class$Atomic".equals(className) && "reflectionDataOffset".equals(fieldName))
+				|| ("java.lang.Class$Atomic".equals(className) && "unsafe".equals(fieldName))
+				|| ("java.lang.ClassLoader".equals(className) && "nocerts".equals(fieldName))
+				|| ("java.lang.ClassLoader".equals(className) && "scl".equals(fieldName))
+				|| ("java.lang.ClassLoader".equals(className) && "sclSet".equals(fieldName))
+				|| ("java.lang.ClassLoader$ParallelLoaders".equals(className) && "loaderTypes".equals(fieldName))
+				|| ("java.lang.Double".equals(className) && "TYPE".equals(fieldName))
+				|| ("java.lang.Long".equals(className) && "TYPE".equals(fieldName))
+				|| ("java.lang.Long$LongCache".equals(className) && "cache".equals(fieldName))
+				|| ("java.lang.Math".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.lang.Math$RandomNumberGeneratorHolder".equals(className)
+						&& "randomNumberGenerator".equals(fieldName))
+				|| ("java.lang.Package".equals(className) && "pkgs".equals(fieldName))
+				|| ("java.lang.ref.Finalizer".equals(className) && "queue".equals(fieldName))
+				|| ("java.lang.ref.Finalizer".equals(className) && "unfinalized".equals(fieldName))
+				|| ("java.lang.ref.Finalizer".equals(className) && "lock".equals(fieldName))
+				|| ("java.lang.reflect.AccessibleObject".equals(className) && "reflectionFactory".equals(fieldName))
+				|| ("java.lang.reflect.Proxy$ProxyClassFactory".equals(className)
+						&& "nextUniqueNumber".equals(fieldName))
+				|| ("java.lang.reflect.WeakCache$CacheKey".equals(className) && "NULL_KEY".equals(fieldName))
+				|| ("java.lang.reflect.WeakCache$Factory".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.lang.StringCoding".equals(className) && "decoder".equals(fieldName))
+				|| ("java.lang.StringCoding".equals(className) && "encoder".equals(fieldName))
+				|| ("java.lang.Thread".equals(className) && "threadSeqNumber".equals(fieldName))
+				|| ("java.lang.ThreadLocal".equals(className) && "nextHashCode".equals(fieldName))
+				|| ("java.lang.Throwable".equals(className) && "SUPPRESSED_SENTINEL".equals(fieldName))
+				|| ("java.lang.Throwable".equals(className) && "UNASSIGNED_STACK".equals(fieldName))
+				|| ("java.lang.Void".equals(className) && "TYPE".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "threadLocalStringBuilderHelper".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "ZERO".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "ZERO_SCALED_BY".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "TEN".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "BIG_TEN_POWERS_TABLE".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "BIG_TEN_POWERS_TABLE_MAX".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "THRESHOLDS_TABLE".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "LONG_TEN_POWERS_TABLE".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "zeroThroughTen".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "ONE".equals(fieldName))
+				|| ("java.math.BigDecimal".equals(className) && "LONGLONG_TEN_POWERS_TABLE".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "digitsPerLong".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "longRadix".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "negConst".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "TEN".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "posConst".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "ONE".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "ZERO".equals(fieldName))
+				|| ("java.math.BigInteger".equals(className) && "zeros".equals(fieldName))
+				|| ("java.math.MutableBigInteger".equals(className) && "ONE".equals(fieldName))
+				|| ("java.math.MutableBigInteger".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "HALF_EVEN".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "HALF_UP".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "UNNECESSARY".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "HALF_DOWN".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "FLOOR".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "CEILING".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "DOWN".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "UP".equals(fieldName))
+				|| ("java.math.RoundingMode".equals(className) && "$VALUES".equals(fieldName))
+				|| ("java.net.URI".equals(className) && "H_SCHEME".equals(fieldName))
+				|| ("java.net.URI".equals(className) && "L_SCHEME".equals(fieldName))
+				|| ("java.net.URI".equals(className) && "H_ALPHA".equals(fieldName))
+				|| ("java.net.URI".equals(className) && "H_PATH".equals(fieldName))
+				|| ("java.net.URI".equals(className) && "L_PATH".equals(fieldName))
+				|| ("java.net.URL".equals(className) && "handlers".equals(fieldName))
+				|| ("java.nio.Bits".equals(className) && "byteOrder".equals(fieldName))
+				|| ("java.nio.ByteOrder".equals(className) && "BIG_ENDIAN".equals(fieldName))
+				|| ("java.nio.ByteOrder".equals(className) && "LITTLE_ENDIAN".equals(fieldName))
+				|| ("java.nio.charset.Charset".equals(className) && "defaultCharset".equals(fieldName))
+				|| ("java.nio.charset.Charset".equals(className) && "bugLevel".equals(fieldName))
+				|| ("java.nio.charset.Charset".equals(className) && "cache1".equals(fieldName))
+				|| ("java.nio.charset.CoderResult".equals(className) && "UNDERFLOW".equals(fieldName))
+				|| ("java.nio.charset.CoderResult".equals(className) && "OVERFLOW".equals(fieldName))
+				|| ("java.nio.charset.CodingErrorAction".equals(className) && "REPORT".equals(fieldName))
+				|| ("java.nio.charset.CodingErrorAction".equals(className) && "REPLACE".equals(fieldName))
+				|| ("java.nio.DirectLongBufferU".equals(className) && "unsafe".equals(fieldName))
+				|| ("java.security.Provider".equals(className) && "knownEngines".equals(fieldName))
+				|| ("java.security.Provider".equals(className) && "previousKey".equals(fieldName))
+				|| ("java.security.Security".equals(className) && "spiMap".equals(fieldName))
+				|| ("java.text.DecimalFormat".equals(className) && "EmptyFieldPositionArray".equals(fieldName))
+				|| ("java.text.DecimalFormat".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitHundreds1000".equals(fieldName))
+				|| ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitTens1000".equals(fieldName))
+				|| ("java.text.DecimalFormat$DigitArrays".equals(className) && "DigitOnes1000".equals(fieldName))
+				|| ("java.text.DigitList".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.text.DigitList$1".equals(className) && "$SwitchMap$java$math$RoundingMode".equals(fieldName))
+				|| ("java.text.DontCareFieldPosition".equals(className) && "INSTANCE".equals(fieldName))
+				|| ("java.text.NumberFormat$Field".equals(className) && "FRACTION".equals(fieldName))
+				|| ("java.text.NumberFormat$Field".equals(className) && "INTEGER".equals(fieldName))
+				|| ("java.text.NumberFormat$Field".equals(className) && "SIGN".equals(fieldName))
+				|| ("java.text.NumberFormat$Field".equals(className) && "DECIMAL_SEPARATOR".equals(fieldName))
+				|| ("java.util.ArrayList".equals(className) && "EMPTY_ELEMENTDATA".equals(fieldName))
+				|| ("java.util.Arrays$LegacyMergeSort".equals(className) && "userRequested".equals(fieldName))
+				|| ("java.util.BitSet".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.Collections".equals(className) && "EMPTY_SET".equals(fieldName))
+				|| ("java.util.Collections".equals(className) && "EMPTY_MAP".equals(fieldName))
+				|| ("java.util.Collections".equals(className) && "EMPTY_LIST".equals(fieldName))
+				|| ("java.util.Collections$EmptyIterator".equals(className) && "EMPTY_ITERATOR".equals(fieldName))
+				|| ("java.util.ComparableTimSort".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.concurrent.atomic.AtomicReference".equals(className) && "unsafe".equals(fieldName))
+				|| ("java.util.concurrent.atomic.AtomicReference".equals(className) && "valueOffset".equals(fieldName))
+				|| ("java.util.concurrent.atomic.AtomicReferenceFieldUpdater$AtomicReferenceFieldUpdaterImpl"
+						.equals(className) && "unsafe".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "BASECOUNT".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "ABASE".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "ASHIFT".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "U".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "SIZECTL".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "TRANSFERINDEX".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "NCPU".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className)
+						&& "RESIZE_STAMP_SHIFT".equals(fieldName))
+				|| ("java.util.concurrent.ConcurrentHashMap".equals(className) && "RESIZE_STAMP_BITS".equals(fieldName))
+				|| ("java.util.concurrent.FutureTask".equals(className) && "UNSAFE".equals(fieldName))
+				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className)
+						&& "unsafe".equals(fieldName))
+				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className)
+						&& "stateOffset".equals(fieldName))
+				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className)
+						&& "tailOffset".equals(fieldName))
+				|| ("java.util.concurrent.locks.AbstractQueuedSynchronizer".equals(className)
+						&& "waitStatusOffset".equals(fieldName))
+				|| ("java.util.concurrent.locks.LockSupport".equals(className) && "UNSAFE".equals(fieldName))
+				|| ("java.util.concurrent.locks.LockSupport".equals(className) && "parkBlockerOffset".equals(fieldName))
+				|| ("java.util.Currency".equals(className) && "instances".equals(fieldName))
+				|| ("java.util.Currency".equals(className) && "mainTable".equals(fieldName))
+				|| ("java.util.Currency$CurrencyNameGetter".equals(className)
+						&& "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.Currency$CurrencyNameGetter".equals(className) && "INSTANCE".equals(fieldName))
+				|| ("java.util.Date".equals(className) && "gcal".equals(fieldName))
+				|| ("java.util.Formatter".equals(className) && "fsPattern".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "UPPERCASE".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "ALTERNATE".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "PARENTHESES".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "GROUP".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "ZERO_PAD".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "LEADING_SPACE".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "PLUS".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "LEFT_JUSTIFY".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "PREVIOUS".equals(fieldName))
+				|| ("java.util.Formatter$Flags".equals(className) && "NONE".equals(fieldName))
+				|| ("java.util.HashMap$TreeNode".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.HashSet".equals(className) && "PRESENT".equals(fieldName))
+				|| ("java.util.jar.Attributes$Name".equals(className) && "SEALED".equals(fieldName))
+				|| ("java.util.Locale".equals(className) && "US".equals(fieldName))
+				|| ("java.util.Locale".equals(className) && "ENGLISH".equals(fieldName))
+				|| ("java.util.Locale".equals(className) && "ROOT".equals(fieldName))
+				|| ("java.util.Locale".equals(className) && "LOCALECACHE".equals(fieldName))
+				|| ("java.util.Locale$1".equals(className) && "$SwitchMap$java$util$Locale$Category".equals(fieldName))
+				|| ("java.util.Locale$Category".equals(className) && "FORMAT".equals(fieldName))
+				|| ("java.util.Locale$Category".equals(className) && "DISPLAY".equals(fieldName))
+				|| ("java.util.Random".equals(className) && "seedUniquifier".equals(fieldName))
+				|| ("java.util.regex.ASCII".equals(className) && "ctype".equals(fieldName))
+				|| ("java.util.regex.Pattern".equals(className) && "accept".equals(fieldName))
+				|| ("java.util.regex.Pattern".equals(className) && "lastAccept".equals(fieldName))
+				|| ("java.util.ResourceBundle".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.ResourceBundle".equals(className) && "NONEXISTENT_BUNDLE".equals(fieldName))
+				|| ("java.util.ResourceBundle".equals(className) && "cacheList".equals(fieldName))
+				|| ("java.util.ResourceBundle".equals(className) && "referenceQueue".equals(fieldName))
+				|| ("java.util.ResourceBundle$Control".equals(className) && "CANDIDATES_CACHE".equals(fieldName))
+				|| ("java.util.ResourceBundle$Control".equals(className) && "FORMAT_DEFAULT".equals(fieldName))
+				|| ("java.util.ResourceBundle$Control".equals(className) && "INSTANCE".equals(fieldName))
+				|| ("java.util.ResourceBundle$RBClassLoader".equals(className) && "loader".equals(fieldName))
+				|| ("java.util.ResourceBundle$RBClassLoader".equals(className) && "INSTANCE".equals(fieldName))
+				|| ("java.util.TimeZone".equals(className) && "defaultTimeZone".equals(fieldName))
+				|| ("java.util.TimSort".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("java.util.zip.Inflater".equals(className) && "defaultBuf".equals(fieldName))
+				|| ("java.util.zip.Inflater".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.misc.FDBigInteger".equals(className) && "LONG_5_POW".equals(fieldName))
+				|| ("sun.misc.FDBigInteger".equals(className) && "ZERO".equals(fieldName))
+				|| ("sun.misc.FDBigInteger".equals(className) && "POW_5_CACHE".equals(fieldName))
+				|| ("sun.misc.FDBigInteger".equals(className) && "SMALL_5_POW".equals(fieldName))
+				|| ("sun.misc.FDBigInteger".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal".equals(className) && "threadLocalBinaryToASCIIBuffer".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_POSITIVE_ZERO".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_POSITIVE_INFINITY".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_NEGATIVE_INFINITY".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal".equals(className) && "B2AC_NOT_A_NUMBER".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className) && "TINY_10_POW".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className)
+						&& "SMALL_10_POW".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal$ASCIIToBinaryBuffer".equals(className)
+						&& "MAX_SMALL_TEN".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal$BinaryToASCIIBuffer".equals(className) && "N_5_BITS".equals(fieldName))
+				|| ("sun.misc.FloatingDecimal$BinaryToASCIIBuffer".equals(className)
+						&& "$assertionsDisabled".equals(fieldName))
+				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "lc".equals(fieldName))
+				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "lct".equals(fieldName))
+				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "pdt".equals(fieldName))
+				|| ("sun.misc.PerfCounter$CoreCounters".equals(className) && "rcbt".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator".equals(className) && "saveGeneratedFiles".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator".equals(className) && "toStringMethod".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator".equals(className) && "equalsMethod".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator".equals(className) && "hashCodeMethod".equals(fieldName))
+				|| ("sun.misc.ProxyGenerator$PrimitiveTypeInfo".equals(className) && "table".equals(fieldName))
+				|| ("sun.misc.SharedSecrets".equals(className) && "javaLangAccess".equals(fieldName))
+				|| ("sun.misc.Unsafe".equals(className) && "theUnsafe".equals(fieldName))
+				|| ("sun.misc.URLClassPath".equals(className) && "DEBUG".equals(fieldName))
+				|| ("sun.misc.VM".equals(className) && "allowArraySyntax".equals(fieldName))
+				|| ("sun.misc.VM".equals(className) && "peakFinalRefCount".equals(fieldName))
+				|| ("sun.misc.VM".equals(className) && "finalRefCount".equals(fieldName))
+				|| ("sun.net.www.ParseUtil".equals(className) && "encodedInPath".equals(fieldName))
+				|| ("sun.nio.cs.StreamEncoder".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.reflect.AccessorGenerator".equals(className) && "primitiveTypes".equals(fieldName))
+				|| ("sun.reflect.annotation.AnnotationInvocationHandler".equals(className)
+						&& "$assertionsDisabled".equals(fieldName))
+				|| ("sun.reflect.annotation.AnnotationParser".equals(className)
+						&& "EMPTY_ANNOTATION_ARRAY".equals(fieldName))
+				|| ("sun.reflect.ClassDefiner".equals(className) && "unsafe".equals(fieldName))
+				|| ("sun.reflect.generics.parser.SignatureParser".equals(className)
+						&& "$assertionsDisabled".equals(fieldName))
+				|| ("sun.reflect.generics.visitor.Reifier".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.reflect.MethodAccessorGenerator".equals(className) && "constructorSymnum".equals(fieldName))
+				|| ("sun.reflect.MethodAccessorGenerator".equals(className)
+						&& "serializationConstructorSymnum".equals(fieldName))
+				|| ("sun.reflect.MethodAccessorGenerator".equals(className) && "methodSymnum".equals(fieldName))
+				|| ("sun.reflect.UnsafeFieldAccessorImpl".equals(className) && "unsafe".equals(fieldName))
+				|| ("sun.security.jca.Providers".equals(className) && "providerList".equals(fieldName))
+				|| ("sun.security.provider.ByteArrayAccess".equals(className) && "unsafe".equals(fieldName))
+				|| ("sun.security.provider.ByteArrayAccess".equals(className) && "byteArrayOfs".equals(fieldName))
+				|| ("sun.security.provider.ByteArrayAccess".equals(className)
+						&& "littleEndianUnaligned".equals(fieldName))
+				|| ("sun.security.provider.DigestBase".equals(className) && "padding".equals(fieldName))
+				|| ("sun.util.calendar.BaseCalendar".equals(className) && "$assertionsDisabled".equals(fieldName))
+				|| ("sun.util.calendar.BaseCalendar".equals(className) && "ACCUMULATED_DAYS_IN_MONTH".equals(fieldName))
+				|| ("sun.util.calendar.BaseCalendar".equals(className) && "FIXED_DATES".equals(fieldName))
+				|| ("sun.util.locale.BaseLocale".equals(className) && "CACHE".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleDataMetaInfo".equals(className)
+						&& "resourceNameToLocales".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleProviderAdapter".equals(className)
+						&& "jreLocaleProviderAdapter".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleProviderAdapter".equals(className)
+						&& "adapterCache".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleProviderAdapter".equals(className)
+						&& "defaultLocaleProviderAdapter".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleProviderAdapter$1".equals(className)
+						&& "$SwitchMap$sun$util$locale$provider$LocaleProviderAdapter$Type".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleProviderAdapter$Type".equals(className) && "JRE".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleResources".equals(className) && "NULLOBJECT".equals(fieldName))
+				|| ("sun.util.locale.provider.LocaleServiceProviderPool".equals(className)
+						&& "poolOfPools".equals(fieldName))
+				|| ("sun.util.resources.LocaleData$LocaleDataResourceBundleControl".equals(className)
+						&& "$assertionsDisabled".equals(fieldName))
+				|| ("sun.util.resources.LocaleData$LocaleDataResourceBundleControl".equals(className)
+						&& "INSTANCE".equals(fieldName));
 	}
 
 	private static final LinkedHashMap<String, Object> nameToInstance = new LinkedHashMap();
-	static int testCount = 1;
+	static int testCount = 1; // 1 Because we count INIT.INIT as test ?
 	public static HashMap<Integer, String> testNumToMethod = new HashMap<Integer, String>();
 	public static HashMap<Integer, String> testNumToTestClass = new HashMap<>();
 
@@ -230,7 +405,8 @@ public class HeapWalker {
 		DependencyInfo.IN_CAPTURE = false;
 	}
 
-	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className, String methodName) {
+	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
+			String methodName) {
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
@@ -245,11 +421,19 @@ public class HeapWalker {
 		}
 		lastGenReachable.clear();
 
+		// Are duplicate allowed in sfPool ?
+
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
 		for (StaticField sf : sfPool) {
+			if (sf.toString().contains("crystal.model.DataSourceTestAlessio.data")) {
+				System.out.println("");
+			}
+
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();
 				dep.depGen = sf.dependsOn;
+				dep.on = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
+
 				dep.field = sf.field;
 				dep.value = sf.getValue();
 				deps.add(dep);
@@ -272,12 +456,14 @@ public class HeapWalker {
 			for (Field f : allFields) {
 				String fieldName = getFieldFQN(f);
 				// if (!ignores.contains(fieldName)) {
-				if ((Modifier.isStatic(f.getModifiers())) && !((Modifier.isFinal(f.getModifiers())) && (f.getType().isPrimitive())))
+				if ((Modifier.isStatic(f.getModifiers()))
+						&& !((Modifier.isFinal(f.getModifiers())) && (f.getType().isPrimitive())))
 					try {
 						if (isBlackListedSF(f)) {
 							if (f.getType().isPrimitive()) {
 								try {
-									Field depInfo = f.getDeclaringClass().getDeclaredField(f.getName() + "__DEPENDENCY_INFO");
+									Field depInfo = f.getDeclaringClass()
+											.getDeclaredField(f.getName() + "__DEPENDENCY_INFO");
 									depInfo.setAccessible(true);
 									DependencyInfo i = (DependencyInfo) depInfo.get(null);
 									i.setIgnored(true);
@@ -294,7 +480,8 @@ public class HeapWalker {
 							if (f.getName().endsWith("__DEPENDENCY_INFO")) {
 								fieldName = fieldName.replace("__DEPENDENCY_INFO", "");
 								if (!cache.containsKey(fieldName)) {
-									cache.put(fieldName, new StaticField(f.getDeclaringClass().getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", ""))));
+									cache.put(fieldName, new StaticField(f.getDeclaringClass()
+											.getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", ""))));
 								}
 								StaticField sf = cache.get(fieldName);
 								f.setAccessible(true);
@@ -303,7 +490,8 @@ public class HeapWalker {
 									inf.fields = new StaticField[1];
 									inf.fields[0] = sf;
 								}
-								Field origField = f.getDeclaringClass().getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", ""));
+								Field origField = f.getDeclaringClass()
+										.getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", ""));
 								if (origField.getType().isPrimitive())
 									sfPool.add(sf);
 
@@ -386,12 +574,15 @@ public class HeapWalker {
 			}
 		};
 		xStreamInst.registerConverter(new WrappedPrimitiveConverter(), XStream.PRIORITY_VERY_HIGH);
-		xStreamInst.setMarshallingStrategy(new ReferenceByXPathMarshallingStrategy(ReferenceByXPathMarshallingStrategy.ABSOLUTE) {
-			@Override
-			protected TreeMarshaller createMarshallingContext(HierarchicalStreamWriter writer, ConverterLookup converterLookup, Mapper mapper) {
-				return new ReferenceByXPathWithDependencysMarshaller(writer, converterLookup, mapper, ReferenceByXPathMarshallingStrategy.ABSOLUTE);
-			}
-		});
+		xStreamInst.setMarshallingStrategy(
+				new ReferenceByXPathMarshallingStrategy(ReferenceByXPathMarshallingStrategy.ABSOLUTE) {
+					@Override
+					protected TreeMarshaller createMarshallingContext(HierarchicalStreamWriter writer,
+							ConverterLookup converterLookup, Mapper mapper) {
+						return new ReferenceByXPathWithDependencysMarshaller(writer, converterLookup, mapper,
+								ReferenceByXPathMarshallingStrategy.ABSOLUTE);
+					}
+				});
 
 		// for (String ignore : ignores) {
 		// int lastDot = ignore.lastIndexOf(".");
