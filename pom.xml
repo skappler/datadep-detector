@@ -4,6 +4,16 @@
 	<groupId>edu.gmu.swe</groupId>
 	<artifactId>DependencyDetector</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
+
+	<repositories>
+		<repository>
+			<id>in-project</id>
+			<name>In Project Repo</name>
+			<url>file:///${project.basedir}/local-repo/</url>
+		</repository>
+	</repositories>
+
+
 	<build>
 		<plugins>
 			<plugin>
@@ -107,7 +117,8 @@
 	</build>
 
 	<dependencies>
-		<!-- Integration Test -->
+		<!-- Integration Test, must be inside local-repo -->
+		
 		<dependency>
 			<groupId>modcrystal</groupId>
 			<artifactId>modcrystal</artifactId>

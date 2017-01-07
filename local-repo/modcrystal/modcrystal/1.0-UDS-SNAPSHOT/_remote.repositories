@@ -1,0 +1,5 @@
+#NOTE: This is an Aether internal implementation file, its format can be changed without prior notice.
+#Sat Jan 07 08:37:34 CET 2017
+modcrystal-1.0-UDS-SNAPSHOT.pom>=
+modcrystal-1.0-UDS-SNAPSHOT-tests.jar>=
+modcrystal-1.0-UDS-SNAPSHOT.jar>=
