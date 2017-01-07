@@ -425,9 +425,9 @@ public class HeapWalker {
 
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
 		for (StaticField sf : sfPool) {
-			if (sf.toString().contains("crystal.model.DataSourceTestAlessio.data")) {
-				System.out.println("");
-			}
+//			if (sf.toString().contains("crystal.model.DataSourceTestAlessio.data")) {
+//				System.out.println("");
+//			}
 
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();

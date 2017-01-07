@@ -123,11 +123,59 @@ public class CrystalIT {
 	}
 
 	@Test
-	public void testNoEmptyReadAfterSetField() {
-		// force and ignore static initializers
-		System.out.println(HeapWalker.walkAndFindDependencies("INIT", "INIT"));
-
+	public void testNoEmptyReadAfterSetNullField() {
 		LinkedList<StaticFieldDependency> deps;
+		Collection<Entry<String, String>> depsData;
+
+		// force and ignore static initializers
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
+
+		// initialize the data structure
+		(new DataSourceTestAlessio()).testSetField();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
+
+		// Set the field to a non null value
+		(new DataSourceTestAlessio()).testSetCompileCommand();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommand");
+		// has(depsData,
+		// "crystal.model.DataSourceTestAlessio.testSetCompileCommand",
+		// "__compileCommand"); THIS IS NOT THERE SINCE THE FIELD WAS NEVER
+		// INITIALIZED, SO NEVER WRITTEN, SO CANNOT GENERATE A CONFLICT. But now
+		// we wrote it, so later this shall pop up !
+
+		// Reset the the field to a null value - This reads the field written by
+		// testSetCompileCommand (assert) and then it
+		// Changes as well, so the conflict must be updated in the next
+		// execution
+		(new DataSourceTestAlessio()).testSetCompileCommandToNull();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommandToNull");
+
+		// Assert
+		depsData = extractDataStaticFieldDepValue(deps);
+		// We read data so we need it - data is a SF
+		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
+		// The field _compileCommand was changed to null ... this must be
+		// reported !
+		has(depsData, "crystal.model.DataSourceTestAlessio.testSetCompileCommand", "__compileCommand");
+
+		// Set the field to a non null value
+		(new DataSourceTestAlessio()).testSetCompileCommand();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommand");
+		// Assert
+		depsData = extractDataStaticFieldDepValue(deps);
+		// We read data so we need it - data is a SF
+		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
+		// The field _compileCommand was changed again
+		has(depsData, "crystal.model.DataSourceTestAlessio.testSetCompileCommandToNull", "__compileCommand");
+
+	}
+
+	@Test
+	public void testNoEmptyReadAfterSetField() {
+		LinkedList<StaticFieldDependency> deps;
+		// force and ignore static initializers
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
+
 		(new DataSourceTestAlessio()).testSetField();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 
@@ -143,6 +191,15 @@ public class CrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__parent");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "a");
+		//
+		// Reads on null value shall be reported ? Ideally no, because for
+		// objects null values are default.
+		// But what if someone actually wrote a null value into a field ?!
+		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
+		// "__compileCommand");
+		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
+		// "__reniteCmd");
+
 	}
 
 	private static void has(Collection<Entry<String, String>> depsData, String testName, String depName) {
@@ -158,7 +215,7 @@ public class CrystalIT {
 	@Test
 	public void testEmptySetKind() {
 		// force and ignore static initializers
-		System.out.println(HeapWalker.walkAndFindDependencies("INIT", "INIT"));
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
 		LinkedList<StaticFieldDependency> deps;
 		(new DataSourceTestAlessio()).testSetField();
@@ -177,16 +234,14 @@ public class CrystalIT {
 	@Test
 	public void testEmptySetKindAfterRead() {
 
-		System.out.println(HeapWalker.walkAndFindDependencies("INIT", "INIT"));
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
 		LinkedList<StaticFieldDependency> deps;
 
 		(new DataSourceTestAlessio()).testSetField();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
-		System.out.println("setField" + deps);
 
 		(new DataSourceTestAlessio()).testReadALL();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
-		System.out.println("testReadALL" + deps);
 
 		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(deps);
 
@@ -213,7 +268,7 @@ public class CrystalIT {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
 
-		System.out.println(HeapWalker.walkAndFindDependencies("INIT", "INIT"));
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
 		(new DataSourceTestAlessio()).testSetField();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
@@ -225,7 +280,7 @@ public class CrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__enabled");
-		
+
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__remoteCmd");
 
 		(new DataSourceTestAlessio()).testSetKind();
@@ -247,7 +302,7 @@ public class CrystalIT {
 		Collection<Entry<String, String>> depsData;
 
 		// force and ignore static initializers
-		System.out.println(HeapWalker.walkAndFindDependencies("INIT", "INIT"));
+		HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
 		(new DataSourceTestAlessio()).testSetField();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
@@ -270,9 +325,9 @@ public class CrystalIT {
 		//
 		depsData = extractDataStaticFieldDepValue(deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
-		
+
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
-		
+
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__remoteCmd");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__testCommand");
@@ -323,7 +378,6 @@ public class CrystalIT {
 
 		(new DataSourceTestAlessio()).testSetKind();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
-		System.out.println("testSetKind" + deps);
 		// dependsOn="crystal.model.DataSourceTestAlessio.testSetCloneString" on
 		// __cloneString
 		// dependsOn="crystal.model.DataSourceTestAlessio.testSetField" on
