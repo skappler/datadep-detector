@@ -22,6 +22,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import crystal.model.DataSourceTest;
 import crystal.model.DataSourceTestAlessio;
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
@@ -79,9 +80,10 @@ public class CrystalIT {
 	}
 
 	// Return the string/xml of the value for this sf
-	private Collection<Entry<String, String>> extractDataStaticFieldDepValue(LinkedList<StaticFieldDependency> deps) {
+	private Collection<Entry<String, String>> extractDataStaticFieldDepValue(Class dataSourceTestClass,
+			LinkedList<StaticFieldDependency> deps) {
 		for (StaticFieldDependency sf : deps) {
-			if (sf.field.getType().isAssignableFrom(DataSourceTestAlessio.data.getClass())) {
+			if (sf.field.getType().isAssignableFrom(dataSourceTestClass)) {
 				return extractDepsData(sf);
 			}
 		}
@@ -151,7 +153,7 @@ public class CrystalIT {
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommandToNull");
 
 		// Assert
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		// We read data so we need it - data is a SF
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		// The field _compileCommand was changed to null ... this must be
@@ -162,7 +164,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testSetCompileCommand();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommand");
 		// Assert
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		// We read data so we need it - data is a SF
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		// The field _compileCommand was changed again
@@ -182,7 +184,8 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
 
-		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(deps);
+		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(
+				DataSourceTestAlessio.data.getClass(), deps);
 
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		//
@@ -225,7 +228,8 @@ public class CrystalIT {
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
 
 		// Assertions
-		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(deps);
+		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(
+				DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
@@ -243,7 +247,8 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
 
-		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(deps);
+		Collection<Entry<String, String>> depsData = extractDataStaticFieldDepValue(
+				DataSourceTestAlessio.data.getClass(), deps);
 
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
@@ -254,13 +259,52 @@ public class CrystalIT {
 
 		(new DataSourceTestAlessio()).testSetKind();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 
 		// Assertions
-		extractDataStaticFieldDepValue(deps);
+		extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+	}
+
+	/**
+	 * In some cases a test only writes, while another reads and write. This
+	 * shall be marked as dependency as well as once the order of execution of
+	 * those test is reverted, manifest dependencies might cause tests to fail
+	 */
+	@Test
+	public void testWriteAfterWrite() {
+		LinkedList<StaticFieldDependency> deps;
+		Collection<Entry<String, String>> depsData;
+
+		// HeapWalker.walkAndFindDependencies("INIT", "INIT");
+
+		(new DataSourceTest()).testSetField();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetField");
+
+		System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
+
+		(new DataSourceTest()).testSetCloneString();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetCloneString");
+
+		System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
+
+		(new DataSourceTest()).testToString();
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testToString");
+
+		System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
+
+		// Writes after writes
+		// data.setShortName(short_name);
+		// data.setKind(kind);
+		// data.setCloneString(cloneString);
+
+		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
+		has(depsData, "crystal.model.DataSourceTest.testSetCloneString", "__cloneString");
+
+		has(depsData, "crystal.model.DataSourceTest.testSetField", "__shortName");
+		has(depsData, "crystal.model.DataSourceTest.testSetField", "__repoKind");
 	}
 
 	@Test
@@ -275,7 +319,7 @@ public class CrystalIT {
 
 		(new DataSourceTestAlessio()).testSetCloneString();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCloneString");
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
@@ -285,7 +329,7 @@ public class CrystalIT {
 
 		(new DataSourceTestAlessio()).testSetKind();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data"); // TODO
 																														// Not
 																														// sure
@@ -310,7 +354,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
@@ -323,7 +367,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL2();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL2");
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
@@ -339,7 +383,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL3();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL3");
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
@@ -354,7 +398,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testReadALL4();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL4");
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
@@ -369,7 +413,7 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testSetCloneString();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCloneString");
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
@@ -384,7 +428,7 @@ public class CrystalIT {
 		// __kind,
 
 		//
-		depsData = extractDataStaticFieldDepValue(deps);
+		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data"); // NOT
 																														// SURE
 																														// ABOUT
