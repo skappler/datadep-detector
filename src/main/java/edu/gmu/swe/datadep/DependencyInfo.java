@@ -43,6 +43,10 @@ public final class DependencyInfo implements Serializable{
 	}
 
 	public void write() {
+		// We report also the Write after Write as conflicts
+		// Note the use of read() is a TRICK !
+		read();
+		//
 		writeGen = CURRENT_TEST_COUNT;
 	}
 
