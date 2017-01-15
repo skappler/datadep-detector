@@ -5,11 +5,6 @@
 	<artifactId>DependencyDetector</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 
-	<!-- During development use the actual version of the project not the local 
-		one -->
-	<!-- <repositories> <repository> <id>in-project</id> <name>In Project Repo</name> 
-		<url>file:///${project.basedir}/local-repo/</url> </repository> </repositories> -->
-
 
 	<build>
 		<plugins>
