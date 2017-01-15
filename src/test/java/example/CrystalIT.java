@@ -285,11 +285,16 @@ public class CrystalIT {
 
 		// System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
 
+		// This one read and set some variables
 		(new DataSourceTest()).testSetCloneString();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetCloneString");
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "__cloneString");
 
+		// This one just set some variables. However, by doing so, it introduce
+		// an error if this is used before
+		// testSetCloneString which expects a different string. So the dep among
+		// the two is a manifest dep. How to check this ?! Read gen ?
 		(new DataSourceTest()).testToString();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testToString");
 
@@ -301,7 +306,8 @@ public class CrystalIT {
 		// data.setCloneString(cloneString); WW
 
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
-		// TODO For the moment, Write after Write are not consider data dependency
+		// TODO For the moment, Write after Write are not consider data
+		// dependency
 		// has(depsData, "crystal.model.DataSourceTest.testSetCloneString",
 		// "__cloneString");
 		// has(depsData, "crystal.model.DataSourceTest.testSetField",

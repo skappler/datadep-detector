@@ -13,8 +13,10 @@ public final class DependencyInfo implements Serializable {
 	private boolean ignored;
 	private int crawledGen;
 	private int writeGen;
-	// private int readGen;
+	// private int readGen; // Will this overflow the memory ?!
+
 	private boolean conflict;
+
 	public Element xmlEl;
 	StaticField[] fields;
 
@@ -50,10 +52,46 @@ public final class DependencyInfo implements Serializable {
 		// Note the use of read() is a TRICK !
 		// read();
 		//
-		// R -> W1, W2 === W2, R -> W1 
+		// R -> W1, W2 === W2, R -> W1
 		// Can we capture the write after write ?
-		
+		// TODO Not sure why with readGen everything breaks
+		if (writeGen != CURRENT_TEST_COUNT) // && readGen != CURRENT_TEST_COUNT
+											// && writeGen == readGen)
+		{
+			// TODO Must be the same test ?!
+			// This is a write after write. However, shall we consider it only
+			// if there was a read before, but in that case, this would be
+			// already a write after read ?
+
+			// If there was a read before. Is crawler gen ok os we need to use
+			// readGen ?
+			conflict = true;
+			// Snag the value of the field.
+			if (fields != null) {
+				for (StaticField sf : fields)
+					if (sf != null) {
+						if (xmlEl != null) {
+							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
+								System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen() + " "
+										+ HeapWalker.testNumToTestClass.size());
+							} else {
+								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
+										+ HeapWalker.testNumToMethod.get(getWriteGen()));
+							}
+						}
+
+						// FIXME What shall we do here ?!
+						if (sf.isConflict()) {
+							// TODO(gyori): The xmlEl is somehow null. When can
+							// this be null?
+						} else {
+							sf.markConflictAndSerialize(writeGen);
+						}
+					}
+			}
+		}
 		writeGen = CURRENT_TEST_COUNT;
+
 	}
 
 	public boolean isIgnored() {
