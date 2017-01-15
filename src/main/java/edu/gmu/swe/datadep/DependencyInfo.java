@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 import org.jdom2.Element;
 
-public final class DependencyInfo implements Serializable{
+public final class DependencyInfo implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
@@ -42,11 +42,17 @@ public final class DependencyInfo implements Serializable{
 		return writeGen;
 	}
 
+	// Not sure about this, especially for read after write.
+	///
 	public void write() {
+		// TODO FIXME
 		// We report also the Write after Write as conflicts
 		// Note the use of read() is a TRICK !
-		read();
+		// read();
 		//
+		// R -> W1, W2 === W2, R -> W1 
+		// Can we capture the write after write ?
+		
 		writeGen = CURRENT_TEST_COUNT;
 	}
 
@@ -74,11 +80,13 @@ public final class DependencyInfo implements Serializable{
 								// heap roots
 				for (StaticField sf : fields)
 					if (sf != null) {
-						if (xmlEl != null){
-							if(HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
-								System.out.println("FOUND NULL DI "+getWriteGen()+" "+HeapWalker.testNumToTestClass.size());
+						if (xmlEl != null) {
+							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
+								System.out.println(
+										"FOUND NULL DI " + getWriteGen() + " " + HeapWalker.testNumToTestClass.size());
 							else
-								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "." + HeapWalker.testNumToMethod.get(getWriteGen()));
+								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
+										+ HeapWalker.testNumToMethod.get(getWriteGen()));
 						}
 						if (sf.isConflict()) {
 							// TODO(gyori): The xmlEl is somehow null. When can
