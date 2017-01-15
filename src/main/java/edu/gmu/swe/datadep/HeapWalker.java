@@ -402,6 +402,7 @@ public class HeapWalker {
 				i.get().clearConflict();
 			}
 		}
+		lastGenReachable.clear(); // Added
 		DependencyInfo.IN_CAPTURE = false;
 	}
 

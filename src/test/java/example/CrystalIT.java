@@ -33,20 +33,10 @@ import edu.gmu.swe.datadep.StaticFieldDependency;
  */
 public class CrystalIT {
 
-	private static utils.ClassLoaderHelper ch = new utils.ClassLoaderHelper();
-
-	@BeforeClass
-	public static void preloadAllClasses() throws ClassNotFoundException {
-		// If we simply do the preloading, we miss the whitelist
-		HeapWalker.clearWhitelist();
-		HeapWalker.addToWhitelist("crystal");
-
-		ch.getClassesForPackage("crystal");
-
-	}
-
 	@Before
 	public void setupWhitelist() {
+		HeapWalker.resetAllState();
+		//
 		HeapWalker.clearWhitelist();
 		HeapWalker.addToWhitelist("crystal");
 		//
@@ -270,8 +260,10 @@ public class CrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 
 		// Assertions
-//		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
-		
+		// depsData =
+		// extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(),
+		// deps);
+
 	}
 
 	/**
@@ -309,10 +301,14 @@ public class CrystalIT {
 		// data.setCloneString(cloneString); WW
 
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
-		has(depsData, "crystal.model.DataSourceTest.testSetCloneString", "__cloneString");
-		has(depsData, "crystal.model.DataSourceTest.testSetField", "__shortName");
+		// TODO For the moment, Write after Write are not consider data dependency
+		// has(depsData, "crystal.model.DataSourceTest.testSetCloneString",
+		// "__cloneString");
+		// has(depsData, "crystal.model.DataSourceTest.testSetField",
+		// "__shortName");
 		//
-		has(depsData, "crystal.model.DataSourceTest.testSetField", "__repoKind");
+		// has(depsData, "crystal.model.DataSourceTest.testSetField",
+		// "__repoKind");
 	}
 
 	@Test
@@ -359,6 +355,9 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testSetField();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+		Assert.assertTrue(depsData.size() == 0);
+
+		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 		Assert.assertTrue(depsData.size() == 0);
 
 		(new DataSourceTestAlessio()).testReadALL();
