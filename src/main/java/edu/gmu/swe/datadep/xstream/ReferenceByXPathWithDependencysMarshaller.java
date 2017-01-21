@@ -3,6 +3,7 @@ package edu.gmu.swe.datadep.xstream;
 import java.lang.reflect.Field;
 import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
@@ -69,21 +70,26 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								Field finf;
 								if (source.getClass().equals(Hashtable.class)) {
 									finf = source.getClass().getDeclaredField("count__DEPENDENCY_INFO");
-								} else {
+								} else if(source.getClass().equals(ConcurrentHashMap.class)){
+									finf = null;
+								}else{
 									finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
 								}
 								// f.setAccessible(true);
-								finf.setAccessible(true);
-								writer.addAttribute("size", "" + m.size());
-								inf = (DependencyInfo) finf.get(source);
-								if (inf != null && inf.isConflict()) {
-									if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
-										System.out.println("FOUND NULL SDO " + inf.getWriteGen() + " "
-												+ HeapWalker.testNumToTestClass.size());
-									else
-										writer.addAttribute("size_dependsOn",
-												HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "."
-														+ HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+								
+								if (finf != null) {
+									finf.setAccessible(true);
+									writer.addAttribute("size", "" + m.size());
+									inf = (DependencyInfo) finf.get(source);
+									if (inf != null && inf.isConflict()) {
+										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
+											System.out.println("FOUND NULL SDO " + inf.getWriteGen() + " "
+													+ HeapWalker.testNumToTestClass.size());
+										else
+											writer.addAttribute("size_dependsOn",
+													HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "."
+															+ HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+									} 
 								}
 							} catch (NoSuchFieldException e) {
 								System.err.println("Source " + source.getClass());
