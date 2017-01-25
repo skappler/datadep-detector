@@ -62,6 +62,11 @@ public class StaticField implements Serializable {
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
+
+		if (value == null) {
+			System.out.println(
+					"StaticField.markConflictAndSerialize() Value is null for " + field + " in write gen " + writeGen);
+		}
 	}
 
 	public String getValue() {
@@ -69,12 +74,17 @@ public class StaticField implements Serializable {
 		XMLOutputter out = new XMLOutputter();
 
 		try {
-			Element e = (Element) value.getContent().get(0);
-			out.output(new Document(e.detach()), sw);
-			out.setFormat(Format.getPrettyFormat());
+			if (value != null) {
+				Element e = (Element) value.getContent().get(0);
+				out.output(new Document(e.detach()), sw);
+				out.setFormat(Format.getPrettyFormat());
+			} else {
+				System.out.println("StaticField.getValue() Null value for " + this);
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
 		return sw.toString();
 	}
 
