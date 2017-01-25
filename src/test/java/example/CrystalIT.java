@@ -19,7 +19,6 @@ import org.jdom2.xpath.XPathFactory;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import crystal.model.DataSourceTest;
@@ -340,13 +339,8 @@ public class CrystalIT {
 		(new DataSourceTestAlessio()).testSetKind();
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
-		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data"); // TODO
-																														// Not
-																														// sure
-																														// !
-		//
+		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data"); 
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetCloneString", "__cloneString");
-		//
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 	}
 

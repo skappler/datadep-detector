@@ -18,6 +18,8 @@ public class FilteringFieldMapper extends MapperWrapper {
 	static HashSet<String> blackListedPackages = new HashSet<String>();
 	static {
 		blackListedPackages.add("org.log4j");
+		// FIXME Not sure this is sage... not e
+		blackListedPackages.add("java.lang.reflect.Field.iParam");
 		//		blackListedPackages.add("edu.columbia.cs.psl.phosphor");
 	}
 

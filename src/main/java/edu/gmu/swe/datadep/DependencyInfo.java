@@ -4,7 +4,10 @@ import java.io.Serializable;
 
 import org.jdom2.Element;
 
+// TODO Add a STATIC FLAG to enable/disable write-after-write stuff
 public final class DependencyInfo implements Serializable {
+
+	public static boolean conflictsForWriteAfterWrite = false;
 
 	private static final long serialVersionUID = 1L;
 
@@ -20,13 +23,13 @@ public final class DependencyInfo implements Serializable {
 	public Element xmlEl;
 	StaticField[] fields;
 
-	private String value;
+	// private String value;
 
 	public DependencyInfo() {
 
 	}
 
-	private StackTraceElement[] ex;
+	// private StackTraceElement[] ex;
 
 	public int getCrawledGen() {
 		return crawledGen;
@@ -55,8 +58,9 @@ public final class DependencyInfo implements Serializable {
 		// R -> W1, W2 === W2, R -> W1
 		// Can we capture the write after write ?
 		// TODO Not sure why with readGen everything breaks
-		if (writeGen != CURRENT_TEST_COUNT) // && readGen != CURRENT_TEST_COUNT
-											// && writeGen == readGen)
+		if (conflictsForWriteAfterWrite && writeGen != CURRENT_TEST_COUNT)
+		// && readGen != CURRENT_TEST_COUNT
+		// && writeGen == readGen)
 		{
 			// TODO Must be the same test ?!
 			// This is a write after write. However, shall we consider it only

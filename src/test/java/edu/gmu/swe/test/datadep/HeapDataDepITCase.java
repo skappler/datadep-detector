@@ -1,6 +1,7 @@
 package edu.gmu.swe.test.datadep;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -9,7 +10,6 @@ import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
 
