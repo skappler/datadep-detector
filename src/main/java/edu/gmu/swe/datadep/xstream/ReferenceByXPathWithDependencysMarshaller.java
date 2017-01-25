@@ -2,6 +2,7 @@ package edu.gmu.swe.datadep.xstream;
 
 import java.lang.reflect.Field;
 import java.util.Hashtable;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -81,7 +82,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								Field finf;
 								if (source.getClass().equals(Hashtable.class)) {
 									finf = source.getClass().getDeclaredField("count__DEPENDENCY_INFO");
-								} else if (source.getClass().equals(ConcurrentHashMap.class)) {
+								} else if (source.getClass().equals(ConcurrentHashMap.class) || source.getClass().equals(LinkedHashMap.class)) {
 									finf = null;
 								} else {
 									finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
