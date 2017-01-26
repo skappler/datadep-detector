@@ -25,15 +25,17 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 	static boolean innerException = false;
 	static final boolean DEBUG = System.getProperties().containsKey("debug");
 
-	public byte[] transform(ClassLoader loader, final String className2, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public byte[] transform(ClassLoader loader, final String className2, Class<?> classBeingRedefined,
+			ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		ClassReader cr = new ClassReader(classfileBuffer);
 		String className = cr.getClassName();
 		innerException = false;
 		if (Instrumenter.isIgnoredClass(className)) {
-			
-			if( className.equals("java/lang/String")){
+
+			if (className.equals("java/lang/String")) {
 				System.out.println("RWDependencyClassFileTransformer.transform() Ignoring String.class");
 			}
+
 			return classfileBuffer;
 		}
 

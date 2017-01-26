@@ -141,6 +141,11 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public static void write(Object obj) {
+		if (obj instanceof MockedClass) {
+			return;
+		}
+
+		//
 		if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().write();
 		} else if (obj instanceof DependencyInfo) {
@@ -150,7 +155,15 @@ public final class DependencyInfo implements Serializable {
 		}
 	}
 
+	// This call for a mocked object results in a chain, we cannot avoid
+	// this in mockito
+	// since mockito uses CGLib which extends classes, so we get their
+	// interfaces... as well
+
 	public static void read(Object obj) {
+		if (obj instanceof MockedClass) {
+			return;
+		}
 		if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().read();
 		} else if (obj instanceof DependencyInfo) {
