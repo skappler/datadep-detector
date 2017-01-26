@@ -34,6 +34,8 @@ public class HeapWalker {
 		return clz + "." + fld;
 	}
 
+	public static final String USE_WAW = "heap-walker.waw";
+
 	public static Object loggerSingleton;
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
 	private static final Set<String> whiteList;
@@ -408,6 +410,10 @@ public class HeapWalker {
 
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
+
+		DependencyInfo.conflictsForWriteAfterWrite = (System.getProperty(USE_WAW) != null ? Boolean.getBoolean(USE_WAW)
+				: false);
+
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
@@ -443,9 +449,10 @@ public class HeapWalker {
 				// This thing clear previous conflicts informations, however, in
 				// case of reads in subsequent tests
 				// only the former test report the dep, while all of them should
-				// have done. So we clear conflict data ONLY for fields that we wrote.
+				// have done. So we clear conflict data ONLY for fields that we
+				// wrote.
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
-					
+
 					sf.clearConflict();
 				}
 			}
