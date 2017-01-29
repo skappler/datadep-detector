@@ -85,7 +85,12 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								} else if (source.getClass().equals(ConcurrentHashMap.class) || source.getClass().equals(LinkedHashMap.class)) {
 									finf = null;
 								} else {
-									finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
+									try{
+										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
+									}catch(NoSuchFieldException e){
+										System.out.println("NoSuchFieldException for map "+source.getClass());
+										finf=null;
+									}
 								}
 								// f.setAccessible(true);
 
