@@ -1,5 +1,7 @@
 package edu.gmu.swe.datadep;
 
+import java.util.Arrays;
+
 import edu.gmu.swe.datadep.struct.WrappedPrimitive;
 
 public final class TagHelper {
@@ -12,7 +14,8 @@ public final class TagHelper {
 	public static DependencyInfo getOrFetchTag(Object obj) {
 
 		if (obj instanceof MockedClass) {
-			System.out.println("TagHelper.getOrFetchTag() For mocked class " + obj);
+			System.out.println("TagHelper.getOrFetchTag() For mocked class " + obj.getClass() + " with Interfaces "
+					+ Arrays.toString(obj.getClass().getInterfaces()));
 			return null;
 		}
 

@@ -35,6 +35,7 @@ public class HeapWalker {
 	}
 
 	public static final String USE_WAW = "heap-walker.waw";
+	public static final String STORE_XML_STATE = "heap-walker.store.xml.state";
 
 	public static Object loggerSingleton;
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
@@ -105,6 +106,11 @@ public class HeapWalker {
 		return false;
 	}
 
+	/**
+	 * 
+	 * @param f
+	 * @return
+	 */
 	private static boolean isBlackListedSF(Field f) {
 		String className = f.getDeclaringClass().getName();
 		String fieldName = f.getName();
@@ -413,6 +419,9 @@ public class HeapWalker {
 
 		DependencyInfo.conflictsForWriteAfterWrite = (System.getProperty(USE_WAW) != null ? Boolean.getBoolean(USE_WAW)
 				: false);
+
+		DependencyInfo.conflictsForWriteAfterWrite = (System.getProperty(STORE_XML_STATE) != null
+				? Boolean.getBoolean(STORE_XML_STATE) : false);
 
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);

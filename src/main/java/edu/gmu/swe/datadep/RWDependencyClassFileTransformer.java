@@ -42,8 +42,14 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 		if (cn.version >= 100 || cn.version < 50)
 			skipFrames = true;
 
+		// First check if this class is a mock, in that case it was likely
+		// already instrumented.
 		if (Instrumenter.isMockedClass(cn.name)) {
 			try {
+
+				System.out.println(
+						"RWDependencyClassFileTransformer.transform() Applying Mocking Interface to " + cn.name);
+
 				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
 
 				cr.accept(
@@ -61,7 +67,6 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 			}
 		}
 
-		
 		///
 		if (cn.interfaces != null)
 			for (Object s : cn.interfaces) {
@@ -69,8 +74,16 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 					return classfileBuffer;
 			}
 
+		//
 		for (Object mn : cn.methods)
-			if (((MethodNode) mn).name.equals("getDEPENDENCY_INFO") && !Instrumenter.isMockedClass(className))
+			if (((MethodNode) mn).name.equals(
+					"getDEPENDENCY_INFO")) /*
+											 * Since we apply mocking interface
+											 * before this should not be needed
+											 * anymore: &&
+											 * !Instrumenter.isMockedClass(
+											 * className))
+											 */
 				return classfileBuffer;
 
 		TraceClassVisitor cv = null;

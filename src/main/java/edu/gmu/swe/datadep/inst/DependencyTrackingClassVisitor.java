@@ -61,18 +61,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 		}
 
-		// If this classe is mocked we also include another empty interface
-		// Add interface
-		if (!Instrumenter.isMockedClass(name) && isClass) {
-//			System.out.println("DependencyTrackingClassVisitor.visit() Adding MockedClass interface");
-			String[] iface = new String[interfaces.length + 1];
-			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
-			iface[interfaces.length] = Type.getInternalName(MockedClass.class);
-			interfaces = iface;
-			if (signature != null)
-				signature = signature + Type.getDescriptor(MockedClass.class);
-		}
-
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 

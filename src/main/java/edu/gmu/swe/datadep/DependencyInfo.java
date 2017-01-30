@@ -16,9 +16,12 @@ import org.jdom2.Element;
 //#  SIGSEGV (0xb) at pc=0x0000000000000000, pid=10829, tid=4867
 //#
 //same goes when using the getClass().toString() code
+// 
+// TODO: Try to categorize dependencies in read-after-write, write-after-read, write-after-write. Enable the READ_GEN Stuff ! Pay attention to memory overflow
 public final class DependencyInfo implements Serializable {
 
 	public static boolean conflictsForWriteAfterWrite = false;
+	public static boolean storeXMLState = false;
 
 	private static final long serialVersionUID = 1L;
 
@@ -85,7 +88,8 @@ public final class DependencyInfo implements Serializable {
 			if (fields != null) {
 				for (StaticField sf : fields)
 					if (sf != null) {
-						if (xmlEl != null) {
+
+						if (storeXMLState && xmlEl != null) {
 							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
 								System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen() + " "
 										+ HeapWalker.testNumToTestClass.size());
@@ -133,7 +137,7 @@ public final class DependencyInfo implements Serializable {
 								// heap roots
 				for (StaticField sf : fields)
 					if (sf != null) {
-						if (xmlEl != null) {
+						if (storeXMLState && xmlEl != null) {
 							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
 								System.out.println(
 										"FOUND NULL DI " + getWriteGen() + " " + HeapWalker.testNumToTestClass.size());
