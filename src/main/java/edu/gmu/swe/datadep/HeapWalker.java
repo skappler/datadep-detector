@@ -633,11 +633,17 @@ public class HeapWalker {
 	}
 
 	public static synchronized Element serialize(Object obj) {
-		if (DependencyInfo.IN_CAPTURE)
+		if (DependencyInfo.IN_CAPTURE) {
 			return null;
+		}
 		// if(obj != null &&
 		// obj.getClass().getName().contains("edu.columbia.cs.psl.testdepends"))
 		// return null;
+
+		if (!DependencyInfo.storeXMLState) {
+			return null;
+		}
+
 		try {
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");

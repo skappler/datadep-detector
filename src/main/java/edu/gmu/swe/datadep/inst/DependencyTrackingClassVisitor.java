@@ -15,7 +15,6 @@ import org.objectweb.asm.tree.FieldNode;
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.DependencyInstrumented;
 import edu.gmu.swe.datadep.Instrumenter;
-import edu.gmu.swe.datadep.MockedClass;
 
 /**
  * This class adds the required interfaces

@@ -31,13 +31,13 @@ public final class DependencyInfo implements Serializable {
 	private int crawledGen;
 	private int writeGen;
 	// private int readGen; // Will this overflow the memory ?!
+	// private String value;
 
 	private boolean conflict;
 
 	public Element xmlEl;
 	StaticField[] fields;
 
-	// private String value;
 
 	public DependencyInfo() {
 
@@ -137,6 +137,7 @@ public final class DependencyInfo implements Serializable {
 								// heap roots
 				for (StaticField sf : fields)
 					if (sf != null) {
+
 						if (storeXMLState && xmlEl != null) {
 							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
 								System.out.println(
@@ -145,6 +146,7 @@ public final class DependencyInfo implements Serializable {
 								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
 										+ HeapWalker.testNumToMethod.get(getWriteGen()));
 						}
+
 						if (sf.isConflict()) {
 							// TODO(gyori): The xmlEl is somehow null. When can
 							// this be null?
