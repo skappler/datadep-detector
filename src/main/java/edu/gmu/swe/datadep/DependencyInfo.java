@@ -4,7 +4,18 @@ import java.io.Serializable;
 
 import org.jdom2.Element;
 
-// TODO Add a STATIC FLAG to enable/disable write-after-write stuff
+// using the code below:
+//MockingDetails md = org.mockito.Mockito.mockingDetails(obj);
+// if (md.isMock() || md.isSpy()) {
+// return;
+// }
+// Results in :
+//#
+//# A fatal error has been detected by the Java Runtime Environment:
+//#
+//#  SIGSEGV (0xb) at pc=0x0000000000000000, pid=10829, tid=4867
+//#
+//same goes when using the getClass().toString() code
 public final class DependencyInfo implements Serializable {
 
 	public static boolean conflictsForWriteAfterWrite = false;
@@ -141,6 +152,11 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public static void write(Object obj) {
+
+		if (obj instanceof MockedClass) {
+			return;
+		}
+
 		if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().write();
 		} else if (obj instanceof DependencyInfo) {
@@ -150,7 +166,15 @@ public final class DependencyInfo implements Serializable {
 		}
 	}
 
+	// This call for a mocked object results in a chain, we cannot avoid
+	// this in mockito
+	// since mockito uses CGLib which extends classes, so we get their
+	// interfaces... as well
+
 	public static void read(Object obj) {
+		if (obj instanceof MockedClass) {
+			return;
+		}
 		if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().read();
 		} else if (obj instanceof DependencyInfo) {
