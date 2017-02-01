@@ -81,18 +81,23 @@ public class HeapWalker {
 	}
 
 	protected static boolean shouldCapture(Field f) {
-		if (f.getDeclaringClass().getName().startsWith("java") || f.getDeclaringClass().getName().startsWith("sun")
-				|| f.getDeclaringClass().getName().startsWith("edu.gmu.swe.datadep."))
-			return false;
+		//
 		String fieldName = getFieldFQN(f);
 		String fldLower = fieldName.toLowerCase();
+		//
+		if (f.getDeclaringClass().getName().startsWith("java") || f.getDeclaringClass().getName().startsWith("sun")
+				|| f.getDeclaringClass().getName().startsWith("edu.gmu.swe.datadep.")) {
+			// System.out.println("***Ignored_Root: " + fieldName);
+			return false;
+		}
 		if ((fldLower.contains("mockito")) || (fldLower.contains("$$"))) {
 			// System.out.println("***Ignored_Root: " + fieldName);
 			return false;
 		}
 
-		if (whiteList.isEmpty())
+		if (whiteList.isEmpty()) {
 			return true;
+		}
 		Package p = f.getDeclaringClass().getPackage();
 		if (p != null) {
 			String pkg = p.getName();
@@ -109,7 +114,7 @@ public class HeapWalker {
 		String className = f.getDeclaringClass().getName();
 		String fieldName = f.getName();
 
-		return "java.lang.reflect.Field".equals(className) || "java.lang.reflect.Method".equals(className)
+		boolean bListed = "java.lang.reflect.Field".equals(className) || "java.lang.reflect.Method".equals(className)
 				|| "java.lang.Class".equals(className)
 				|| ("java.lang.System".equals(className) && "out".equals(fieldName))
 				|| ("java.io.BufferedInputStream".equals(className) && "bufUpdater".equals(fieldName))
@@ -384,6 +389,12 @@ public class HeapWalker {
 						&& "$assertionsDisabled".equals(fieldName))
 				|| ("sun.util.resources.LocaleData$LocaleDataResourceBundleControl".equals(className)
 						&& "INSTANCE".equals(fieldName));
+
+		// if (bListed) {
+		// System.out.println("HeapWalker.isBlackListedSF() " + className + "."
+		// + fieldName + " is black listed");
+		// }
+		return bListed;
 	}
 
 	private static final LinkedHashMap<String, Object> nameToInstance = new LinkedHashMap();
@@ -392,6 +403,8 @@ public class HeapWalker {
 	public static HashMap<Integer, String> testNumToTestClass = new HashMap<>();
 
 	public static synchronized void resetAllState() {
+		System.out.println("HeapWalker.resetAllState()");
+
 		testCount = 1;
 		DependencyInfo.IN_CAPTURE = true;
 		DependencyInfo.CURRENT_TEST_COUNT = 1;
@@ -420,23 +433,27 @@ public class HeapWalker {
 		testCount++;
 		// First - clean up from last generation: make sure that all static
 		// field up-pointers are cleared out
+
+		System.out.println("HeapWalker.walkAndFindDependencies() Processing " + className + "." + methodName);
+		System.out.println("HeapWalker.walkAndFindDependencies() lastGenReachable " + lastGenReachable.size());
 		for (WeakReference<DependencyInfo> inf : lastGenReachable) {
+			System.out.println("HeapWalker.walkAndFindDependencies() lastGenReacheable " + inf);
+
 			if (inf.get() != null) {
+				System.out.println("HeapWalker.walkAndFindDependencies() lastGenReacheable Fields "
+						+ Arrays.toString(inf.get().fields));
+
 				inf.get().clearSFs();
 				inf.get().clearConflict();
 			}
 		}
 		lastGenReachable.clear();
 
-		// Are duplicate allowed in sfPool ?
-
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
+		System.out.println("HeapWalker.walkAndFindDependencies() sfPool " + sfPool.size());
 		for (StaticField sf : sfPool) {
-			// if
-			// (sf.toString().contains("crystal.model.DataSourceTestAlessio.data"))
-			// {
-			// System.out.println("");
-			// }
+
+			System.out.println("HeapWalker.walkAndFindDependencies()  " + sf);
 
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();
@@ -458,6 +475,9 @@ public class HeapWalker {
 			}
 		}
 		sfPool.clear();
+
+		// Prepare the data structure for next round ...
+		System.out.println("HeapWalker.walkAndFindDependencies() Collecting sfPool ");
 		HashMap<String, StaticField> cache = new HashMap<String, StaticField>();
 		for (Class<?> c : PreMain.getInstrumentation().getAllLoadedClasses()) {
 			Set<Field> allFields = new HashSet<Field>();
@@ -467,6 +487,18 @@ public class HeapWalker {
 				allFields.addAll(Arrays.asList(declaredFields));
 				allFields.addAll(Arrays.asList(fields));
 			} catch (NoClassDefFoundError e) {
+				// This might happen but not sure why
+				System.out.println("HeapWalker.walkAndFindDependencies() IGNORED: ");
+				e.printStackTrace();
+				continue;
+			} catch (ClassFormatError e) {
+				System.out.println("HeapWalker.walkAndFindDependencies() IGNORED: ");
+				e.printStackTrace();
+				continue;
+			} catch (Exception e) {
+				// THIS IS BAD
+				System.out.println("HeapWalker.walkAndFindDependencies() IGNORED: ");
+				e.printStackTrace();
 				continue;
 			}
 			cache.clear();
@@ -519,17 +551,23 @@ public class HeapWalker {
 								f.setAccessible(true);
 								Object obj = f.get(null);
 								sfPool.add(sf);
+
+								System.out.println("HeapWalker.walkAndFindDependencies() VISIT " + f.getDeclaringClass()
+										+ "." + f.getName() + " with object " + obj);
 								visitField(sf, obj, false);
 							}
 						}
 
 					} catch (NoClassDefFoundError e) {
+
 					} catch (Exception e) {
 						e.printStackTrace();
 					}
 			}
-			// }
 		}
+
+		System.out.println("HeapWalker.walkAndFindDependencies() Test " + className + "." + methodName + " reaches "
+				+ sfPool.size() + " static fields");
 
 		DependencyInfo.CURRENT_TEST_COUNT++;
 		DependencyInfo.IN_CAPTURE = false;
@@ -626,9 +664,11 @@ public class HeapWalker {
 	public static synchronized Element serialize(Object obj) {
 		if (DependencyInfo.IN_CAPTURE)
 			return null;
-		// if(obj != null &&
-		// obj.getClass().getName().contains("edu.columbia.cs.psl.testdepends"))
-		// return null;
+
+		if (!DependencyInfo.storeXMLState) {
+			return null;
+		}
+
 		try {
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");
@@ -707,6 +747,8 @@ public class HeapWalker {
 					if (!f.getType().isPrimitive() && !Modifier.isStatic(f.getModifiers())) {
 						try {
 							f.setAccessible(true);
+							System.out.println("HeapWalker.walkAndFindDependencies() VISIT " + f.getDeclaringClass()
+									+ "." + f.getName() + " with object " + f.get(obj));
 							visitField(root, f.get(obj), alreadyInConflict);
 						} catch (IllegalArgumentException e) {
 							e.printStackTrace();
@@ -719,9 +761,21 @@ public class HeapWalker {
 				inf.setCrawledGen();
 				Object[] ar = (Object[]) obj;
 				for (Object o : ar) {
+					System.out.println("HeapWalker.walkAndFindDependencies() VISIT Array with object " + o);
 					visitField(root, o, alreadyInConflict);
 				}
 			}
+		} else {
+			System.out.println("HeapWalker.visitField() Null Object for SF " + root);
+			// try {
+			// DependencyInfo inf = TagHelper.getOrFetchTag(obj);
+			// if (inf.getCrawledGen() == DependencyInfo.CURRENT_TEST_COUNT)
+			// {
+			// lastGenReachable.add(new WeakReference<DependencyInfo>(inf));
+			// }
+			// } catch (Throwable t) {
+			// t.printStackTrace();
+			// }
 		}
 	}
 }

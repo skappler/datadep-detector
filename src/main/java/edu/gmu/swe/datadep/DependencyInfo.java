@@ -18,7 +18,8 @@ import org.jdom2.Element;
 //same goes when using the getClass().toString() code
 public final class DependencyInfo implements Serializable {
 
-	public static boolean conflictsForWriteAfterWrite = false;
+	public static boolean conflictsForWriteAfterWrite = true;
+	public static boolean storeXMLState = false;
 
 	private static final long serialVersionUID = 1L;
 
@@ -33,8 +34,6 @@ public final class DependencyInfo implements Serializable {
 
 	public Element xmlEl;
 	StaticField[] fields;
-
-	// private String value;
 
 	public DependencyInfo() {
 
@@ -61,50 +60,49 @@ public final class DependencyInfo implements Serializable {
 	// Not sure about this, especially for read after write.
 	///
 	public void write() {
-		// TODO FIXME
-		// We report also the Write after Write as conflicts
-		// Note the use of read() is a TRICK !
-		// read();
-		//
-		// R -> W1, W2 === W2, R -> W1
-		// Can we capture the write after write ?
 		// TODO Not sure why with readGen everything breaks
 		if (conflictsForWriteAfterWrite && writeGen != CURRENT_TEST_COUNT)
-		// && readGen != CURRENT_TEST_COUNT
-		// && writeGen == readGen)
-		{
-			// TODO Must be the same test ?!
-			// This is a write after write. However, shall we consider it only
-			// if there was a read before, but in that case, this would be
-			// already a write after read ?
+			if (writeGen != CURRENT_TEST_COUNT)
+			// && readGen != CURRENT_TEST_COUNT
+			// && writeGen == readGen)
+			{
+				// TODO Must be the same test ?!
+				// This is a write after write. However, shall we consider it
+				// only
+				// if there was a read before, but in that case, this would be
+				// already a write after read ?
 
-			// If there was a read before. Is crawler gen ok os we need to use
-			// readGen ?
-			conflict = true;
-			// Snag the value of the field.
-			if (fields != null) {
-				for (StaticField sf : fields)
-					if (sf != null) {
-						if (xmlEl != null) {
-							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
-								System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen() + " "
-										+ HeapWalker.testNumToTestClass.size());
+				// If there was a read before. Is crawler gen ok os we need to
+				// use
+				// readGen ?
+				conflict = true;
+				// Snag the value of the field.
+				if (fields != null) {
+					for (StaticField sf : fields)
+						if (sf != null) {
+
+							// if (storeXMLState && xmlEl != null) {
+							if (xmlEl != null) {
+								if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
+									System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen()
+											+ " " + HeapWalker.testNumToTestClass.size());
+								} else {
+									xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen())
+											+ "." + HeapWalker.testNumToMethod.get(getWriteGen()));
+								}
+							}
+
+							// FIXME What shall we do here ?!
+							if (sf.isConflict()) {
+								// TODO(gyori): The xmlEl is somehow null. When
+								// can
+								// this be null?
 							} else {
-								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
-										+ HeapWalker.testNumToMethod.get(getWriteGen()));
+								sf.markConflictAndSerialize(writeGen);
 							}
 						}
-
-						// FIXME What shall we do here ?!
-						if (sf.isConflict()) {
-							// TODO(gyori): The xmlEl is somehow null. When can
-							// this be null?
-						} else {
-							sf.markConflictAndSerialize(writeGen);
-						}
-					}
+				}
 			}
-		}
 		writeGen = CURRENT_TEST_COUNT;
 
 	}
@@ -133,19 +131,25 @@ public final class DependencyInfo implements Serializable {
 								// heap roots
 				for (StaticField sf : fields)
 					if (sf != null) {
-						if (xmlEl != null) {
-							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
-								System.out.println(
-										"FOUND NULL DI " + getWriteGen() + " " + HeapWalker.testNumToTestClass.size());
-							else
-								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
-										+ HeapWalker.testNumToMethod.get(getWriteGen()));
+						if (storeXMLState && xmlEl != null) {
+							if (xmlEl != null) {
+								if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null)
+									System.out.println("FOUND NULL DI " + getWriteGen() + " "
+											+ HeapWalker.testNumToTestClass.size());
+								else
+									xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen())
+											+ "." + HeapWalker.testNumToMethod.get(getWriteGen()));
+							}
+							if (sf.isConflict()) {
+								// TODO(gyori): The xmlEl is somehow null. When
+								// can
+								// this be null?
+								System.out.println("DependencyInfo.read() - Already conflict for " + sf);
+							} else {
+								sf.markConflictAndSerialize(writeGen);
+								System.out.println("DependencyInfo.read() - Marking conflict for " + sf);
+							}
 						}
-						if (sf.isConflict()) {
-							// TODO(gyori): The xmlEl is somehow null. When can
-							// this be null?
-						} else
-							sf.markConflictAndSerialize(writeGen);
 					}
 		}
 		// readGen = CURRENT_TEST_COUNT;

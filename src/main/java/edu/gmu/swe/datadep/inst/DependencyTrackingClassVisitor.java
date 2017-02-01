@@ -37,8 +37,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	private boolean patchLDCClass;
 	private boolean addTaintField = true;
 
+	private boolean alreadyInstrumented = false;
+
 	@Override
 	public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
+
 		// make sure class is not private
 		access = access & ~Opcodes.ACC_PRIVATE;
 		access = access | Opcodes.ACC_PUBLIC;
@@ -48,6 +51,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		if (!superName.equals("java/lang/Object") && !Instrumenter.isIgnoredClass(superName)) {
 			addTaintField = false;
 		}
+
 		// Add interface
 		if (!Instrumenter.isIgnoredClass(name) && isClass) { // && (access &
 																// Opcodes.ACC_ENUM)
@@ -55,10 +59,25 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 			String[] iface = new String[interfaces.length + 1];
 			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
-			iface[interfaces.length] = Type.getInternalName(DependencyInstrumented.class);
-			interfaces = iface;
-			if (signature != null)
-				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
+
+			// Check if the interface is already there!
+			for (String _iface : iface) {
+				if (Type.getInternalName(DependencyInstrumented.class).equals(_iface)) {
+					System.out.println(
+							"DependencyTrackingClassVisitor.visit() *** WARNING : Duplicate instrumentation of "
+									+ name);
+					alreadyInstrumented = true;
+					break;
+				}
+			}
+
+			if (!alreadyInstrumented) {
+
+				iface[interfaces.length] = Type.getInternalName(DependencyInstrumented.class);
+				interfaces = iface;
+				if (signature != null)
+					signature = signature + Type.getDescriptor(DependencyInstrumented.class);
+			}
 		}
 
 		// If this classe is mocked we also include another empty interface
@@ -80,6 +99,12 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+
+		if (alreadyInstrumented) {
+			System.out.println("DependencyTrackingClassVisitor.visitField() already instrumented ?!");
+			return super.visitField(access, name, desc, signature, value);
+		}
+
 		Type t = Type.getType(desc);
 
 		// if (name.equals("a")) {
@@ -125,6 +150,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+
+		if (alreadyInstrumented) {
+			return mv;
+		}
+
 		AnalyzerAdapter an = null;
 		if (!skipFrames) {
 			an = new AnalyzerAdapter(className, access, name, desc, mv);
@@ -142,6 +172,13 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitEnd() {
+
+		if (alreadyInstrumented) {
+			System.out.println("DependencyTrackingClassVisitor.visitEnd()  already instrumented ?!");
+			super.visitEnd();
+			return;
+		}
+
 		for (FieldNode fn : moreFields) {
 			fn.accept(cv);
 		}
