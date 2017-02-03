@@ -417,11 +417,11 @@ public class HeapWalker {
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
 
-		DependencyInfo.conflictsForWriteAfterWrite = (System.getProperty(USE_WAW) != null ? Boolean.getBoolean(USE_WAW)
-				: false);
+		DependencyInfo.conflictsForWriteAfterWrite = Boolean
+				.parseBoolean(System.getProperty(USE_WAW, "" + DependencyInfo.conflictsForWriteAfterWrite));
 
-		DependencyInfo.conflictsForWriteAfterWrite = (System.getProperty(STORE_XML_STATE) != null
-				? Boolean.getBoolean(STORE_XML_STATE) : false);
+		DependencyInfo.storeXMLState = Boolean
+				.parseBoolean(System.getProperty(STORE_XML_STATE, "" + DependencyInfo.storeXMLState));
 
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);

@@ -20,7 +20,7 @@ import org.jdom2.Element;
 // TODO: Try to categorize dependencies in read-after-write, write-after-read, write-after-write. Enable the READ_GEN Stuff ! Pay attention to memory overflow
 public final class DependencyInfo implements Serializable {
 
-	public static boolean conflictsForWriteAfterWrite = false;
+	public static boolean conflictsForWriteAfterWrite = true;
 	public static boolean storeXMLState = false;
 
 	private static final long serialVersionUID = 1L;
