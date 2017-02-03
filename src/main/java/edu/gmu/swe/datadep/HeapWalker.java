@@ -414,14 +414,23 @@ public class HeapWalker {
 		DependencyInfo.IN_CAPTURE = false;
 	}
 
+	// Enable testing
+	static boolean parse(String name, boolean defaultValue) {
+		return (System.getProperties().containsKey(name))
+				? (System.getProperty(name).trim().equals("")) ? true : Boolean.parseBoolean(System.getProperty(name))
+				: defaultValue;
+	}
+
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
 
-		DependencyInfo.conflictsForWriteAfterWrite = Boolean
-				.parseBoolean(System.getProperty(USE_WAW, "" + DependencyInfo.conflictsForWriteAfterWrite));
+		// If the flag is NOT there, we use the default settings
+		// If the flag is there an no value is given, the value is true
+		// If the flag is there an a value is given, the value is returned by
+		// Boolean
 
-		DependencyInfo.storeXMLState = Boolean
-				.parseBoolean(System.getProperty(STORE_XML_STATE, "" + DependencyInfo.storeXMLState));
+		DependencyInfo.conflictsForWriteAfterWrite = parse(USE_WAW, DependencyInfo.conflictsForWriteAfterWrite);
+		DependencyInfo.storeXMLState = parse(STORE_XML_STATE, DependencyInfo.storeXMLState);
 
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);

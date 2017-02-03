@@ -4,24 +4,11 @@ import java.io.Serializable;
 
 import org.jdom2.Element;
 
-// using the code below:
-//MockingDetails md = org.mockito.Mockito.mockingDetails(obj);
-// if (md.isMock() || md.isSpy()) {
-// return;
-// }
-// Results in :
-//#
-//# A fatal error has been detected by the Java Runtime Environment:
-//#
-//#  SIGSEGV (0xb) at pc=0x0000000000000000, pid=10829, tid=4867
-//#
-//same goes when using the getClass().toString() code
-// 
 // TODO: Try to categorize dependencies in read-after-write, write-after-read, write-after-write. Enable the READ_GEN Stuff ! Pay attention to memory overflow
 public final class DependencyInfo implements Serializable {
 
 	public static boolean conflictsForWriteAfterWrite = true;
-	public static boolean storeXMLState = false;
+	public static boolean storeXMLState = true;
 
 	private static final long serialVersionUID = 1L;
 
@@ -37,7 +24,6 @@ public final class DependencyInfo implements Serializable {
 
 	public Element xmlEl;
 	StaticField[] fields;
-
 
 	public DependencyInfo() {
 
