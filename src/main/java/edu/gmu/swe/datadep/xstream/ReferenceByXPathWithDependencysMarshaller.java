@@ -54,9 +54,10 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						// check that
 						if (source instanceof WrappedPrimitive) {
 							inf = ((WrappedPrimitive) source).inf;
-						} else if (source instanceof String) {
-							inf = ((WrappedPrimitive) source).inf; /* Ok ?! */
-						}
+						} 
+						// else if (source instanceof String) {
+						// inf = ((WrappedPrimitive) source).inf; /* Ok ?! */
+						// }
 
 						if (inf != null && inf.isConflict()) {
 							if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
