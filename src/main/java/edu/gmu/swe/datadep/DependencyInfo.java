@@ -88,7 +88,8 @@ public final class DependencyInfo implements Serializable {
 					for (StaticField sf : fields)
 						if (sf != null) {
 							// THIS IS NEVER TRIGGERED
-							System.out.println("DependencyInfo.write() " + sf + " for " + xmlEl);
+							// System.out.println("DependencyInfo.write() " + sf
+							// + " for " + xmlEl);
 							if (xmlEl != null) {
 								if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
 									System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen()
@@ -136,14 +137,16 @@ public final class DependencyInfo implements Serializable {
 			return;
 		}
 		if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
-			conflict = true; // Moving this to finally results in NOT finding
-								// REPO KIND anymore ...
-			// Snag the value of the field.
-			if (fields != null) // could be null if only pointed to by ignored
-								// heap roots
+			conflict = true;
+			// Snag the value of the field AT THIS TIME !
+			if (fields != null) { /*
+									 * could be null if only pointed to by
+									 * ignored heap roots
+									 */
 				for (StaticField sf : fields) {
 					if (sf != null) {
-						System.out.println("DependencyInfo.read() " + sf + " for " + xmlEl + " writeGen " + writeGen);
+						// System.out.println("DependencyInfo.read() " + sf + "
+						// for " + xmlEl + " writeGen " + writeGen);
 						if (xmlEl != null) {
 							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
 								System.out.println(
@@ -161,6 +164,7 @@ public final class DependencyInfo implements Serializable {
 							sf.markConflictAndSerialize(writeGen);
 					}
 				}
+			}
 		}
 		// readGen = CURRENT_TEST_COUNT;
 	}

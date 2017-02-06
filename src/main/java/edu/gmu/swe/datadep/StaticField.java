@@ -63,10 +63,11 @@ public class StaticField implements Serializable {
 			e.printStackTrace();
 		}
 
-		if (value == null) {
-			System.out.println(
-					"StaticField.markConflictAndSerialize() Value is null for " + field + " in write gen " + writeGen);
-		}
+		// if (value == null) {
+		// System.out.println(
+		// "StaticField.markConflictAndSerialize() Value is null for " + field +
+		// " in write gen " + writeGen);
+		// }
 	}
 
 	public String getValue() {
