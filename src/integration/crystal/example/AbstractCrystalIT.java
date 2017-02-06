@@ -39,7 +39,8 @@ public class AbstractCrystalIT {
 
 	void executeTest(Class<?> testClass, String methodName) {
 		System.out.println("ExecuteTest() " + testClass.getName() + "." + methodName);
-		junitCore.run(Request.method(testClass, methodName));
+		if (junitCore.run(Request.method(testClass, methodName)).getFailureCount() > 0)
+			Assert.fail("Test " + testClass.getName() + "." + methodName + " FAILED ");
 	}
 
 	@BeforeClass
@@ -60,6 +61,8 @@ public class AbstractCrystalIT {
 			HeapWalker.addToWhitelist(wl);
 
 		System.out.println("CrystalIT.setupWhitelist()");
+
+		System.out.println("CrystalIT.buildEnumSet()");
 	}
 
 	static void has(Collection<Entry<String, String>> depsData, String testName, String depName) {
@@ -98,13 +101,16 @@ public class AbstractCrystalIT {
 	Collection<Entry<String, String>> extractDataStaticFieldDepValue(Class dataSourceTestClass,
 			LinkedList<StaticFieldDependency> deps) {
 
+		Collection<Entry<String, String>> values = new ArrayList<Entry<String, String>>();
+		// There might be more ....
 		for (StaticFieldDependency sf : deps) {
 			if (sf.field.getType().isAssignableFrom(dataSourceTestClass)) {
-				return extractDepsData(sf);
+				values.addAll(extractDepsData(sf));
 			}
 		}
 		// Assert.fail("Cannot find value of data static field as dep");
-		return new ArrayList<Entry<String, String>>();
+		// return new ArrayList<Entry<String, String>>();
+		return values;
 	}
 
 	Collection<Entry<String, String>> extractDepsData(StaticFieldDependency sf) {
@@ -115,6 +121,12 @@ public class AbstractCrystalIT {
 
 		// Extract deps on values
 		String xmlValue = sf.value;
+		System.out.println("AbstractCrystalIT.extractDepsData() " + sf.value);
+
+		if (xmlValue == null || xmlValue.trim().equals("")) {
+			System.out.println("AbstractCrystalIT.extractDepsData() Empry xmlValue for static field " + sf);
+			return deps;
+		}
 		SAXBuilder builder = new SAXBuilder();
 		try {
 
@@ -124,8 +136,11 @@ public class AbstractCrystalIT {
 			String query = "//*[@dependsOn]";
 			XPathExpression<Element> xpe = XPathFactory.instance().compile(query, Filters.element());
 			for (Element urle : xpe.evaluate(document)) {
+
+				String[] depAttrs = urle.getAttribute("dependsOn").getValue().split(",");
+
 				Entry<String, String> dep = new AbstractMap.SimpleEntry<String, String>(urle.getName(),
-						urle.getAttribute("dependsOn").getValue());
+						depAttrs[depAttrs.length - 1]);
 				deps.add(dep);
 			}
 

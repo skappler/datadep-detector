@@ -26,16 +26,13 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		// force and ignore static initializers
 		// HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
-		(new DataSourceTestAlessio()).testSetField();
+		executeTest(DataSourceTestAlessio.class, "testSetField");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		Assert.assertTrue(depsData.size() == 0);
 
-		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
-		Assert.assertTrue(depsData.size() == 0);
-
-		(new DataSourceTestAlessio()).testReadALL();
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
+		executeTest(DataSourceTestAlessio.class, "testReadALL");
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testReadALL");
 		//
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		//
@@ -49,14 +46,12 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
 		// "a");
 
-		(new DataSourceTestAlessio()).testReadALL2();
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL2");
+		executeTest(DataSourceTestAlessio.class, "testReadALL2");
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testReadALL2");
 		//
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
-
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__shortName");
-
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__remoteCmd");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__testCommand");
@@ -66,8 +61,9 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		// "a");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__enabled");
 
-		(new DataSourceTestAlessio()).testReadALL3();
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL3");
+		executeTest(DataSourceTestAlessio.class, "testReadALL3");
+
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testReadALL3");
 		//
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
@@ -82,8 +78,8 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__enabled");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__hide");
 
-		(new DataSourceTestAlessio()).testReadALL4();
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL4");
+		executeTest(DataSourceTestAlessio.class, "testReadALL4");
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testReadALL4");
 		//
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
@@ -98,7 +94,7 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__enabled");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__hide");
 
-		(new DataSourceTestAlessio()).testSetCloneString();
+		executeTest(DataSourceTestAlessio.class, "testSetCloneString");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCloneString");
 		//
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
@@ -108,7 +104,8 @@ public class Crystal_4_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__enabled");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__remoteCmd");
 
-		(new DataSourceTestAlessio()).testSetKind();
+		executeTest(DataSourceTestAlessio.class, "testSetKind");
+
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
 		// dependsOn="crystal.model.DataSourceTestAlessio.testSetCloneString" on
 		// __cloneString

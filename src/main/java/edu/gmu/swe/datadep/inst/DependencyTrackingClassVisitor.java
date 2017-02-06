@@ -16,12 +16,6 @@ import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.DependencyInstrumented;
 import edu.gmu.swe.datadep.Instrumenter;
 
-/**
- * This class adds the required interfaces
- * 
- * @author gambi
- *
- */
 public class DependencyTrackingClassVisitor extends ClassVisitor {
 	boolean skipFrames = false;
 
@@ -51,15 +45,23 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		if (!Instrumenter.isIgnoredClass(name) && isClass) { // && (access &
 																// Opcodes.ACC_ENUM)
 																// == 0) {
-
 			String[] iface = new String[interfaces.length + 1];
 			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
 			iface[interfaces.length] = Type.getInternalName(DependencyInstrumented.class);
 			interfaces = iface;
 			if (signature != null)
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
-		}
 
+			if (name.equals("java/lang/String")) {
+				System.err.println("Transforing String.class");
+			} else {
+
+			}
+		} else {
+			if (name.equals("java/lang/String")) {
+				System.out.println("DependencyTrackingClassVisitor.visit() Ignoring String.class");
+			}
+		}
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
@@ -138,9 +140,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (addTaintField)
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
-
-			//
-
 			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO",
 					"()" + Type.getDescriptor(DependencyInfo.class), null, null);
 			mv.visitCode();

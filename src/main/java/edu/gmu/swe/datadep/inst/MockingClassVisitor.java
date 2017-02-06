@@ -38,7 +38,8 @@ public class MockingClassVisitor extends ClassVisitor {
 		this.className = name;
 
 		// If this class is mocked we also include another interface
-		if (Instrumenter.isMockedClass(name) && isClass) {
+		// TODO Removed to fix problem with missing deps
+		if ( /* Instrumenter.isMockedClass(name) && */ isClass) {
 			String[] iface = new String[interfaces.length + 1];
 			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
 			iface[interfaces.length] = Type.getInternalName(MockedClass.class);

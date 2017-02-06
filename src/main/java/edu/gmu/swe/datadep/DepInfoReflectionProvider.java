@@ -8,10 +8,7 @@ import com.thoughtworks.xstream.converters.reflection.PureJavaReflectionProvider
 
 import edu.gmu.swe.datadep.struct.WrappedPrimitive;
 
-/*
- * FIXME Shall we introduce a black mechanism here as well. This is to avoid plenty of: 
- * Could not get dep info field class java.lang.reflect.Field.iParam
- */
+// Not sure when this is called
 public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 	@Override
 	public void visitSerializableFields(Object object, Visitor visitor) {
@@ -20,10 +17,8 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			if (!fieldModifiersSupported(field)) {
 				continue;
 			}
-
-			// Can we filter out stuff from java.lang.reflect package?
-			if (field.getClass().getPackage().getName().contains("java.lang.reflect"))
-				continue;
+			// if(field.getClass().getPackage().getName().contains("java.lang"))
+			// continue;
 
 			validateFieldAccess(field);
 			try {

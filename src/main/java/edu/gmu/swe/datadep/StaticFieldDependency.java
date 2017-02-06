@@ -2,7 +2,6 @@ package edu.gmu.swe.datadep;
 
 import java.lang.reflect.Field;
 
-// TODO Refine this to include the type of dependency 
 public class StaticFieldDependency {
 	public Field field;
 	public String value;
@@ -11,7 +10,6 @@ public class StaticFieldDependency {
 
 	@Override
 	public String toString() {
-		return field.toString() + ", dependsOn " + on + "(" + depGen + ")"
-				+ ((value != null) ? ", value: " + value : "");
+		return field.toString() + ", dependsOn " + on + "(" + depGen + ")" + ", value: " + value;
 	}
 }

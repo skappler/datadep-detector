@@ -19,20 +19,21 @@ import org.objectweb.asm.util.CheckClassAdapter;
 import org.objectweb.asm.util.TraceClassVisitor;
 
 import edu.gmu.swe.datadep.inst.DependencyTrackingClassVisitor;
-import edu.gmu.swe.datadep.inst.MockingClassVisitor;
 
 public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 
 	static boolean innerException = false;
 	static final boolean DEBUG = System.getProperties().containsKey("debug");
 
-	public byte[] transform(ClassLoader loader, final String className2, Class<?> classBeingRedefined,
-			ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
+	public byte[] transform(ClassLoader loader, final String className2, Class<?> classBeingRedefined, ProtectionDomain protectionDomain, byte[] classfileBuffer) throws IllegalClassFormatException {
 		ClassReader cr = new ClassReader(classfileBuffer);
 		String className = cr.getClassName();
 		innerException = false;
-		//
 		if (Instrumenter.isIgnoredClass(className)) {
+			
+			if( className.equals("java/lang/String")){
+				System.out.println("RWDependencyClassFileTransformer.transform() Ignoring String.class");
+			}
 			return classfileBuffer;
 		}
 
@@ -42,57 +43,21 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 		if (cn.version >= 100 || cn.version < 50)
 			skipFrames = true;
 
-		// First check if this class is a mock, in that case it was likely
-		// already instrumented.
-		if (Instrumenter.isMockedClass(cn.name)) {
-			try {
-
-				System.out.println(
-						"RWDependencyClassFileTransformer.transform() Applying Mocking Interface to " + cn.name);
-
-				ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
-
-				cr.accept(
-						// new CheckClassAdapter(
-						new SerialVersionUIDAdder(new MockingClassVisitor(cw, skipFrames))
-						// )
-						, ClassReader.EXPAND_FRAMES);
-
-				return cw.toByteArray();
-			} catch (Throwable t) {
-				t.printStackTrace();
-				//
-				System.exit(-1);
-				return new byte[0];
-			}
-		}
-
-		///
 		if (cn.interfaces != null)
 			for (Object s : cn.interfaces) {
 				if (Type.getInternalName(DependencyInstrumented.class).equals(s))
 					return classfileBuffer;
 			}
-
-		//
 		for (Object mn : cn.methods)
-			if (((MethodNode) mn).name.equals(
-					"getDEPENDENCY_INFO")) /*
-											 * Since we apply mocking interface
-											 * before this should not be needed
-											 * anymore: &&
-											 * !Instrumenter.isMockedClass(
-											 * className))
-											 */
+			if (((MethodNode) mn).name.equals("getDEPENDENCY_INFO"))
 				return classfileBuffer;
-
 		TraceClassVisitor cv = null;
 		try {
 
 			ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
 
 			cr.accept(
-					// new CheckClassAdapter(
+			// new CheckClassAdapter(
 					new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cw, skipFrames))
 					// )
 					, ClassReader.EXPAND_FRAMES);
@@ -111,10 +76,7 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 			ex.printStackTrace();
 			cv = new TraceClassVisitor(null, null);
 			try {
-				cr.accept(
-						new CheckClassAdapter(
-								new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cv, skipFrames))),
-						ClassReader.EXPAND_FRAMES);
+				cr.accept(new CheckClassAdapter(new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cv, skipFrames))), ClassReader.EXPAND_FRAMES);
 			} catch (Throwable ex2) {
 			}
 			ex.printStackTrace();

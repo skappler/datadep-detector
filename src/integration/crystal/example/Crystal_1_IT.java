@@ -7,7 +7,7 @@ import java.util.Map.Entry;
 import org.junit.Assert;
 import org.junit.Test;
 
-import crystal.model.DataSourceTestAlessio;
+import crystal.model.DataSourceTest;
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
 
@@ -18,28 +18,31 @@ import edu.gmu.swe.datadep.StaticFieldDependency;
 public class Crystal_1_IT extends AbstractCrystalIT {
 
 	@Test
-	public void testEmptySetKind1() {
+	public void testEmptySetKind() {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
 
-		executeTest(DataSourceTestAlessio.class, "testSetField");
+		executeTest(DataSourceTest.class, "testSetField");
 
 		// This writes to several part
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
-		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetField");
+		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 
 		Assert.assertTrue(depsData.size() == 0);
 
-		executeTest(DataSourceTestAlessio.class, "testSetKind");
+		executeTest(DataSourceTest.class, "testSetKind");
+		// READ REPO_KIND
+		// WRITE REPO_KIND
 
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
-		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetKind2");
+		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 
-		System.out.println("Crystal_1_IT.testEmptySetKind() DEPS " + deps);
-
-		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
-		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
-		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
+		// Finds this
+		has(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest.data");
+		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
+		// "__cloneString");
+		// This is always missing
+		has(depsData, "crystal.model.DataSourceTest.testSetField", "__repoKind");
 	}
 
 }

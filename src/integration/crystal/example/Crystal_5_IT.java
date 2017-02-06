@@ -24,12 +24,14 @@ public class Crystal_5_IT extends AbstractCrystalIT {
 		// force and ignore static initializers
 		// HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
-		(new DataSourceTestAlessio()).testSetField();
+		// (new DataSourceTestAlessio()).testSetField();
+		executeTest(DataSourceTestAlessio.class, "testSetField");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		Assert.assertTrue(depsData.size() == 0);
 
-		(new DataSourceTestAlessio()).testReadALL();
+		// (new DataSourceTestAlessio()).testReadALL();
+		executeTest(DataSourceTestAlessio.class, "testReadALL");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
 
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
@@ -40,18 +42,6 @@ public class Crystal_5_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__parent");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
-		// Removed attribute a
-		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
-		// "a");
-		//
-		// Reads on null value shall be reported ? Ideally no, because for
-		// objects null values are default.
-		// But what if someone actually wrote a null value into a field ?!
-		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
-		// "__compileCommand");
-		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
-		// "__reniteCmd");
-
 	}
 
 }

@@ -1,7 +1,6 @@
-# Data dependency detector for Java
+# A note on Integration testing
 
-This is some sample code that should detect all data dependencies between test executions in the JVM, and serialize their value to XML.
-
-There are some tests, but please don't take that to mean that this code is well tested :)
-
-By Jon Bell & Alex Gyori
+The extractDeps method logs the xml content of the conflicting objects.
+However, the reported value might NOT be the actual one. In fact, the xml is generated
+at the moment the first conflict triggers. This also means that, if the current tests
+writes a new value, the new value will not appear in the console output 

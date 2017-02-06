@@ -2,7 +2,6 @@ package edu.gmu.swe.datadep.xstream;
 
 import java.lang.reflect.Field;
 import java.util.Hashtable;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -21,6 +20,11 @@ import edu.gmu.swe.datadep.JDomHackWriter;
 import edu.gmu.swe.datadep.TagHelper;
 import edu.gmu.swe.datadep.struct.WrappedPrimitive;
 
+/*
+ * 
+ * Still not sure how/when this is invoked ..
+ *
+ */
 public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathMarshaller {
 	public ReferenceByXPathWithDependencysMarshaller(HierarchicalStreamWriter writer, ConverterLookup converterLookup,
 			Mapper mapper, int mode) {
@@ -48,31 +52,20 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						DependencyInfo inf = TagHelper.getOrFetchTag(source);
 						// if source is a string it might be null we need to
 						// check that
-						if (source instanceof WrappedPrimitive && source != null) {
+						if (source instanceof WrappedPrimitive) {
 							inf = ((WrappedPrimitive) source).inf;
-						} else if (source instanceof WrappedPrimitive && source != null) {
-							System.err.println(
-									"ReferenceByXPathWithDependencysMarshaller.convert(...).new Converter() {...}.marshal() null source for String ");
+						} else if (source instanceof String) {
+							inf = ((WrappedPrimitive) source).inf; /* Ok ?! */
 						}
 
 						if (inf != null && inf.isConflict()) {
-							// FIXME: Probably we get this when we have a
-							// write-after-write ?
 							if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
-
-								// In case of write after write this is
-								// expected, since we did not yet stored the
-								// test in the strucure... Aren't we? TODO:
-								// check
-
-								if (inf.getWriteGen() <= HeapWalker.testNumToTestClass.size()) {
-									System.out.println("[WARNING] FOUND NULL RBXPath for Write Gen " + inf.getWriteGen()
-											+ " tot number of tests is: " + HeapWalker.testNumToTestClass.size());
-								} // else we do not care
-
-							} else
+								System.out.println("FOUND NULL RBXPath " + inf.getWriteGen() + " "
+										+ HeapWalker.testNumToTestClass.size());
+							} else {
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+							}
 						}
 						if (source instanceof Map) {
 							try {
@@ -82,15 +75,10 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								Field finf;
 								if (source.getClass().equals(Hashtable.class)) {
 									finf = source.getClass().getDeclaredField("count__DEPENDENCY_INFO");
-								} else if (source.getClass().equals(ConcurrentHashMap.class) || source.getClass().equals(LinkedHashMap.class)) {
+								} else if (source.getClass().equals(ConcurrentHashMap.class)) {
 									finf = null;
 								} else {
-									try{
-										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
-									}catch(NoSuchFieldException e){
-										System.out.println("NoSuchFieldException for map "+source.getClass());
-										finf=null;
-									}
+									finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
 								}
 								// f.setAccessible(true);
 
@@ -99,18 +87,13 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 									writer.addAttribute("size", "" + m.size());
 									inf = (DependencyInfo) finf.get(source);
 									if (inf != null && inf.isConflict()) {
-										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
-
-											if (inf.getWriteGen() <= HeapWalker.testNumToTestClass.size()) {
-
-												System.out.println("FOUND NULL SDO " + inf.getWriteGen() + " "
-														+ HeapWalker.testNumToTestClass.size());
-											}
-										} else {
+										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
+											System.out.println("FOUND NULL SDO " + inf.getWriteGen() + " "
+													+ HeapWalker.testNumToTestClass.size());
+										else
 											writer.addAttribute("size_dependsOn",
 													HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "."
 															+ HeapWalker.testNumToMethod.get(inf.getWriteGen()));
-										}
 									}
 								}
 							} catch (NoSuchFieldException e) {
@@ -125,6 +108,9 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							}
 						}
 					}
+				} else {
+					System.out.println(
+							"ReferenceByXPathWithDependencysMarshaller.convert(...).new Converter() {...}.marshal() source is null");
 				}
 				// Why this does not fail for String == null ?
 				if (source instanceof String) {

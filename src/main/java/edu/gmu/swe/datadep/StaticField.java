@@ -52,25 +52,21 @@ public class StaticField implements Serializable {
 
 	public void markConflictAndSerialize(int writeGen) {
 		conflict = true;
-
 		if (writeGen > dependsOn)
 			dependsOn = writeGen;
 		// if (value != null)
 		// return;
 		try {
 			field.setAccessible(true);
-			// This copies the value to XML
 			value = HeapWalker.serialize(field.get(null));
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
 
-		// Value can be null if we disable XML serialization
-		// if (value == null) {
-		// System.out.println(
-		// "StaticField.markConflictAndSerialize() Value is null for " + field +
-		// " in write gen " + writeGen);
-		// }
+		if (value == null) {
+			System.out.println(
+					"StaticField.markConflictAndSerialize() Value is null for " + field + " in write gen " + writeGen);
+		}
 	}
 
 	public String getValue() {
@@ -78,16 +74,17 @@ public class StaticField implements Serializable {
 		XMLOutputter out = new XMLOutputter();
 
 		try {
-			if (value != null) {
+			if (value != null && value.getContent().size() > 0) {
 				Element e = (Element) value.getContent().get(0);
 				out.output(new Document(e.detach()), sw);
 				out.setFormat(Format.getPrettyFormat());
+			} else {
+				if (value == null) {
+					System.out.println("StaticField.getValue() Null value for " + this);
+				} else {
+					System.out.println("StaticField.getValue() Empty value for " + this);
+				}
 			}
-			// Null value is fine as we might disable XML state collection
-			// else {
-			// System.out.println("StaticField.getValue() Null value for " +
-			// this);
-			// }
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

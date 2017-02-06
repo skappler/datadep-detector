@@ -31,6 +31,7 @@ public class Crystal_2_IT extends AbstractCrystalIT {
 		executeTest(DataSourceTestAlessio.class, "testSetCloneString");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCloneString");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
