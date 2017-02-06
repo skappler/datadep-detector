@@ -54,7 +54,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						// check that
 						if (source instanceof WrappedPrimitive) {
 							inf = ((WrappedPrimitive) source).inf;
-						} 
+						}
 						// else if (source instanceof String) {
 						// inf = ((WrappedPrimitive) source).inf; /* Ok ?! */
 						// }
@@ -76,11 +76,14 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								Field finf;
 								if (source.getClass().equals(Hashtable.class)) {
 									finf = source.getClass().getDeclaredField("count__DEPENDENCY_INFO");
-								} else if (source.getClass().equals(ConcurrentHashMap.class)) {
-									finf = null;
 								} else {
-									finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
-								}
+									try {
+										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
+									} catch (NoSuchFieldException e) {
+										System.out.println("NoSuchFieldException for map type " + source.getClass());
+										finf = null;
+									}
+								} 
 								// f.setAccessible(true);
 
 								if (finf != null) {
