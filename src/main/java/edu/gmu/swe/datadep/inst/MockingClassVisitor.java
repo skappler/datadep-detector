@@ -1,7 +1,5 @@
 package edu.gmu.swe.datadep.inst;
 
-import java.util.Arrays;
-
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -38,20 +36,14 @@ public class MockingClassVisitor extends ClassVisitor {
 		this.className = name;
 
 		// If this class is mocked we also include another interface
-		// TODO Removed to fix problem with missing deps
-		if ( /* Instrumenter.isMockedClass(name) && */ isClass) {
+		if (Instrumenter.isMockedClass(name) && isClass) {
 			String[] iface = new String[interfaces.length + 1];
 			System.arraycopy(interfaces, 0, iface, 0, interfaces.length);
 			iface[interfaces.length] = Type.getInternalName(MockedClass.class);
 			interfaces = iface;
 			if (signature != null)
 				signature = signature + Type.getDescriptor(MockedClass.class);
-			// System.out.println("MockingClassVisitor.visit() Adding
-			// MockedClass interface to " + name);
-			// System.out.println("MockingClassVisitor.visit() new signature is
-			// " + signature);
-			// System.out.println("MockingClassVisitor.visit() new interfaces
-			// are " + Arrays.toString(interfaces));
+			System.out.println("MockingClassVisitor.visit() Adding MockedClass interface to " + name);
 		}
 
 		super.visit(version, access, name, signature, superName, interfaces);

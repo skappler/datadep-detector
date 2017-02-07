@@ -52,15 +52,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (signature != null)
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 
-			if (name.equals("java/lang/String")) {
-				System.err.println("Transforing String.class");
-			} else {
-
-			}
-		} else {
-			if (name.equals("java/lang/String")) {
-				System.out.println("DependencyTrackingClassVisitor.visit() Ignoring String.class");
-			}
 		}
 		super.visit(version, access, name, signature, superName, interfaces);
 	}

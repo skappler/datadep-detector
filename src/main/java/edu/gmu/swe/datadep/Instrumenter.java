@@ -40,14 +40,33 @@ public class Instrumenter {
 	static String curPath;
 
 	public static boolean isIgnoredClass(String owner) {
-		return owner.startsWith("java/lang/Object") || owner.startsWith("java/lang/Number") || owner.startsWith("java/lang/Comparable") || owner.startsWith("java/lang/ref/SoftReference") || owner.startsWith("java/lang/ref/Reference")
-				|| owner.startsWith("java/lang/ref/FinalizerReference") || owner.startsWith("java/lang/Boolean") || owner.startsWith("java/lang/Character") || owner.startsWith("java/lang/Float") || owner.startsWith("java/lang/Byte") || owner.startsWith("java/lang/Short")
-				|| owner.startsWith("java/lang/Integer") || owner.startsWith("java/lang/StackTraceElement") || (owner.startsWith("edu/gmu/swe/datadep")) || owner.startsWith("sun/awt/image/codec/") || (owner.startsWith("sun/reflect/Reflection"))
-				|| owner.equals("java/lang/reflect/Proxy") || owner.startsWith("sun/reflection/annotation/AnnotationParser") || owner.startsWith("sun/reflect/MethodAccessor") || owner.startsWith("sun/reflect/ConstructorAccessor")
-				|| owner.startsWith("sun/reflect/SerializationConstructorAccessor") || owner.startsWith("sun/reflect/GeneratedMethodAccessor") || owner.startsWith("sun/reflect/GeneratedConstructorAccessor") || owner.startsWith("sun/reflect/GeneratedSerializationConstructor")
-				|| owner.startsWith("java/lang/reflect/Field") || owner.startsWith("sun/reflect/Unsafe") || owner.startsWith("java/lang/Class") || owner.startsWith("java/lang/reflect/Method") || owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long") //
-				// Ignore string type 
-				|| owner.equals("java/lang/String") || owner.equals("java/lang/String.class");
+		return owner.startsWith("java/lang/Object") || owner.startsWith("java/lang/Number")
+				|| owner.startsWith("java/lang/Comparable") || owner.startsWith("java/lang/ref/SoftReference")
+				|| owner.startsWith("java/lang/ref/Reference") || owner.startsWith("java/lang/ref/FinalizerReference")
+				|| owner.startsWith("java/lang/Boolean") || owner.startsWith("java/lang/Character")
+				|| owner.startsWith("java/lang/Float") || owner.startsWith("java/lang/Byte")
+				|| owner.startsWith("java/lang/Short") || owner.startsWith("java/lang/Integer")
+				|| owner.startsWith("java/lang/StackTraceElement") || (owner.startsWith("edu/gmu/swe/datadep"))
+				|| owner.startsWith("sun/awt/image/codec/") || (owner.startsWith("sun/reflect/Reflection"))
+				|| owner.equals("java/lang/reflect/Proxy")
+				|| owner.startsWith("sun/reflection/annotation/AnnotationParser")
+				|| owner.startsWith("sun/reflect/MethodAccessor") || owner.startsWith("sun/reflect/ConstructorAccessor")
+				|| owner.startsWith("sun/reflect/SerializationConstructorAccessor")
+				|| owner.startsWith("sun/reflect/GeneratedMethodAccessor")
+				|| owner.startsWith("sun/reflect/GeneratedConstructorAccessor")
+				|| owner.startsWith("sun/reflect/GeneratedSerializationConstructor")
+				|| owner.startsWith("java/lang/reflect/Field") || owner.startsWith("sun/reflect/Unsafe")
+				|| owner.startsWith("java/lang/Class") || owner.startsWith("java/lang/reflect/Method")
+				|| owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long") //
+				// Ignore string type
+				|| owner.equals("java/lang/String");
+	}
+
+	public static boolean isMockedClass(String owner) {
+		// Note: there is a specific interface provided by Mockito to identify
+		// mocked classes. We use string instead so we do not include mockito as
+		// dependency to build thi project
+		return owner.contains("EnhancerByMockitoWithCGLIB");
 	}
 
 	static int n = 0;
@@ -318,7 +337,8 @@ public class Instrumenter {
 						} catch (ZipException exxx) {
 							System.out.println("Ignoring exception: " + exxx);
 						}
-					} else if (e.getName().startsWith("META-INF") && (e.getName().endsWith(".SF") || e.getName().endsWith(".RSA"))) {
+					} else if (e.getName().startsWith("META-INF")
+							&& (e.getName().endsWith(".SF") || e.getName().endsWith(".RSA"))) {
 						// don't copy this
 					} else if (e.getName().equals("META-INF/MANIFEST.MF")) {
 						Scanner s = new Scanner(jar.getInputStream(e));

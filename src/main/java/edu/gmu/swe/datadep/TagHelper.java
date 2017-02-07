@@ -10,11 +10,17 @@ public final class TagHelper {
 	private static native void _setTag(Object obj, DependencyInfo tag);
 
 	public static DependencyInfo getOrFetchTag(Object obj) {
+
+		if (obj instanceof MockedClass) {
+			System.out.println("WARNING: TagHelper.getOrFetchTag() : " + obj + " instace of Mocked Class !");
+		}
+
 		if (obj instanceof DependencyInstrumented)
 			return ((DependencyInstrumented) obj).getDEPENDENCY_INFO();
 		else if (obj instanceof DependencyInfo)
 			return (DependencyInfo) obj;
-		else if ( (obj instanceof WrappedPrimitive) && obj != null ) // We need to check for null since String objects might be null
+		/* We need to check for null since String objects might be null */
+		else if ((obj instanceof WrappedPrimitive) && obj != null)
 			return ((WrappedPrimitive) obj).inf;
 		return getOrInitTag(obj);
 	}

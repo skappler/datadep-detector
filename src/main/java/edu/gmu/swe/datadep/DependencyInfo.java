@@ -170,7 +170,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public static void write(Object obj) {
-		if (obj instanceof DependencyInstrumented) {
+		if (obj instanceof MockedClass) {
+			return;
+		} else if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().write();
 		} else if (obj instanceof DependencyInfo) {
 			((DependencyInfo) obj).write();
@@ -180,7 +182,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public static void read(Object obj) {
-		if (obj instanceof DependencyInstrumented) {
+		if (obj instanceof MockedClass) {
+			return;
+		} else if (obj instanceof DependencyInstrumented) {
 			((DependencyInstrumented) obj).getDEPENDENCY_INFO().read();
 		} else if (obj instanceof DependencyInfo) {
 			((DependencyInfo) obj).read();
