@@ -159,39 +159,31 @@
 	</dependencies>
 
 	<profiles>
-		<!-- This profile somehow has plenty of problems in setting up the classpath... -->
+		<!-- FIXME There is a problem with Shade plugin since it tries to shade 
+			also the deps of crystal and the other projects as well ! -->
 		<profile>
 			<id>IT</id>
 			<properties>
 				<src.it.directory>src/integration/java</src.it.directory>
-				<out.it.directory>it-classes</out.it.directory>
+				<out.it.directory>target/it-classes</out.it.directory>
 			</properties>
 			<build>
 				<plugins>
 					<plugin>
 						<artifactId>maven-clean-plugin</artifactId>
 						<version>3.0.0</version>
-						<executions>
-							<execution>
-								<id>cleanup</id>
-								<phase>pre-integration-test</phase>
-								<goals>
-									<goal>clean</goal>
-								</goals>
-								<configuration>
-									<excludeDefaultDirectories>true</excludeDefaultDirectories>
-									<filesets>
-										<fileset>
-											<directory>${out.it.directory}</directory>
-											<followSymlinks>false</followSymlinks>
-											<includes>
-												<include>**/*</include>
-											</includes>
-										</fileset>
-									</filesets>
-								</configuration>
-							</execution>
-						</executions>
+						<configuration>
+							<excludeDefaultDirectories>true</excludeDefaultDirectories>
+							<filesets>
+								<fileset>
+									<directory>${out.it.directory}</directory>
+									<followSymlinks>false</followSymlinks>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</fileset>
+							</filesets>
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
