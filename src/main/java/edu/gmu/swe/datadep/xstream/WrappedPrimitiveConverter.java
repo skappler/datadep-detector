@@ -28,9 +28,12 @@ public class WrappedPrimitiveConverter implements Converter {
 			if (HeapWalker.testNumToTestClass.get(dep.getWriteGen()) == null)
 				System.out.println("FOUND NULL WP " + dep.getWriteGen() + " " + HeapWalker.testNumToTestClass.size()
 						+ " at Object " + ((WrappedPrimitive) source).prim.getClass());
-			else
+			else {
 				writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(dep.getWriteGen()) + "."
 						+ HeapWalker.testNumToMethod.get(dep.getWriteGen()));
+
+				writer.addAttribute("FROM", "WrappedPrimitiveConverter");
+			}
 
 		}
 

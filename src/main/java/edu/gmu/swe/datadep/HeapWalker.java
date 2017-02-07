@@ -426,26 +426,26 @@ public class HeapWalker {
 
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
 		for (StaticField sf : sfPool) {
-			// if
-			// (sf.toString().contains("crystal.model.DataSourceTestAlessio.data"))
-			// {
-			// System.out.println("");
-			// }
-
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();
 				dep.depGen = sf.dependsOn;
 				dep.on = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
 
 				dep.field = sf.field;
+				// This is where the value registered with
+				// markConflictAndSerialize becomes an XML String and is passed
+				// along
+				// Not sure how this includes also informations about inner
+				// fields dependsOn ...
 				dep.value = sf.getValue();
 				deps.add(dep);
 				// This thing clear previous conflicts informations, however, in
 				// case of reads in subsequent tests
 				// only the former test report the dep, while all of them should
-				// have done. So we clear conflict data ONLY for fields that we wrote.
+				// have done. So we clear conflict data ONLY for fields that we
+				// wrote.
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
-					
+
 					sf.clearConflict();
 				}
 			}
@@ -466,11 +466,11 @@ public class HeapWalker {
 			for (Field f : allFields) {
 				String fieldName = getFieldFQN(f);
 				// if (!ignores.contains(fieldName)) {
-				if ((Modifier.isStatic(f.getModifiers()))
-						&& !((Modifier.isFinal(f.getModifiers())) && (f.getType().isPrimitive())))
+				if ((Modifier.isStatic(f.getModifiers())) && !((Modifier.isFinal(f.getModifiers()))
+						&& (f.getType().isPrimitive() || f.getType().isAssignableFrom(String.class))))
 					try {
 						if (isBlackListedSF(f)) {
-							if (f.getType().isPrimitive()) {
+							if (f.getType().isPrimitive() || f.getType().isAssignableFrom(String.class)) {
 								try {
 									Field depInfo = f.getDeclaringClass()
 											.getDeclaredField(f.getName() + "__DEPENDENCY_INFO");
@@ -502,10 +502,12 @@ public class HeapWalker {
 								}
 								Field origField = f.getDeclaringClass()
 										.getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", ""));
-								if (origField.getType().isPrimitive())
+								if ((origField.getType().isPrimitive()
+										|| origField.getType().isAssignableFrom(String.class))) {
 									sfPool.add(sf);
+								}
 
-							} else if (!f.getType().isPrimitive()) {
+							} else if (!(f.getType().isPrimitive() || f.getType().isAssignableFrom(String.class))) {
 								if (!cache.containsKey(fieldName))
 									cache.put(fieldName, new StaticField(f));
 								StaticField sf = cache.get(fieldName);
@@ -580,10 +582,15 @@ public class HeapWalker {
 			@Override
 			protected MapperWrapper wrapMapper(MapperWrapper next) {
 
+				// This prevents some specific fields to be marshalled.
+				// For example, the __DEPENDENCY_INFO field
 				return new FilteringFieldMapper(next);
 			}
 		};
+		// Treat Wrapped type in a different way, basically, extract the DEP
+		// info from containing class
 		xStreamInst.registerConverter(new WrappedPrimitiveConverter(), XStream.PRIORITY_VERY_HIGH);
+		// 
 		xStreamInst.setMarshallingStrategy(
 				new ReferenceByXPathMarshallingStrategy(ReferenceByXPathMarshallingStrategy.ABSOLUTE) {
 					@Override

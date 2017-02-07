@@ -16,10 +16,12 @@ public class FilteringFieldMapper extends MapperWrapper {
 	}
 
 	static HashSet<String> blackListedPackages = new HashSet<String>();
-	static {
-		blackListedPackages.add("org.log4j");
-		//		blackListedPackages.add("edu.columbia.cs.psl.phosphor");
-	}
+
+	// TODO: Why log4j blackListed ?
+	// static {
+	// blackListedPackages.add("org.log4j");
+	// blackListedPackages.add("edu.columbia.cs.psl.phosphor");
+	// }
 
 	@Override
 	public boolean shouldSerializeMember(Class definedIn, String fieldName) {
@@ -42,7 +44,7 @@ public class FilteringFieldMapper extends MapperWrapper {
 
 	@Override
 	public Class defaultImplementationOf(Class type) {
-		if(type.isPrimitive() || type.isAssignableFrom(String.class))
+		if (type.isPrimitive() || type.isAssignableFrom(String.class))
 			return WrappedPrimitive.class;
 		return String.class;
 	}

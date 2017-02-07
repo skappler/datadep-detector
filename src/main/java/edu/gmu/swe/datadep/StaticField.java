@@ -52,13 +52,21 @@ public class StaticField implements Serializable {
 
 	public void markConflictAndSerialize(int writeGen) {
 		conflict = true;
-		if (writeGen > dependsOn)
+		// Update the write of the first conflicting test
+		if (writeGen > dependsOn) {
 			dependsOn = writeGen;
+		}
 		// if (value != null)
 		// return;
 		try {
+
+			// TODO Here we can prevent SF to be stored, or at least we can ONLY
+			// store the relevant parts, i.e., dependsOn
+			// but this might be tricky since the dependsOn might be nested down
+			// somewhere !
+
 			field.setAccessible(true);
-			value = HeapWalker.serialize(field.get(null));
+			value = HeapWalker.serialize(field.get(null)); // This invoke the shared XStream stuff which is configured to 
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -95,8 +103,9 @@ public class StaticField implements Serializable {
 
 	@Override
 	public String toString() {
-		return "StaticField [field=" + field + ", conflict=" + conflict + ", value=" + value + ", dependsOn="
-				+ dependsOn + "]";
+		return "StaticField [field=" + field + ", conflict=" + conflict + ", value="
+				+ ((value != null || value.getContent().size() > 0) ? "present" : "null") + ", dependsOn=" + dependsOn
+				+ "]";
 	}
 
 	public void clearConflict() {

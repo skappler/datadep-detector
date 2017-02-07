@@ -3,7 +3,6 @@ package edu.gmu.swe.datadep.xstream;
 import java.lang.reflect.Field;
 import java.util.Hashtable;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
@@ -66,6 +65,8 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							} else {
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+
+								writer.addAttribute("FROM", "ReferenceByXPathWithDependencysMarshaller");
 							}
 						}
 						if (source instanceof Map) {
@@ -83,7 +84,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 										System.out.println("NoSuchFieldException for map type " + source.getClass());
 										finf = null;
 									}
-								} 
+								}
 								// f.setAccessible(true);
 
 								if (finf != null) {
@@ -116,6 +117,8 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 					System.out.println(
 							"ReferenceByXPathWithDependencysMarshaller.convert(...).new Converter() {...}.marshal() source is null");
 				}
+
+				// TODO Not sure what is doing here ...
 				// Why this does not fail for String == null ?
 				if (source instanceof String) {
 					source = ((String) source).trim();
@@ -123,12 +126,19 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 				if (source instanceof char[]) {
 					source = new String((char[]) source).trim().toCharArray();
 				}
+
+				// TODO What's this ?
 				converter.marshal(source, writer, context);
+
 				if (source != null) {
 					JDomHackWriter wr = (JDomHackWriter) writer.underlyingWriter();
 					DependencyInfo inf = TagHelper.getOrFetchTag(source);
-					if (inf != null)
+					if (inf != null) {
+						// This eventually initializes the xmlEl object in the
+						// inf
+						// instance ?
 						inf.xmlEl = wr.recentNode;
+					}
 				}
 
 			}

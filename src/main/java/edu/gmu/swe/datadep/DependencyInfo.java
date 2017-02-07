@@ -73,43 +73,37 @@ public final class DependencyInfo implements Serializable {
 
 		try {
 			// By adding this we lose deps on repoKind ?
-			if (IN_CAPTURE)
+			if (IN_CAPTURE || ignored || conflict) {
 				return;
-			if (ignored)
-				return;
-			if (conflict) {
-				return;
-			}
-
-			if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 				conflict = true;
-				// Snag the value of the field.
 				if (fields != null) {
-					for (StaticField sf : fields)
+					// Snag the value of the field only if there is at least a
+					// SF associated to this object
+					for (StaticField sf : fields) {
 						if (sf != null) {
-							// THIS IS NEVER TRIGGERED
-							// System.out.println("DependencyInfo.write() " + sf
-							// + " for " + xmlEl);
 							if (xmlEl != null) {
 								if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
-									System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen()
+									System.out.println("DependencyInfo.write() " + "FOUND NULL TEST ! " + getWriteGen()
 											+ " " + HeapWalker.testNumToTestClass.size());
 								} else {
 									xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen())
 											+ "." + HeapWalker.testNumToMethod.get(getWriteGen()));
 								}
+								break; // We exit at the first non-null SF
+										// object that we find
 							}
-
-							// FIXME What shall we do here ?!
-							if (sf.isConflict()) {
-								// TODO(gyori): The xmlEl is somehow null. When
-								// can
-								// this be null?
-								// sf.markConflictAndSerialize(writeGen);
-							} else {
+						}
+					}
+					// "Bubble up" the conflict to all the associated SFs that
+					// do not have already a conflict
+					for (StaticField sf : fields) {
+						if (sf != null) {
+							if (!sf.isConflict()) {
 								sf.markConflictAndSerialize(writeGen);
 							}
 						}
+					}
 				}
 			}
 		} finally {
@@ -129,20 +123,13 @@ public final class DependencyInfo implements Serializable {
 	public static boolean IN_CAPTURE = false;
 
 	public void read() {
-		if (IN_CAPTURE)
+		if (IN_CAPTURE || ignored || conflict) {
 			return;
-		if (ignored)
-			return;
-		if (conflict) {
-			return;
-		}
-		if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			conflict = true;
-			// Snag the value of the field AT THIS TIME !
-			if (fields != null) { /*
-									 * could be null if only pointed to by
-									 * ignored heap roots
-									 */
+			// Snag the value of the field only if there is at least a SF
+			// associated to this object
+			if (fields != null) {
 				for (StaticField sf : fields) {
 					if (sf != null) {
 						// System.out.println("DependencyInfo.read() " + sf + "
@@ -156,12 +143,18 @@ public final class DependencyInfo implements Serializable {
 										+ HeapWalker.testNumToMethod.get(getWriteGen()));
 							}
 						}
+						break;
 
-						if (sf.isConflict()) {
-							// TODO(gyori): The xmlEl is somehow null. When can
-							// this be null?
-						} else
+					}
+				}
+
+				// "Bubble up" the conflict to all the associated SFs that
+				// do not have already a conflict
+				for (StaticField sf : fields) {
+					if (sf != null) {
+						if (!sf.isConflict()) {
 							sf.markConflictAndSerialize(writeGen);
+						}
 					}
 				}
 			}
