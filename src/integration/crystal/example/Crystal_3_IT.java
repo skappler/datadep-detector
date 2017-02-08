@@ -23,14 +23,14 @@ public class Crystal_3_IT extends AbstractCrystalIT {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
 
-		(new DataSourceTestAlessio()).testSetField();
+		executeTest(DataSourceTestAlessio.class, "testSetField");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+
 		Assert.assertTrue(depsData.size() == 0);
 
-		(new DataSourceTestAlessio()).testReadALL();
+		executeTest(DataSourceTestAlessio.class, "testReadALL");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "readALL");
-
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
@@ -38,20 +38,14 @@ public class Crystal_3_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__parent");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
-		// has(depsData, "crystal.model.DataSourceTestAlessio.testSetField",
-		// "a");
 
-		(new DataSourceTestAlessio()).testSetKind();
+		executeTest(DataSourceTestAlessio.class, "testSetKind");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetKind");
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
+
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__cloneString");
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "__repoKind");
-
-		// Assertions
-		// depsData =
-		// extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(),
-		// deps);
 
 	}
 

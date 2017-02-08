@@ -66,7 +66,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
 
-								writer.addAttribute("FROM", "ReferenceByXPathWithDependencysMarshaller");
+								writer.addAttribute("setBy", "ReferenceByXPathWithDependencysMarshaller");
 							}
 						}
 						if (source instanceof Map) {
@@ -92,13 +92,15 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 									writer.addAttribute("size", "" + m.size());
 									inf = (DependencyInfo) finf.get(source);
 									if (inf != null && inf.isConflict()) {
-										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null)
+										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
 											System.out.println("FOUND NULL SDO " + inf.getWriteGen() + " "
 													+ HeapWalker.testNumToTestClass.size());
-										else
+										} else {
 											writer.addAttribute("size_dependsOn",
 													HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "."
 															+ HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+											writer.addAttribute("setBy", "ReferenceByXPathWithDependencysMarshaller");
+										}
 									}
 								}
 							} catch (NoSuchFieldException e) {
@@ -134,9 +136,6 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 					JDomHackWriter wr = (JDomHackWriter) writer.underlyingWriter();
 					DependencyInfo inf = TagHelper.getOrFetchTag(source);
 					if (inf != null) {
-						// This eventually initializes the xmlEl object in the
-						// inf
-						// instance ?
 						inf.xmlEl = wr.recentNode;
 					}
 				}

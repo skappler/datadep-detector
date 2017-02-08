@@ -581,16 +581,13 @@ public class HeapWalker {
 		xStreamInst = new XStream(new DepInfoReflectionProvider()) {
 			@Override
 			protected MapperWrapper wrapMapper(MapperWrapper next) {
-
-				// This prevents some specific fields to be marshalled.
-				// For example, the __DEPENDENCY_INFO field
 				return new FilteringFieldMapper(next);
 			}
 		};
 		// Treat Wrapped type in a different way, basically, extract the DEP
 		// info from containing class
 		xStreamInst.registerConverter(new WrappedPrimitiveConverter(), XStream.PRIORITY_VERY_HIGH);
-		// 
+		//
 		xStreamInst.setMarshallingStrategy(
 				new ReferenceByXPathMarshallingStrategy(ReferenceByXPathMarshallingStrategy.ABSOLUTE) {
 					@Override
@@ -632,6 +629,7 @@ public class HeapWalker {
 		try {
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");
+			// FIXME Not sure what this is supposed to do ...
 			JDomHackWriter wr = new JDomHackWriter(root);
 			// getXStreamInstance().marshal(obj, new CompactWriter(sw));
 			getXStreamInstance().marshal(obj, wr);

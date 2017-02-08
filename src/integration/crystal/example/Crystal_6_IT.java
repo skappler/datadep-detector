@@ -7,6 +7,7 @@ import java.util.Map.Entry;
 import org.junit.Assert;
 import org.junit.Test;
 
+import crystal.model.DataSourceTest;
 import crystal.model.DataSourceTestAlessio;
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
@@ -26,22 +27,20 @@ public class Crystal_6_IT extends AbstractCrystalIT {
 		// HeapWalker.walkAndFindDependencies("INIT", "INIT");
 
 		// initialize the data structure
-		(new DataSourceTestAlessio()).testSetField();
+		executeTest(DataSourceTestAlessio.class, "testSetField");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetField");
 
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		Assert.assertTrue(depsData.size() == 0);
 
 		// Set the field to a non null value
-		(new DataSourceTestAlessio()).testSetCompileCommand();
+		executeTest(DataSourceTestAlessio.class, "testSetCompileCommand");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommand");
 
 		// Changes as well, so the conflict must be updated in the next
 		// execution
-		(new DataSourceTestAlessio()).testSetCompileCommandToNull();
+		executeTest(DataSourceTestAlessio.class, "testSetCompileCommandToNull");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommandToNull");
-
-		// Assert
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);
 		// We read data so we need it - data is a SF
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetField", "crystal.model.DataSourceTestAlessio.data");
@@ -50,7 +49,7 @@ public class Crystal_6_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTestAlessio.testSetCompileCommand", "__compileCommand");
 
 		// Set the field to a non null value
-		(new DataSourceTestAlessio()).testSetCompileCommand();
+		executeTest(DataSourceTestAlessio.class, "testSetCompileCommand");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTestAlessio", "testSetCompileCommand");
 		// Assert
 		depsData = extractDataStaticFieldDepValue(DataSourceTestAlessio.data.getClass(), deps);

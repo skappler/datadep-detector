@@ -17,7 +17,6 @@ public class FilteringFieldMapper extends MapperWrapper {
 
 	static HashSet<String> blackListedPackages = new HashSet<String>();
 
-	// TODO: Why log4j blackListed ?
 	// static {
 	// blackListedPackages.add("org.log4j");
 	// blackListedPackages.add("edu.columbia.cs.psl.phosphor");
