@@ -443,9 +443,10 @@ public class HeapWalker {
 				// This thing clear previous conflicts informations, however, in
 				// case of reads in subsequent tests
 				// only the former test report the dep, while all of them should
-				// have done. So we clear conflict data ONLY for fields that we wrote.
+				// have done. So we clear conflict data ONLY for fields that we
+				// wrote.
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
-					
+
 					sf.clearConflict();
 				}
 			}
@@ -579,7 +580,6 @@ public class HeapWalker {
 		xStreamInst = new XStream(new DepInfoReflectionProvider()) {
 			@Override
 			protected MapperWrapper wrapMapper(MapperWrapper next) {
-
 				return new FilteringFieldMapper(next);
 			}
 		};
@@ -625,6 +625,7 @@ public class HeapWalker {
 		try {
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");
+			// FIXME Not sure what this is supposed to do ...
 			JDomHackWriter wr = new JDomHackWriter(root);
 			// getXStreamInstance().marshal(obj, new CompactWriter(sw));
 			getXStreamInstance().marshal(obj, wr);
