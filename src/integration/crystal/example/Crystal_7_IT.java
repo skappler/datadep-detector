@@ -27,37 +27,23 @@ public class Crystal_7_IT extends AbstractCrystalIT {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
 
-		// HeapWalker.walkAndFindDependencies("INIT", "INIT");
-
-		(new DataSourceTest()).testSetField();
+		// NOTE that this uses DataSourceTest not DataSourceTestAlessio ...
+		executeTest(DataSourceTest.class, "testSetField");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetField");
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 		Assert.assertTrue(depsData.size() == 0);
 
-		// System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
-
 		// This one read and set some variables
-		(new DataSourceTest()).testSetCloneString();
+		executeTest(DataSourceTest.class, "testSetCloneString");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetCloneString");
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "__cloneString");
 
-		// This one just set some variables. However, by doing so, it introduce
-		// an error if this is used before
-		// testSetCloneString which expects a different string. So the dep among
-		// the two is a manifest dep. How to check this ?! Read gen ?
-		(new DataSourceTest()).testToString();
+		executeTest(DataSourceTest.class, "testToString");
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testToString");
-
-		// System.out.println("CrystalIT.testWriteAfterWrite() " + deps);
-
-		// Writes after writes
-		// data.setShortName(short_name); WW
-		// data.setKind(kind); WW
-		// data.setCloneString(cloneString); WW
-
 		depsData = extractDataStaticFieldDepValue(DataSourceTest.data.getClass(), deps);
 		// TODO For the moment, Write after Write are not consider data
+
 		// dependency
 		// has(depsData, "crystal.model.DataSourceTest.testSetCloneString",
 		// "__cloneString");
