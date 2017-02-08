@@ -38,6 +38,8 @@ public class HeapWalker {
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
 	private static final Set<String> whiteList;
 
+	public static boolean SKIP_VALUES = true;
+
 	public static void clearWhitelist() {
 		whiteList.clear();
 	}
@@ -630,7 +632,7 @@ public class HeapWalker {
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");
 			// FIXME Not sure what this is supposed to do ...
-			JDomHackWriter wr = new JDomHackWriter(root);
+			JDomHackWriter wr = new JDomHackWriter(root, SKIP_VALUES);
 			// getXStreamInstance().marshal(obj, new CompactWriter(sw));
 			getXStreamInstance().marshal(obj, wr);
 
