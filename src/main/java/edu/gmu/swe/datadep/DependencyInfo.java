@@ -83,22 +83,24 @@ public final class DependencyInfo implements Serializable {
 
 			if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 				conflict = true;
+
+				if (xmlEl != null) {
+					if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
+						System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen() + " "
+								+ HeapWalker.testNumToTestClass.size());
+					} else {
+						xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
+								+ HeapWalker.testNumToMethod.get(getWriteGen()));
+						// Note add vs set
+						xmlEl.setAttribute("setBy", "DependencyInfo-Write");
+
+					}
+				}
+
 				// Snag the value of the field.
 				if (fields != null) {
 					for (StaticField sf : fields)
 						if (sf != null) {
-							// THIS IS NEVER TRIGGERED
-							// System.out.println("DependencyInfo.write() " + sf
-							// + " for " + xmlEl);
-							if (xmlEl != null) {
-								if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
-									System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen()
-											+ " " + HeapWalker.testNumToTestClass.size());
-								} else {
-									xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen())
-											+ "." + HeapWalker.testNumToMethod.get(getWriteGen()));
-								}
-							}
 
 							// FIXME What shall we do here ?!
 							if (sf.isConflict()) {
@@ -138,30 +140,33 @@ public final class DependencyInfo implements Serializable {
 		}
 		if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			conflict = true;
-			// Snag the value of the field AT THIS TIME !
+
+			// Why this should be repeated for all the sf ?
+			if (xmlEl != null) {
+				if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
+					System.out.println("FOUND NULL DI " + getWriteGen() + " " + HeapWalker.testNumToTestClass.size());
+				} else {
+					xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
+							+ HeapWalker.testNumToMethod.get(getWriteGen()));
+					xmlEl.setAttribute("setBy", "DependencyInfo-Read");
+				}
+			}
+
+			// Snag the value of the static fields AT THIS TIME !
 			if (fields != null) { /*
 									 * could be null if only pointed to by
 									 * ignored heap roots
 									 */
 				for (StaticField sf : fields) {
 					if (sf != null) {
-						// System.out.println("DependencyInfo.read() " + sf + "
-						// for " + xmlEl + " writeGen " + writeGen);
-						if (xmlEl != null) {
-							if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
-								System.out.println(
-										"FOUND NULL DI " + getWriteGen() + " " + HeapWalker.testNumToTestClass.size());
-							} else {
-								xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
-										+ HeapWalker.testNumToMethod.get(getWriteGen()));
-							}
-						}
-
 						if (sf.isConflict()) {
 							// TODO(gyori): The xmlEl is somehow null. When can
 							// this be null?
-						} else
+						} else {
+							// Write the current state of this particular SF at
+							// this time
 							sf.markConflictAndSerialize(writeGen);
+						}
 					}
 				}
 			}
