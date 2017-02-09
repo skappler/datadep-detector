@@ -36,8 +36,9 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			} catch (IllegalAccessException e) {
 				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
 			} catch (NoSuchFieldException e) {
-				System.out
-						.println("[WARNING] Could not get dep info field " + field.getClass() + "." + field.getName());
+				// TODO Not sure why this happens for joda-time but it is annoying
+				//System.out
+				//		.println("[WARNING] Could not get dep info field " + field.getClass() + "." + field.getName());
 				continue;
 				// throw new ObjectAccessException("Could not get dep info field
 				// " + field.getClass() + "." + field.getName(), e);
