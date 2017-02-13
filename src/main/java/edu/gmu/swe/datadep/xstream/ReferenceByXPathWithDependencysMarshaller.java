@@ -81,7 +81,8 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 									try {
 										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
 									} catch (NoSuchFieldException e) {
-										System.out.println("NoSuchFieldException for map type " + source.getClass());
+										// System.out.println("NoSuchFieldException
+										// for map type " + source.getClass());
 										finf = null;
 									}
 								}
