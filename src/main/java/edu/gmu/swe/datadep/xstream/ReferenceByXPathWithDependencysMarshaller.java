@@ -115,10 +115,12 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							}
 						}
 					}
-				} else {
-					System.out.println(
-							"ReferenceByXPathWithDependencysMarshaller.convert(...).new Converter() {...}.marshal() source is null");
-				}
+				} 
+				// else {
+				// System.out.println(
+				// "ReferenceByXPathWithDependencysMarshaller.convert(...).new
+				// Converter() {...}.marshal() source is null");
+				// }
 
 				// TODO Not sure what is doing here ...
 				// Why this does not fail for String == null ?

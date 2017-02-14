@@ -91,13 +91,21 @@ public class HeapWalker {
 			return false;
 		}
 
-		if (whiteList.isEmpty())
+		if (whiteList.isEmpty()) {
 			return true;
+		}
+
+		// FIXME TODO Use pattern matching here !
+
 		Package p = f.getDeclaringClass().getPackage();
 		if (p != null) {
 			String pkg = p.getName();
 			for (String s : whiteList) {
-				if (pkg.startsWith(s))
+				if (s == null)
+					continue;
+				if (s.trim().length() == 0)
+					continue;
+				if (pkg.startsWith(s.trim()))
 					return true;
 			}
 		}
