@@ -13,19 +13,26 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 
 public class StaticField implements Serializable {
+
 	private static final long serialVersionUID = 1L;
 	private boolean conflict;
+
+	// TODO What's this?
 	public Element value;
+
 	public int dependsOn;
+	// TODO What's this?
 	public transient Field field;
 
+	// TODO: Why do we need serialization in the first place ?
+	// This is for serialization
 	private void writeObject(ObjectOutputStream o) throws IOException {
-
 		o.defaultWriteObject();
 		o.writeObject(field.getDeclaringClass());
 		o.writeObject(field.getName());
 	}
 
+	// This is for serialization
 	private void readObject(ObjectInputStream o) throws IOException, ClassNotFoundException {
 
 		o.defaultReadObject();
@@ -68,8 +75,16 @@ public class StaticField implements Serializable {
 			// somewhere !
 
 			field.setAccessible(true);
-			value = HeapWalker.serialize(field.get(null)); // This invoke the shared XStream stuff which is configured to 
-		} catch (IllegalArgumentException | IllegalAccessException e) {
+
+			// TODO: Let's not serialize a thing and see ...
+			// value = HeapWalker.serialize(field.get(null)); // This invoke the
+			// shared XStream
+			// stuff which is
+			// configured to
+			// } catch (IllegalArgumentException | IllegalAccessException e) {
+			// e.printStackTrace();
+			// }
+		} catch (IllegalArgumentException e) {
 			e.printStackTrace();
 		}
 
@@ -78,6 +93,13 @@ public class StaticField implements Serializable {
 		// "StaticField.markConflictAndSerialize() Value is null for " + field +
 		// " in write gen " + writeGen);
 		// }
+	}
+
+	public void clearValue() {
+		if (value == null)
+			return;
+		// TODO: Not sure this will remove all the stuff,
+		value = null;
 	}
 
 	public String getValue() {
@@ -112,7 +134,8 @@ public class StaticField implements Serializable {
 
 	public void clearConflict() {
 		conflict = false;
-		value = null;
+		// value = null; --> Use clear value instead
 		dependsOn = 0;
+		clearValue();
 	}
 }

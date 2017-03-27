@@ -34,6 +34,10 @@ public class HeapWalker {
 		return clz + "." + fld;
 	}
 
+	// Stats objects
+	public static int classCount = -1;
+	// public static
+
 	public static Object loggerSingleton;
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
 	private static final Set<String> whiteList;
@@ -445,7 +449,10 @@ public class HeapWalker {
 				dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
 				//
 				dep.field = sf.field;
-				// TODO: Do not propagate the XML value !
+				// TODO: add option for propagating the XML value !
+				// TODO: this shall become a list or a summary that describe the
+				// deps cause by this static field
+				//
 				// dep.value = sf.getValue();
 				deps.add(dep);
 				// This thing clear previous conflicts informations, however, in
@@ -454,23 +461,29 @@ public class HeapWalker {
 				// have done. So we clear conflict data ONLY for fields that we
 				// wrote.
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
-					sf.clearConflict();
+					sf.clearConflict(); // This will set value to null anyway...
 				}
 			}
+
+			// TODO - For the fun on it, remove the value from the sf objects
+			// before
+			// clearing the pool...
+			sf.clearValue();
+
 		}
-		// TODO - For the fun on it, remove the value from the sf objects before clearing the pool...
-		
-		
 		// This empties the SF poll but does NOT remove the Static Fields
 		// Objects and their value, which is suspect remains reachable
 		sfPool.clear();
-		
 
 		// TODO is the set of classes from the instrumentation are the same, we
 		// can keep the cache, aren't we ?!
 
 		HashMap<String, StaticField> cache = new HashMap<String, StaticField>();
-		for (Class<?> c : PreMain.getInstrumentation().getAllLoadedClasses()) {
+
+		Class[] allClasses = PreMain.getInstrumentation().getAllLoadedClasses();
+		classCount = allClasses.length;
+
+		for (Class<?> c : allClasses) {
 			Set<Field> allFields = new HashSet<Field>();
 			try {
 				Field[] declaredFields = c.getDeclaredFields();
@@ -543,6 +556,9 @@ public class HeapWalker {
 			}
 			// }
 		}
+
+		// clean up
+		allClasses = null;
 
 		DependencyInfo.CURRENT_TEST_COUNT++;
 		DependencyInfo.IN_CAPTURE = false;
