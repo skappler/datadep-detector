@@ -35,10 +35,12 @@ public class StaticField implements Serializable {
 			field = fieldClass.getDeclaredField(fieldName);
 		} catch (NoSuchFieldException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// e.printStackTrace();
+			System.out.println("WARNING StaticField.readObject() " + e.getMessage());
 		} catch (SecurityException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			// e.printStackTrace();
+			System.out.println("WARNING StaticField.readObject() " + e.getMessage());
 		}
 	}
 

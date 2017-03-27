@@ -117,7 +117,7 @@ public class AbstractCrystalIT {
 		List<Entry<String, String>> deps = new ArrayList<Entry<String, String>>();
 		// Extract root dep
 		deps.add(new AbstractMap.SimpleEntry<String, String>(
-				(getTypeName(sf.field.getDeclaringClass()) + "." + sf.field.getName()), sf.on));
+				(getTypeName(sf.field.getDeclaringClass()) + "." + sf.field.getName()), sf.depTestName));
 
 		// Extract deps on values
 		String xmlValue = sf.value;

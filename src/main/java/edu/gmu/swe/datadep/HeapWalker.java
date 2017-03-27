@@ -416,8 +416,11 @@ public class HeapWalker {
 		DependencyInfo.IN_CAPTURE = false;
 	}
 
+	public static boolean SKIP_XML = true;
+
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
+
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
@@ -439,15 +442,11 @@ public class HeapWalker {
 			if (sf.isConflict()) {
 				StaticFieldDependency dep = new StaticFieldDependency();
 				dep.depGen = sf.dependsOn;
-				dep.on = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
-
+				dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
+				//
 				dep.field = sf.field;
-				// This is where the value registered with
-				// markConflictAndSerialize becomes an XML String and is passed
-				// along
-				// Not sure how this includes also informations about inner
-				// fields dependsOn ...
-				dep.value = sf.getValue();
+				// TODO: Do not propagate the XML value !
+				// dep.value = sf.getValue();
 				deps.add(dep);
 				// This thing clear previous conflicts informations, however, in
 				// case of reads in subsequent tests
@@ -455,12 +454,21 @@ public class HeapWalker {
 				// have done. So we clear conflict data ONLY for fields that we
 				// wrote.
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
-
 					sf.clearConflict();
 				}
 			}
 		}
+		// TODO - For the fun on it, remove the value from the sf objects before clearing the pool...
+		
+		
+		// This empties the SF poll but does NOT remove the Static Fields
+		// Objects and their value, which is suspect remains reachable
 		sfPool.clear();
+		
+
+		// TODO is the set of classes from the instrumentation are the same, we
+		// can keep the cache, aren't we ?!
+
 		HashMap<String, StaticField> cache = new HashMap<String, StaticField>();
 		for (Class<?> c : PreMain.getInstrumentation().getAllLoadedClasses()) {
 			Set<Field> allFields = new HashSet<Field>();

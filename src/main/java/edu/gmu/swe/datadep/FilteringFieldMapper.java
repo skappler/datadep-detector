@@ -15,12 +15,15 @@ public class FilteringFieldMapper extends MapperWrapper {
 		super(parent);
 	}
 
+	/*
+	 * List the packages that shall not Serialized !
+	 */
 	static HashSet<String> blackListedPackages = new HashSet<String>();
 
-	// static {
-	// blackListedPackages.add("org.log4j");
-	// blackListedPackages.add("edu.columbia.cs.psl.phosphor");
-	// }
+	static {
+		// blackListedPackages.add("org.log4j");
+		blackListedPackages.add("edu.columbia.cs.psl.phosphor");
+	}
 
 	@Override
 	public boolean shouldSerializeMember(Class definedIn, String fieldName) {
