@@ -1,6 +1,14 @@
 
 # Possible Improvements of Test dependencies
 
+## Push Conflicts Events while Execution
+
+Instead of doing tainting during the execution and heap walking afterwards, we can push
+data (or events) about conflicting operations on objects *during* the execution, such that
+while a test end, we already have the necessary informations ready for us.
+
+I expect troubles for basic types and such...
+
 ## Refinement - Better capture
 
 The current implementation is not optimized regarding memory usage and it has memory leaks.
