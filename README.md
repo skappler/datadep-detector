@@ -1,6 +1,20 @@
 
 # Possible Improvements of Test dependencies
 
+## FIX-MEMORY-LEAK
+XML Serialization cannot be removed
+
+## Refinement - Better capture
+Instead of capturing all the conflicts at SF level inside the instances to walk the heap later, 
+we can push events (for conflicts) during the collection. This impose a larger overhead than just updating a field (like we do anyway), but avoid serialization of values (500% slower - see JINSI paper) and walking in the first place.
+
+The assumption is that, if there's a conflict, that specific object WAS actually reached static-ally.
+
+So if we collect the events at the end of the execution we already have the data we need.
+
+Tricky part, since we are tweaking JVM at low level, we might encounter technical problems but if we are lucky enough we might be able to push stuff in socket so there should be not such big problems. The alternative is to collect observations in shared data (array basically).
+
+
 ## Refinement - Better capture
 
 The current implementation is not optimized regarding memory usage and it has memory leaks.
