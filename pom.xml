@@ -8,16 +8,9 @@
 
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-jar-plugin</artifactId>
-				<version>2.3.1</version>
-				<configuration>
-					<archive>
-						<manifestFile>resources/META-INF/MANIFEST.MF</manifestFile>
-					</archive>
-				</configuration>
-			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-jar-plugin</artifactId> 
+				<version>2.3.1</version> <configuration> <archive> <manifestFile>resources/META-INF/MANIFEST.MF</manifestFile> 
+				</archive> </configuration> </plugin> -->
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.1</version>
@@ -34,89 +27,28 @@
 					<skip>true</skip>
 				</configuration>
 			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-failsafe-plugin</artifactId>
-				<version>2.18.1</version> <!-- 2.18.1 -->
-				<executions>
-					<execution>
-						<goals>
-							<goal>integration-test</goal>
-							<goal>verify</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<forkCount>1</forkCount>
-					<reuseForks>false</reuseForks>
-					<jvm>${project.build.directory}/jre-inst/bin/java</jvm>
-					<argLine>-Xbootclasspath/p:${project.build.directory}/${project.build.finalName}.jar
-						-agentpath:${project.build.directory}/libdeptracker.so
-						-javaagent:${project.build.directory}/${project.build.finalName}.jar
-					</argLine>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>exec-maven-plugin</artifactId>
-				<groupId>org.codehaus.mojo</groupId>
-				<executions>
-					<execution>
-						<id>instrument-jre</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>${basedir}/instrumentJRE.sh</executable>
-						</configuration>
-					</execution>
-					<execution>
-						<id>make-jvmti</id>
-						<phase>pre-integration-test</phase>
-						<goals>
-							<goal>exec</goal>
-						</goals>
-						<configuration>
-							<executable>make</executable>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-shade-plugin</artifactId>
-				<version>2.3</version>
-				<executions>
-					<execution>
-						<phase>package</phase>
-						<goals>
-							<goal>shade</goal>
-						</goals>
-						<configuration>
-							<relocations>
-								<relocation>
-									<pattern>org.apache.commons.cli</pattern>
-									<shadedPattern>edu.gmu.swe.datadep.imported.org.apache.commons.cli</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org.xmlpull</pattern>
-									<shadedPattern>edu.gmu.swe.datadep.imported.org.xmlpull</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>com.thoughtworks</pattern>
-									<shadedPattern>edu.gmu.swe.datadep.imported.com.thoughtworks</shadedPattern>
-								</relocation>
-								<relocation>
-									<pattern>org.objectweb.asm</pattern>
-									<shadedPattern>edu.gmu.swe.datadep.imported.org.objectweb.asm</shadedPattern>
-								</relocation>
-							</relocations>
-							<minimizeJar>false</minimizeJar>
-							<createDependencyReducedPom>false</createDependencyReducedPom>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-failsafe-plugin</artifactId> 
+				<version>2.18.1</version> 2.18.1 <executions> <execution> <goals> <goal>integration-test</goal> 
+				<goal>verify</goal> </goals> </execution> </executions> <configuration> <forkCount>1</forkCount> 
+				<reuseForks>false</reuseForks> <jvm>${project.build.directory}/jre-inst/bin/java</jvm> 
+				<argLine>-Xbootclasspath/p:${project.build.directory}/${project.build.finalName}.jar 
+				-agentpath:${project.build.directory}/libdeptracker.so -javaagent:${project.build.directory}/${project.build.finalName}.jar 
+				</argLine> </configuration> </plugin> -->
+			<!-- <plugin> <artifactId>exec-maven-plugin</artifactId> <groupId>org.codehaus.mojo</groupId> 
+				<executions> <execution> <id>instrument-jre</id> <phase>pre-integration-test</phase> 
+				<goals> <goal>exec</goal> </goals> <configuration> <executable>${basedir}/instrumentJRE.sh</executable> 
+				</configuration> </execution> <execution> <id>make-jvmti</id> <phase>pre-integration-test</phase> 
+				<goals> <goal>exec</goal> </goals> <configuration> <executable>make</executable> 
+				</configuration> </execution> </executions> </plugin> -->
+			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-shade-plugin</artifactId> 
+				<version>2.3</version> <executions> <execution> <phase>package</phase> <goals> 
+				<goal>shade</goal> </goals> <configuration> <relocations> <relocation> <pattern>org.apache.commons.cli</pattern> 
+				<shadedPattern>edu.gmu.swe.datadep.imported.org.apache.commons.cli</shadedPattern> 
+				</relocation> <relocation> <pattern>org.xmlpull</pattern> <shadedPattern>edu.gmu.swe.datadep.imported.org.xmlpull</shadedPattern> 
+				</relocation> <relocation> <pattern>com.thoughtworks</pattern> <shadedPattern>edu.gmu.swe.datadep.imported.com.thoughtworks</shadedPattern> 
+				</relocation> <relocation> <pattern>org.objectweb.asm</pattern> <shadedPattern>edu.gmu.swe.datadep.imported.org.objectweb.asm</shadedPattern> 
+				</relocation> </relocations> <minimizeJar>false</minimizeJar> <createDependencyReducedPom>false</createDependencyReducedPom> 
+				</configuration> </execution> </executions> </plugin> -->
 
 		</plugins>
 	</build>
@@ -137,12 +69,12 @@
 			<artifactId>xstream</artifactId>
 			<version>1.4.8</version>
 		</dependency>
-		<!--  WHY SCOPE IS NOT TEST ?! -->
+		<!-- WHY SCOPE IS NOT TEST ?! -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
-			<scope>test</scope> 
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
@@ -160,6 +92,86 @@
 	</dependencies>
 
 	<profiles>
+		<profile>
+			<id>DiSL</id>
+			<repositories>
+				<repository>
+					<id>Local</id>
+					<url>file:////${basedir}/local-repo</url>
+				</repository>
+			</repositories>
+			<dependencies>
+				<dependency>
+					<groupId>disl</groupId>
+					<artifactId>server</artifactId>
+					<version>2.1</version>
+				</dependency>
+				<dependency>
+					<groupId>shvm</groupId>
+					<artifactId>server</artifactId>
+					<version>2.1</version>
+				</dependency>
+				<dependency>
+					<groupId>shvm</groupId>
+					<artifactId>dispatch</artifactId>
+					<version>2.1</version>
+				</dependency>
+				<!-- TODO Not sure how depends on this one -->
+				<dependency>
+					<groupId>org.ow2.asm</groupId>
+					<artifactId>asm-debug-all</artifactId>
+					<version>5.0.3</version>
+				</dependency>
+				<!-- TODO Not sure how depends on this one -->
+				<dependency>
+					<groupId>org.ow2.asm</groupId>
+					<artifactId>asm-all</artifactId>
+					<version>5.0.3</version>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<version>3.1</version>
+						<configuration>
+							<source>1.8</source>
+							<target>1.8</target>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-jar-plugin</artifactId>
+						<version>3.0.2</version>
+						<configuration>
+							<archive>
+								<manifestEntries>
+									<DiSL-Transformer>
+										de.unisaarland.instrumentation.RWDependencyClassFileTransformer
+									</DiSL-Transformer>
+									<DiSL-Classes>de.unisaarland.instrumentation.disl.ConflictDetection</DiSL-Classes>
+								</manifestEntries>
+							</archive>
+						</configuration>
+					</plugin>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-compiler-plugin</artifactId>
+						<configuration>
+							<excludes>
+								<exclude>edu/gmu/**/*.java</exclude>
+								<exclude>org/dreads/**/*.java</exclude>
+							</excludes>
+							<testExcludes>
+								<testExclude>edu/gmu/**/*.java</testExclude>
+								<testExclude>example/**/*.java</testExclude>
+								<testExclude>utils/**/*.java</testExclude>
+							</testExcludes>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
 		<!-- FIXME There is a problem with Shade plugin since it tries to shade 
 			also the deps of crystal and the other projects as well ! -->
 		<profile>

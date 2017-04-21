@@ -1,13 +1,18 @@
 
 # Possible Improvements of Test dependencies
 
+## Using JVMTI agents to Walk the Heap
+JVMTI offers natively an interface to find the objects reachable by a given object.
+This might be interesting to use for doing the Heap Walking instead of running XStream. However, 
+it smells fishy that JB did not use this in his implementation in the first place.
+
 ## Push Conflicts Events while Execution
 
 Instead of doing tainting during the execution and heap walking afterwards, we can push
 data (or events) about conflicting operations on objects *during* the execution, such that
 while a test end, we already have the necessary informations ready for us.
 
-I expect troubles for basic types and such...
+One possibility is to use DiSL/ShadowVM to define the instrumentation code. ShadowVM is the way to go, because it can instrument the JVM as well (? at least this is what I understood). However, using ShadowVM instead of DiSL is more difficult...
 
 ## Refinement - Better capture
 
