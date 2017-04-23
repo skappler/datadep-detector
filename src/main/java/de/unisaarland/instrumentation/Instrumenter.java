@@ -13,11 +13,24 @@ public class Instrumenter {
 		if (owner == null) {
 			return true;
 		}
+
+		if (owner.startsWith("L") && owner.endsWith(";")) {
+			// Lde/unisaarland/instrumentation/DependencyInfo;
+			owner = owner.substring(1, owner.length() - 1);
+		}
+
+		// TODO This is too strict for the moment ...
 		return owner.startsWith("java/") //
 				|| owner.startsWith("sun/")//
 				|| owner.startsWith("ch/usi/dag/disl")//
 				|| owner.startsWith("de/unisaarland/instrumentation")//
 				|| owner.startsWith("de/unisaarland/analysis")//
+				// FIXME. Apparently adding JUnit to the project results in bad
+				// behaviors instrumenting JUnitCore has an error (see
+				// JUnitCore.trace)!
+				|| owner.startsWith("org/junit")//
+				|| owner.startsWith("junit/framework")//
+				|| owner.startsWith("com/sun")//
 		;
 		// return owner.startsWith("java/lang/Object") ||
 		// owner.startsWith("java/lang/Number")

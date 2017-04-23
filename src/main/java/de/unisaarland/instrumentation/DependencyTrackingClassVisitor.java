@@ -50,7 +50,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			addTaintField = false;
 		}
 
-		__log.info("DependencyTrackingClassVisitor.visit() " + className);
+		__log.debug("DependencyTrackingClassVisitor.visit() " + className);
 
 		// Add interface
 		if (!Instrumenter.isIgnoredClass(name) && isClass) {
@@ -61,7 +61,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (signature != null) {
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 			}
-			__log.info("Adding interface DependencyInstrumented to " + className);
+			__log.debug("Adding interface DependencyInstrumented to " + className);
 
 		}
 		super.visit(version, access, name, signature, superName, interfaces);
@@ -74,7 +74,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 
-		__log.info("DependencyTrackingClassVisitor.visitField() " + name + " inside " + className);
+		__log.debug("DependencyTrackingClassVisitor.visitField() " + name + " inside " + className);
 		Type t = Type.getType(desc);
 
 		if ((access & Opcodes.ACC_STATIC) != 0 || (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)
@@ -82,7 +82,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
 
-			__log.info("\t Adding " + name + "__DEPENDENCY_INFO to " + className);
+			__log.debug("\t Adding " + name + "__DEPENDENCY_INFO to " + className);
 		}
 
 		return super.visitField(access, name, desc, signature, value);
@@ -97,7 +97,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		AnalyzerAdapter an = null;
 
-		__log.info("DependencyTrackingClassVisitor.visitMethod() " + name);
+		__log.debug("DependencyTrackingClassVisitor.visitMethod() " + name);
 
 		if (!skipFrames) {
 			an = new AnalyzerAdapter(className, access, name, desc, mv);
@@ -124,7 +124,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	 */
 	@Override
 	public void visitEnd() {
-		__log.info("DependencyTrackingClassVisitor.visitEnd() for " + className);
+		__log.debug("DependencyTrackingClassVisitor.visitEnd() for " + className);
 
 		// TODO What's this ? to propagate the instumentation ? Register the new
 		// fields in the class (at the end of it)
@@ -138,11 +138,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (addTaintField) {
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
-				__log.info("visitEnd Adding __DEPENDENCY_INFO to " + className);
+				__log.debug("visitEnd Adding __DEPENDENCY_INFO to " + className);
 
 			}
 
-			__log.info("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
+			__log.debug("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
 
 			// This is the implementation of getDEPENDENCY_INFO
 			// TODO Add this as well
@@ -175,20 +175,20 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			// TODO what does this do ? Introduce another method called
 			// __initPrimDepInfo() which initialize the dep info of all the
 			// static fields ?
-			__log.info("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
+			__log.debug("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
 			//
 			mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
 			mv.visitCode();
 
 			// TODO Here this invokes write ? To what?
 			for (FieldNode fn : moreFields) {
-				__log.info("Processing field " + fn.name);
+				__log.debug("Processing field " + fn.name);
 				// For all the static fields in this class we explicitly
 				// initialize the "external" DependencyInfo field
 				// then, since we are initializing the fields we must call write
 				// on them as well..
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
-					__log.info("visitEnd Adding initiatilization of static field " + fn.name);
+					__log.debug("visitEnd Adding initiatilization of static field " + fn.name);
 
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));

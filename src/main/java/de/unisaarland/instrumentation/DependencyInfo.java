@@ -62,7 +62,7 @@ public final class DependencyInfo implements Serializable {
 	 * @param testID
 	 */
 	public void write() {
-		System.out.println("DependencyInfo.write() " + CURRENT_TEST);
+		// System.out.println("DependencyInfo.write() " + CURRENT_TEST);
 		// TODO Compute conflict dynamically
 		// TODO IN_CAPTURE remove from here and place this in event handler
 		// or something ?
@@ -103,7 +103,7 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public void read() {
-		System.out.println("DependencyInfo.read() " + CURRENT_TEST);
+		// System.out.println("DependencyInfo.read() " + CURRENT_TEST);
 		if (IN_CAPTURE || ignored || conflict) {
 			return;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {

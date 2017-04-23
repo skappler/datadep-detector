@@ -10,15 +10,19 @@ import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 
+import ch.usi.dag.disl.util.Logging;
+import ch.usi.dag.util.logging.Logger;
+
 /**
  * TODO Check this: Inserts instrumentation to record heap reads and writes/
  * 
- * TODO: Is this providing the implementation of getDEPENDECY_INFO() ?
- *
  * @author jon
  *
  */
 public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
+
+	private static final Logger __log = Logging.getPackageInstance();
+
 	private boolean patchLDCClass;
 	private String clazz;
 	private boolean inUninitializedSuper = false;
@@ -29,6 +33,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		this.patchLDCClass = patchLDCClass;
 		this.clazz = className;
 		this.inUninitializedSuper = "<init>".equals(methodName);
+		__log.debug("RWTrackingMethodVisitor.RWTrackingMethodVisitor() " + methodName);
 	}
 
 	/**
@@ -36,8 +41,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	 * any. This will trigger the initialization and the write()
 	 */
 	@Override
-
 	protected void onMethodEnter() {
+		__log.debug("RWTrackingMethodVisitor.onMethodEnter()");
 		if (this.inUninitializedSuper) {
 			this.inUninitializedSuper = false;
 			super.visitVarInsn(ALOAD, 0);
@@ -48,6 +53,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 	/// TODO No idea about this ...
 	public void visitLdcInsn(Object cst) {
+		__log.debug("RWTrackingMethodVisitor.visitLdcInsn()");
+
 		if (cst instanceof Type && patchLDCClass) {
 			super.visitLdcInsn(((Type) cst).getInternalName().replace("/", "."));
 			super.visitInsn(Opcodes.ICONST_0);
@@ -66,12 +73,32 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	int tmpDField = -1;
 
 	// TODO This shall should be called only from DiSL Snippet right ?
+	// Upon the "Load reference from array" try forces to invoke READ on what ?
+	/*
+	 * Visits a zero operand instruction.
+	 * 
+	 * @param opcode the opcode of the instruction to be visited. This opcode is
+	 * either NOP, ACONST_NULL, ICONST_M1, ICONST_0, ICONST_1, ICONST_2,
+	 * ICONST_3, ICONST_4, ICONST_5, LCONST_0, LCONST_1, FCONST_0, FCONST_1,
+	 * FCONST_2, DCONST_0, DCONST_1, IALOAD, LALOAD, FALOAD, DALOAD, AALOAD,
+	 * BALOAD, CALOAD, SALOAD, IASTORE, LASTORE, FASTORE, DASTORE, AASTORE,
+	 * BASTORE, CASTORE, SASTORE, POP, POP2, DUP, DUP_X1, DUP_X2, DUP2, DUP2_X1,
+	 * DUP2_X2, SWAP, IADD, LADD, FADD, DADD, ISUB, LSUB, FSUB, DSUB, IMUL,
+	 * LMUL, FMUL, DMUL, IDIV, LDIV, FDIV, DDIV, IREM, LREM, FREM, DREM, INEG,
+	 * LNEG, FNEG, DNEG, ISHL, LSHL, ISHR, LSHR, IUSHR, LUSHR, IAND, LAND, IOR,
+	 * LOR, IXOR, LXOR, I2L, I2F, I2D, L2I, L2F, L2D, F2I, F2L, F2D, D2I, D2L,
+	 * D2F, I2B, I2C, I2S, LCMP, FCMPL, FCMPG, DCMPL, DCMPG, IRETURN, LRETURN,
+	 * FRETURN, DRETURN, ARETURN, RETURN, ARRAYLENGTH, ATHROW, MONITORENTER, or
+	 * MONITOREXIT.
+	 */
 	// @Override
 	// public void visitInsn(int opcode) {
+	// __log.debug("RWTrackingMethodVisitor.visitInsn() - not implemented yet");
 	// switch (opcode) {
-	// // TODO What's this ? Whenever a class is loaded call a read on it? or
+	// // TODO What's this ? Whenever a class is loaded call a read on it?
+	// or
 	// // instantiated ?
-	// case AALOAD:
+	// case AALOAD: // Load reference from array
 	// super.visitInsn(opcode);
 	// super.visitInsn(DUP);
 	// super.visitMethodInsn(INVOKESTATIC,
@@ -82,14 +109,24 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// super.visitInsn(opcode);
 	// }
 
-	// TODO This shall be called only by DiSL snippets
+	// FIXME This must be called only by DiSL snippets. Note that primitives and
+	// strings shall be handled in the owner class of the field.
+	// Arrays also requires special dealing.
+	/*
+	 * Visits a field instruction. A field instruction is an instruction that
+	 * loads or stores the value of a field of an object.
+	 * 
+	 * @param opcode the opcode of the type instruction to be visited. This
+	 * opcode is either GETSTATIC, PUTSTATIC, GETFIELD or PUTFIELD.
+	 */
 	// @Override
 	// public void visitFieldInsn(int opcode, String owner, String name, String
 	// desc) {
+	// __log.debug("RWTrackingMethodVisitor.visitFieldInsn() " + name + " not
+	// implemented.");
 	// if (Instrumenter.isIgnoredClass(owner)) {
 	// super.visitFieldInsn(opcode, owner, name, desc);
 	// return;
-	// }
 	// switch (opcode) {
 	// case GETFIELD: // On FIELD read/access
 	// super.visitInsn(DUP);
@@ -143,7 +180,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// }
 	//
 	// break;
-	// case GETSTATIC: // All static fields inside a class are managed via an
+	// case GETSTATIC: // All static fields inside a class are managed via
+	// an
 	// // external DEP_INFO data
 	// super.visitFieldInsn(opcode, owner, name, desc);
 	// if (!Instrumenter.isIgnoredClass(owner)) {
@@ -172,7 +210,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// Type.getInternalName(DependencyInfo.class), "read", "()V", false);
 	// }
 	// break;
-	// case PUTSTATIC: // All static fields inside a class are managed via an
+	// case PUTSTATIC: // All static fields inside a class are managed via
+	// an
 	// // external DEP_INFO data
 	// super.visitFieldInsn(opcode, owner, name, desc);
 	// if (!Instrumenter.isIgnoredClass(owner)) {
@@ -221,7 +260,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// // TODO t.getSize here should be 1
 	// super.visitInsn(SWAP);
 	// super.visitInsn(DUP);
-	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name +
+	// "__DEPENDENCY_INFO",
 	// Type.getDescriptor(DependencyInfo.class));
 	// super.visitMethodInsn(INVOKESTATIC,
 	// Type.getInternalName(DependencyInfo.class), "write",
@@ -246,7 +286,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// // Type.getInternalName(DependencyInfo.class), "write",
 	// // "(Ljava/lang/Object;)V", false);
 	// super.visitInsn(DUP);
-	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name +
+	// "__DEPENDENCY_INFO",
 	// Type.getDescriptor(DependencyInfo.class));
 	// super.visitMethodInsn(INVOKESTATIC,
 	// Type.getInternalName(DependencyInfo.class), "write",
@@ -263,7 +304,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// // Type.getInternalName(DependencyInfo.class), "write",
 	// // "(Ljava/lang/Object;)V", false);
 	// super.visitInsn(DUP);
-	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+	// super.visitFieldInsn(Opcodes.GETFIELD, owner, name +
+	// "__DEPENDENCY_INFO",
 	// Type.getDescriptor(DependencyInfo.class));
 	// super.visitMethodInsn(INVOKESTATIC,
 	// Type.getInternalName(DependencyInfo.class), "write",

@@ -17,7 +17,7 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 
 	// How to log ?
 	public RWDependencyClassFileTransformer() {
-		__log.info("Info: RWDependencyClassFileTransformer.RWDependencyClassFileTransformer()");
+		__log.debug("RWDependencyClassFileTransformer.RWDependencyClassFileTransformer()");
 	}
 
 	/**
@@ -135,7 +135,7 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 
 			cr.accept(new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cw, skipFrames)),
 					ClassReader.EXPAND_FRAMES);
-			__log.info("Info: Done with " + className);
+			__log.debug("Info: Done with " + className);
 			return cw.toByteArray();
 		} catch (Throwable ex) {
 			__log.error("Problems transforming " + className + "  " + ex.getMessage());
