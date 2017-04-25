@@ -50,7 +50,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			addTaintField = false;
 		}
 
-		__log.info("DependencyTrackingClassVisitor.visit() " + className);
+		__log.debug("DependencyTrackingClassVisitor.visit() " + className);
 
 		// Add interface
 		if (!Instrumenter.isIgnoredClass(name) && isClass) {
@@ -61,7 +61,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (signature != null) {
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 			}
-			__log.info("Adding interface DependencyInstrumented to " + className);
+			__log.debug("Adding interface DependencyInstrumented to " + className);
 
 		}
 		super.visit(version, access, name, signature, superName, interfaces);
@@ -91,20 +91,20 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
 
-			__log.info("\t Creating additional static field for : " + name);
+			__log.debug("\t Creating additional static field for : " + name);
 
 		} else if (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT) {
 			// Non Static PRIMITITE
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
 
-			__log.info("\t Creating additional primitive field : " + name + "__DEPENDENCY_INFO");
+			__log.debug("\t Creating additional primitive field : " + name + "__DEPENDENCY_INFO");
 		} else if (desc.equals("Ljava/lang/String;")) {
 			// String
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
 
-			__log.info("\t Creating additional String field : " + name + "__DEPENDENCY_INFO");
+			__log.debug("\t Creating additional String field : " + name + "__DEPENDENCY_INFO");
 		}
 		// TODO What about BoxedTypes ?
 
@@ -120,7 +120,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		AnalyzerAdapter an = null;
 
-		__log.info("DependencyTrackingClassVisitor.visitMethod() " + name);
+		__log.debug("DependencyTrackingClassVisitor.visitMethod() " + name);
 
 		if (!skipFrames) {
 			an = new AnalyzerAdapter(className, access, name, desc, mv);
@@ -147,7 +147,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	 */
 	@Override
 	public void visitEnd() {
-		__log.info("DependencyTrackingClassVisitor.visitEnd() for " + className);
+		__log.debug("DependencyTrackingClassVisitor.visitEnd() for " + className);
 
 		// TODO What's this ? to propagate the instumentation ? Register the new
 		// fields in the class (at the end of it)
@@ -161,11 +161,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (addTaintField) {
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
-				__log.info("visitEnd Adding __DEPENDENCY_INFO to " + className);
+				__log.debug("visitEnd Adding __DEPENDENCY_INFO to " + className);
 
 			}
 
-			__log.info("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
+			__log.debug("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
 
 			// This is the implementation of getDEPENDENCY_INFO
 			// TODO Add this as well
@@ -200,7 +200,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			// __initPrimDepInfo() which initialize the dep info of all the
 			// static fields ? Does this triggers when the constructor is
 			// invoked !
-			__log.info("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
+			__log.debug("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
 			//
 			mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
 			mv.visitCode();
@@ -210,7 +210,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				// This is initialization of NON Static additional fields, that
 				// is primitives and String(s)
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
-					__log.info("Adding initiatilization of field " + fn.name);
+					__log.debug("Adding initiatilization of field " + fn.name);
 
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
@@ -233,13 +233,13 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 
-			__log.info("visitEnd Adding static initialization for " + className);
+			__log.debug("visitEnd Adding static initialization for " + className);
 
 			mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
 			mv.visitCode();
 			for (FieldNode fn : moreFields) {
 				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-					__log.info(
+					__log.debug(
 							"visitEnd Adding static initialization of DepInfo () for " + fn.name + " in " + className);
 
 					Label l0 = new Label();
@@ -266,7 +266,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
 					// Assumption: the static DEP INFO already initialized
-					__log.info(
+					__log.debug(
 							"visitEnd Adding implementation of public static get" + fn.name + "(); for " + className);
 					mv = super.visitMethod(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC, "get" + fn.name,
 							"()" + Type.getDescriptor(DependencyInfo.class), null, null);
@@ -280,7 +280,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 					mv.visitEnd();
 					//
 				} else {
-					__log.info("visitEnd Adding implementation of get" + fn.name + "(); for " + className);
+					__log.debug("visitEnd Adding implementation of get" + fn.name + "(); for " + className);
 					mv = super.visitMethod(Opcodes.ACC_PUBLIC, "get" + fn.name,
 							"()" + Type.getDescriptor(DependencyInfo.class), null, null);
 					mv.visitCode();

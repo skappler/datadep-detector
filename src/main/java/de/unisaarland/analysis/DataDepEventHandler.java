@@ -1,9 +1,14 @@
 package de.unisaarland.analysis;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import de.unisaarland.instrumentation.DependencyInfo;
+import de.unisaarland.instrumentation.DependencyInstrumented;
 import de.unisaarland.instrumentation.Instrumenter;
 
 public class DataDepEventHandler {
@@ -18,17 +23,19 @@ public class DataDepEventHandler {
 	// update
 	// test counters
 
-	public static final int CURRENT_TEST = 0;
+	public static HashMap<Integer, String> testNumToMethod = new HashMap<Integer, String>();
+	public static HashMap<Integer, String> testNumToTestClass = new HashMap<>();
 
-	// Handle conflict events if any
-	public void onConflict(/* Some data here .... */) {
+	private Set<DependencyInfo> conflicts;
 
-	}
+	// TODO Data Deps
+	private List<DataDependency> dataDependencies;
 
 	private static DataDepEventHandler INSTANCE;
 
 	private DataDepEventHandler() {
-		// TODO Auto-generated constructor stub
+		conflicts = new HashSet<DependencyInfo>();
+		dataDependencies = new ArrayList<DataDependency>();
 	}
 
 	public static synchronized DataDepEventHandler instanceOf() {
@@ -42,100 +49,103 @@ public class DataDepEventHandler {
 			String fieldOwner, String fieldDesc, String fieldName, //
 			Object fieldObject, //
 			boolean isArray, boolean isPrimitive) {
-		// TODO Move this into a guard ?!
-		// /*
-		// * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO"
-		// fields
-		// * dynamically added to classes are not intercepted by the guards...
-		// */
-		// if (fieldName.endsWith("__DEPENDENCY_INFO")) {
-		// // System.out.println(
-		// // "DataDepEventHandler.onInstanceFieldPut() Ignoring artificial
-		// // tracking field " + fieldName);
-		// return;
-		// }
-		// if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
-		// if (ownerObject instanceof DependencyInstrumented) {
-		// DependencyInfo d = extractDependencyInfo(ownerObject, fieldName);
-		// System.out.println("Read primitive/String : " + fieldOwner + "." +
-		// fieldName);
-		// d.read();
-		// System.out.println(d);
-		// }
-		// } else if (isArray) {
-		// if (fieldObject instanceof DependencyInstrumented) {
-		// DependencyInfo d = ((DependencyInstrumented)
-		// fieldObject).getDEPENDENCY_INFO();
-		// System.out.println("Accessed array: " + fieldOwner + "." +
-		// fieldName);
-		// d.read();
-		// System.out.println(d);
-		// }
-		// } else {
-		// // Regular object - What this is null ?
-		// if (fieldObject instanceof DependencyInstrumented) {
-		// DependencyInfo d = ((DependencyInstrumented)
-		// fieldObject).getDEPENDENCY_INFO();
-		// System.out.println("Accessed field: " + fieldOwner + "." +
-		// fieldName);
-		// d.read();
-		// System.out.println(d);
-		// }
-		// }
+
+		if (fieldName.endsWith("__DEPENDENCY_INFO")) {
+			return;
+		}
+		DependencyInfo d = null;
+		if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
+			if (ownerObject instanceof DependencyInstrumented) {
+				d = extractDependencyInfo(ownerObject, fieldName);
+				System.out.println("Read primitive/String : " + fieldOwner + "." + fieldName);
+			}
+		} else if (isArray) {
+			if (fieldObject instanceof DependencyInstrumented) {
+				System.out.println("Read array: " + fieldOwner + "." + fieldName);
+				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
+			}
+		} else {
+			// Regular object - What this is null ?
+			if (fieldObject instanceof DependencyInstrumented) {
+				System.out.println("Read field: " + fieldOwner + "." + fieldName);
+				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
+			}
+		}
+
+		if (d != null) {
+			if (d.read()) {
+				int sourceTestID = d.getLastWrite();
+				//
+				conflicts.add(d);
+				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
+						sourceTestID, DependencyInfo.CURRENT_TEST, //
+						testNumToTestClass.get(sourceTestID) + "." + testNumToMethod.get(sourceTestID),
+						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
+								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
+				dataDependencies.add(dataDependency);
+				// Print out the Conflict data
+				System.out.println(dataDependency);
+			}
+		} else {
+			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
+
+		}
 
 	}
 
 	public void onInstanceFieldPut(Object ownerObject, //
 			String fieldOwner, String fieldDesc, String fieldName, //
-			Object fieldObject, // FIXME Note that this is wrong
+			Object fieldObject, // FIXME Note that does not always correspond to
+								// the field object ...
 			boolean isArray, boolean isPrimitive) {
 
-		// // System.out
-		// // .println("DataDepEventHandler.onInstanceFieldPut() " + fieldOwner
-		// + "
-		// // " + fieldName + " " + fieldDesc);
-		//
-		// // TODO Move this into a guard ?!
-		// /*
-		// * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO"
-		// fields
-		// * dynamically added to classes are not intercepted by the guards...
-		// */
-		// if (fieldName.endsWith("__DEPENDENCY_INFO")) {
-		// // System.out.println(
-		// // "DataDepEventHandler.onInstanceFieldPut() Ignoring artificial
-		// // tracking field " + fieldName);
-		// return;
-		// }
-		//
-		// if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
-		// if (ownerObject instanceof DependencyInstrumented) {
-		// System.out.println("Wrote primitive/String : " + fieldOwner + "." +
-		// fieldName);
-		// DependencyInfo d = extractDependencyInfo(ownerObject, fieldName);
-		// d.write();
-		// System.out.println(d);
-		// }
-		// } else if (isArray) {
-		// if (fieldObject instanceof DependencyInstrumented) {
-		// System.out.println("Wrote array ref: " + fieldOwner + "." +
-		// fieldName);
-		// DependencyInfo d = ((DependencyInstrumented)
-		// fieldObject).getDEPENDENCY_INFO();
-		// d.write();
-		// System.out.println(d);
-		// }
-		// } else {
-		// // Regular object - What this is null ?
-		// if (fieldObject instanceof DependencyInstrumented) {
-		// System.out.println("Wrote field: " + fieldOwner + "." + fieldName + "
-		// of desc " + fieldDesc);
-		// DependencyInfo d = ((DependencyInstrumented)
-		// fieldObject).getDEPENDENCY_INFO();
-		// d.write();
-		// System.out.println(d);
-		// }
-		// }
+		/*
+		 * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO" fields
+		 * dynamically added to classes are not intercepted by the guards...
+		 */
+		if (fieldName.endsWith("__DEPENDENCY_INFO")) {
+			return;
+		}
+
+		DependencyInfo d = null;
+
+		System.out.println(
+				"DataDepEventHandler.onInstanceFieldPut() " + fieldOwner + "." + fieldName + " " + ownerObject);
+		if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
+			if (ownerObject instanceof DependencyInstrumented) {
+				System.out.println("Wrote primitive/String : " + fieldOwner + "." + fieldName);
+				d = extractDependencyInfo(ownerObject, fieldName);
+			}
+		} else if (isArray) {
+			if (fieldObject instanceof DependencyInstrumented) {
+				System.out.println("Wrote array ref: " + fieldOwner + "." + fieldName);
+				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
+			}
+		} else {
+			// Regular object - What this is null ?
+			if (fieldObject instanceof DependencyInstrumented) {
+				System.out.println("Wrote field: " + fieldOwner + "." + fieldName + " of desc " + fieldDesc);
+				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
+			}
+		}
+		if (d != null) {
+			if (d.write()) {
+				int sourceTestID = d.getLastWrite();
+				//
+				conflicts.add(d);
+				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
+						sourceTestID, DependencyInfo.CURRENT_TEST, //
+						testNumToTestClass.get(sourceTestID) + "." + testNumToMethod.get(sourceTestID),
+						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
+								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
+				dataDependencies.add(dataDependency);
+				// Print out the Conflict data
+				System.out.println(dataDependency);
+			}
+		} else {
+			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
+
+		}
 	}
 
 	// Static fields have no owner. Owners are instances, static fields belong
@@ -147,19 +157,28 @@ public class DataDepEventHandler {
 			//
 			boolean isArray, boolean isPrimitive) {
 
-		// For some reason the PUT guard cannot stop DependencyInfo objects ?!
+		// For some reason the GET guard cannot stop DependencyInfo objects ?!
 		if (Instrumenter.isIgnoredClass(fieldDesc)) {
 			return;
 		}
 
-		// TODO null check !!! ?!
 		System.out.println("DataDepEventHandler.onStaticFieldGet() " + fieldOwner + "." + fieldName + " " + owner);
 
 		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
 		if (d != null) {
-			System.out.println("DataDepEventHandler.onStaticFieldPut() d " + d);
-			d.read();
-			System.out.println(d);
+			if (d.read()) {
+				int sourceTestID = d.getLastWrite();
+				//
+				conflicts.add(d);
+				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
+						sourceTestID, DependencyInfo.CURRENT_TEST, //
+						testNumToTestClass.get(sourceTestID) + "." + testNumToMethod.get(sourceTestID),
+						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
+								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
+				dataDependencies.add(dataDependency);
+				// Print out the Conflict data
+				System.out.println(dataDependency);
+			}
 		} else {
 			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
 
@@ -181,20 +200,33 @@ public class DataDepEventHandler {
 			return;
 		}
 
-		System.out.println("DataDepEventHandler.onStaticFieldPut() " + fieldOwner + "." + fieldName + " from "
-				+ oldValue + " to " + newValue);
+		// System.out.println("DataDepEventHandler.onStaticFieldPut() " +
+		// fieldOwner + "." + fieldName + " from "
+		// + oldValue + " to " + newValue);
 		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
 		if (d != null) {
-			System.out.println("DataDepEventHandler.onStaticFieldPut() d " + d);
-			d.write();
-			System.out.println(d);
+			// System.out.println("DataDepEventHandler.onStaticFieldPut() d " +
+			// d);
+			if (d.write()) {
+				int sourceTestID = d.getLastWrite();
+				//
+				conflicts.add(d);
+				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
+						sourceTestID, DependencyInfo.CURRENT_TEST, //
+						testNumToTestClass.get(sourceTestID) + "." + testNumToMethod.get(sourceTestID),
+						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
+								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
+				dataDependencies.add(dataDependency);
+				// Print out the Conflict data
+				System.out.println(dataDependency);
+			}
 		} else {
 			System.out.println("DataDepEventHandler.onStaticFieldPut() WARNING null dep info");
-
 		}
 
 	}
 
+	// TODO will those triggers read/write inside arrays or of the array ref ?!
 	// TODO No idea what arrayRef is compared to fieldValue...
 	// FIXME Handle arrays of primitives !
 	public void onArrayStore(int index, Object arrayRef, String fieldOwner, String fieldDesc, String fieldName,
@@ -212,18 +244,17 @@ public class DataDepEventHandler {
 	}
 
 	private static DependencyInfo extractDependencyInfo(Object ownerObject, String fieldName) {
-
-		for (Method m : ownerObject.getClass().getMethods()) {
-			System.out.println("DataDepEventHandler.extractDependencyInfo() Method " + m);
-			if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
-				try {
-					System.out.println("DataDepEventHandler.extractDependencyInfo() invoking " + m);
-					//
+		try {
+			for (Method m : ownerObject.getClass().getMethods()) {
+				if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
+					// System.out.println("DataDepEventHandler.extractDependencyInfo()
+					// invoking " + m);
 					return (DependencyInfo) m.invoke(ownerObject);
-				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
-					e.printStackTrace();
 				}
 			}
+		} catch (Exception e) {
+			System.out.println("DataDepEventHandler.extractDependencyInfo() FAILED with " + e);
+			e.printStackTrace();
 		}
 		// This should never happen ....
 		System.out.println("DataDepEventHandler.extractDependencyInfo() Cannot find accessor method for " + fieldName);
@@ -234,7 +265,8 @@ public class DataDepEventHandler {
 	private static DependencyInfo extractStaticDependencyInfo(Object owner, String fieldOwner, String fieldName) {
 
 		if (owner == null) {
-			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Null object");
+			// System.out.println("DataDepEventHandler.extractStaticDependencyInfo()
+			// Null object");
 			return null;
 		}
 		try {
@@ -242,7 +274,8 @@ public class DataDepEventHandler {
 			Class ownerClass = owner.getClass();
 			for (Method m : ownerClass.getMethods()) {
 				if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
-					System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Invoking " + m);
+					// System.out.println("DataDepEventHandler.extractStaticDependencyInfo()
+					// Invoking " + m);
 					return (DependencyInfo) m.invoke(null, new Object[0]);
 				}
 			}
@@ -254,4 +287,33 @@ public class DataDepEventHandler {
 		return null;
 
 	}
+
+	// TODO References to Test Class and Test Method
+	public void beforeTestExecution(String testClass, String testMethod) {
+
+		DependencyInfo.CURRENT_TEST++;
+		DependencyInfo.IN_CAPTURE = true;
+		//
+		System.out.println("ConflictDetection.beforeTestExecution() Starting test: " + testClass + "." + testMethod
+				+ " ID " + DependencyInfo.CURRENT_TEST);
+		testNumToTestClass.put(DependencyInfo.CURRENT_TEST, testClass);
+		testNumToMethod.put(DependencyInfo.CURRENT_TEST, testMethod);
+
+		System.out.println("DataDepEventHandler.beforeTestExecution() " + testNumToMethod);
+
+	}
+
+	public void afterTestExecution() {
+		DependencyInfo.IN_CAPTURE = false;
+		// Notify Event Handler here
+		System.out.println("ConflictDetection.afterTestExecution() Finished test : "
+				+ testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + " "
+				+ testNumToMethod.get(DependencyInfo.CURRENT_TEST) + " ID " + DependencyInfo.CURRENT_TEST);
+		// Reset the DepInfo data which have a conflict ... Recursive ?!
+		for (DependencyInfo d : conflicts) {
+			System.out.println("DataDepEventHandler.afterTestExecution() Clearing conflict");
+			d.clearConflict();
+		}
+	}
+
 }

@@ -127,7 +127,7 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 		 * applied to this class
 		 */
 		try {
-			__log.info("\n\n ---------------\n Info: Transforming " + className);
+			__log.debug("\n\n ---------------\n Info: Transforming " + className);
 			// TODO Shall we prevent this transformation for any reason? For
 			// example, this is a class which belongs to the instrumentation as
 			// well or DiSL will take care of it ?

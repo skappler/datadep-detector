@@ -1,5 +1,8 @@
 package de.unisaarland.instrumentation.disl;
 
+import org.junit.runner.Description;
+import org.junit.runner.Request;
+
 import ch.usi.dag.disl.annotation.AfterReturning;
 import ch.usi.dag.disl.annotation.Before;
 import ch.usi.dag.disl.annotation.SyntheticLocal;
@@ -9,7 +12,6 @@ import ch.usi.dag.disl.marker.BodyMarker;
 import ch.usi.dag.disl.marker.BytecodeMarker;
 import ch.usi.dag.disl.staticcontext.MethodStaticContext;
 import de.unisaarland.analysis.DataDepEventHandler;
-import de.unisaarland.instrumentation.DependencyInfo;
 import de.unisaarland.instrumentation.disl.context.FieldStaticContext;
 import de.unisaarland.instrumentation.guard.GetGuard;
 import de.unisaarland.instrumentation.guard.LoadGuard;
@@ -57,18 +59,18 @@ public class ConflictDetection {
 	 * PreparingEventListener
 	 **/
 	@Before(marker = BodyMarker.class, scope = "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
-	public static void beforeTestExecution() {
-		// Notify Event Handler here
-		DependencyInfo.CURRENT_TEST++;
-		DependencyInfo.IN_CAPTURE = true;
-		System.out.println("ConflictDetection.beforeTestExecution() Next test is: " + DependencyInfo.CURRENT_TEST);
+	public static void beforeTestExecution(MethodStaticContext msc, DynamicContext dc) {
+
+		Request request = dc.getMethodArgumentValue(0, Request.class);
+		// TODO By default we know there is only one test per request:
+		Description desc = request.getRunner().getDescription().getChildren().iterator().next();
+		// TODO This might not be correct, check the class names !
+		DataDepEventHandler.instanceOf().beforeTestExecution(desc.getClassName(), desc.getMethodName());
 	}
 
 	@AfterReturning(marker = BodyMarker.class, scope = "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
 	public static void afterTestExecution() {
-		DependencyInfo.IN_CAPTURE = false;
-		// Notify Event Handler here
-		System.out.println("ConflictDetection.afterTestExecution() Finished test : " + DependencyInfo.CURRENT_TEST);
+		DataDepEventHandler.instanceOf().afterTestExecution();
 	}
 
 	/** GETFIELD **/

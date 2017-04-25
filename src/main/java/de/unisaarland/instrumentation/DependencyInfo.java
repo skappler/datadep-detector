@@ -58,33 +58,38 @@ public final class DependencyInfo implements Serializable {
 	 * 
 	 * @param testID
 	 */
-	public void write() {
-		System.out.println("DependencyInfo.write() " + IN_CAPTURE + " " + ignored + " " + conflict + " LW " + lastWrite
-				+ " CURRENT TEST " + CURRENT_TEST);
+	public boolean write() {
+		// System.out.println("DependencyInfo.write() " + IN_CAPTURE + " " +
+		// ignored + " " + conflict + " LW " + lastWrite
+		// + " CURRENT TEST " + CURRENT_TEST);
 		if (!IN_CAPTURE || ignored || conflict) {
 			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
-			return;
+			return false;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
-			System.out.println("DependencyInfo.read() CONFLICT !");
 			conflict = true;
+			lastWrite = CURRENT_TEST;
+			return true;
+		} else {
+			lastWrite = CURRENT_TEST;
+			return false;
 		}
-		lastWrite = CURRENT_TEST;
-		System.out.println("DependencyInfo.write() LW " + lastWrite);
+
 	}
 
-	public void read() {
-		System.out.println("DependencyInfo.read() " + IN_CAPTURE + " " + ignored + " " + conflict + " LR " + lastRead
-				+ " CURRENT TEST " + CURRENT_TEST);
-
+	public boolean read() {
+		// System.out.println("DependencyInfo.read() " + IN_CAPTURE + " " +
+		// ignored + " " + conflict + " LR " + lastRead
+		// + " CURRENT TEST " + CURRENT_TEST);
 		if (!IN_CAPTURE || ignored || conflict) {
 			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
-			return;
+			return false;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
-			System.out.println("DependencyInfo.read() CONFLICT !");
 			conflict = true;
+			return true;
+		} else {
+			lastRead = CURRENT_TEST;
+			return false;
 		}
-		lastRead = CURRENT_TEST;
-		System.out.println("DependencyInfo.read() LR: " + lastRead);
 	}
 
 	// Not really sure why there is those accesses to the tags
@@ -124,6 +129,6 @@ public final class DependencyInfo implements Serializable {
 	// }
 
 	public String toString() {
-		return "LW: " + lastWrite + "; LR:" + lastRead + ";" + (isConflict() ? " >>>> CONFLICT " : "");
+		return "DepInfo: LW: " + lastWrite + "; LR:" + lastRead + ";" + (isConflict() ? " >>>> CONFLICT " : "");
 	}
 }
