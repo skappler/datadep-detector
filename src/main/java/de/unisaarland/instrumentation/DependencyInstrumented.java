@@ -13,4 +13,11 @@ public interface DependencyInstrumented {
 	 * @return
 	 */
 	public DependencyInfo getDEPENDENCY_INFO();
+
+	/**
+	 * The tag of an inner field of object if any, null otherwise
+	 * 
+	 * @return
+	 */
+	// public DependencyInfo getDEPENDENCY_INFO(String fieldName);
 }

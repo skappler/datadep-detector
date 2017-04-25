@@ -41,8 +41,10 @@ public class ConflictDetection {
 	// otherwise
 	@SyntheticLocal
 	static Object owner;
-	// @SyntheticLocal static Object oldVal;
-	// @SyntheticLocal static Object newVal;
+	@SyntheticLocal
+	static Object oldVal;
+	@SyntheticLocal
+	static Object newVal;
 	@SyntheticLocal
 	static Object arrayRef;
 	@SyntheticLocal
@@ -90,36 +92,59 @@ public class ConflictDetection {
 	}
 
 	/** GETSTATIC **/
+
 	@AfterReturning(marker = BytecodeMarker.class, args = "getstatic", //
 			guard = GetGuard.class)
 	public static void afterRetGetStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
 			DynamicContext dc) {
-		DataDepEventHandler.instanceOf().onStaticFieldGet(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(),
-				dc.getThis(), fsc.isArray(), fsc.isPrimitive());
+		DataDepEventHandler.instanceOf().onStaticFieldGet(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(), //
+				//
+				dc.getThis(),
+				//
+				fsc.isArray(), fsc.isPrimitive());
 	}
 
 	/** PUTFIELD **/
 	@Before(marker = BytecodeMarker.class, args = "putfield", guard = PutGuard.class, order = 100)
 	public static void beforePutField(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
 		owner = dc.getStackValue(1, Object.class);
+		//
+		// oldVal = dc.getInstanceFieldValue(owner, fsc.getFieldOwner(),
+		// fsc.getFieldName(), fsc.getFieldDesc(),Object.class);
+		// newVal = dc.getStackValue(0, Object.class);
 	}
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "putfield", //
 			guard = PutGuard.class)
 	public static void afterRetPutField(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
+
 		DataDepEventHandler.instanceOf().onInstanceFieldPut(owner, fsc.getFieldOwner(), fsc.getFieldDesc(),
-				fsc.getFieldName(), dc.getThis(), fsc.isArray(), fsc.isPrimitive());
+				fsc.getFieldName(), dc.getThis(), // This is the actual snippet
+													// /
+				// oldVal, newVal,//
+				fsc.isArray(), fsc.isPrimitive());
 	}
 
-	/** PUTSTATIC **/
-	// Before only if we need to check values
+	/**
+	 * PUTSTATIC: We need only the ref to the actual static field since the DEP
+	 * info in managed in the outer class for static fields
+	 **/
+
+	@Before(marker = BytecodeMarker.class, args = "putstatic", guard = PutGuard.class)
+	public static void beforePutStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
+			DynamicContext dc) {
+		oldVal = dc.getStaticFieldValue(fsc.getFieldOwner(), fsc.getFieldName(), fsc.getFieldDesc(), Object.class);
+		newVal = dc.getStackValue(0, Object.class);
+	}
+
 	@AfterReturning(marker = BytecodeMarker.class, args = "putstatic", //
 			guard = PutGuard.class)
 	public static void afterRetPutStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
 			DynamicContext dc) {
 
 		DataDepEventHandler.instanceOf().onStaticFieldPut(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(),
-				dc.getThis(), fsc.isArray(), fsc.isPrimitive());
+				dc.getThis(), // The class containing the static field ?
+				oldVal, newVal, fsc.isArray(), fsc.isPrimitive());
 	}
 
 	// TODO Arrays will take care of them later...

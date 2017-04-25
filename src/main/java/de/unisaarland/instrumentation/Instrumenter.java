@@ -14,8 +14,8 @@ public class Instrumenter {
 			return true;
 		}
 
+		// Lde/unisaarland/instrumentation/DependencyInfo;
 		if (owner.startsWith("L") && owner.endsWith(";")) {
-			// Lde/unisaarland/instrumentation/DependencyInfo;
 			owner = owner.substring(1, owner.length() - 1);
 		}
 

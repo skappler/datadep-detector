@@ -50,7 +50,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			addTaintField = false;
 		}
 
-		__log.debug("DependencyTrackingClassVisitor.visit() " + className);
+		__log.info("DependencyTrackingClassVisitor.visit() " + className);
 
 		// Add interface
 		if (!Instrumenter.isIgnoredClass(name) && isClass) {
@@ -61,7 +61,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (signature != null) {
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 			}
-			__log.debug("Adding interface DependencyInstrumented to " + className);
+			__log.info("Adding interface DependencyInstrumented to " + className);
 
 		}
 		super.visit(version, access, name, signature, superName, interfaces);
@@ -69,21 +69,44 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	/**
 	 * Add the FIELD__DEPENDENCY_INFO for fields that must be managed at the
-	 * owner level, that is, primitives and String
+	 * owner level, that is, primitives and String. What about static fields
+	 * instead ?!
 	 */
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 
-		__log.debug("DependencyTrackingClassVisitor.visitField() " + name + " inside " + className);
+		// FIXME This is broken, somehow & ACC_STATIC always triggers while it
+		// should do it only for static fields... HOW TO IDENTIFY IF A FIELD IS
+		// STATIC OR NOT ?1
+
+		// http://stackoverflow.com/questions/9535060/get-the-modifiers-of-a-field-using-the-asm-tree-api
+		// boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
+		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
 		Type t = Type.getType(desc);
 
-		if ((access & Opcodes.ACC_STATIC) != 0 || (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)
-				|| (desc.equals("Ljava/lang/String;"))) {
+		// Static fields and primitives - Why this triggers even if the field is
+		// not static ?!
+		if (isStatic) {
+			// Same access of the original field ?!
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
 
-			__log.debug("\t Adding " + name + "__DEPENDENCY_INFO to " + className);
+			__log.info("\t Creating additional static field for : " + name);
+
+		} else if (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT) {
+			// Non Static PRIMITITE
+			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
+					null, null));
+
+			__log.info("\t Creating additional primitive field : " + name + "__DEPENDENCY_INFO");
+		} else if (desc.equals("Ljava/lang/String;")) {
+			// String
+			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
+					null, null));
+
+			__log.info("\t Creating additional String field : " + name + "__DEPENDENCY_INFO");
 		}
+		// TODO What about BoxedTypes ?
 
 		return super.visitField(access, name, desc, signature, value);
 
@@ -97,7 +120,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		AnalyzerAdapter an = null;
 
-		__log.debug("DependencyTrackingClassVisitor.visitMethod() " + name);
+		__log.info("DependencyTrackingClassVisitor.visitMethod() " + name);
 
 		if (!skipFrames) {
 			an = new AnalyzerAdapter(className, access, name, desc, mv);
@@ -106,7 +129,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 		// TODO Not sure what this actually does
 		RWTrackingMethodVisitor rtmv = new RWTrackingMethodVisitor(mv, patchLDCClass, className, access, name, desc);
-		
+
 		mv = rtmv;
 		if (!skipFrames) {
 			rtmv.setAnalyzer(an);
@@ -124,7 +147,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	 */
 	@Override
 	public void visitEnd() {
-		__log.debug("DependencyTrackingClassVisitor.visitEnd() for " + className);
+		__log.info("DependencyTrackingClassVisitor.visitEnd() for " + className);
 
 		// TODO What's this ? to propagate the instumentation ? Register the new
 		// fields in the class (at the end of it)
@@ -138,11 +161,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (addTaintField) {
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
-				__log.debug("visitEnd Adding __DEPENDENCY_INFO to " + className);
+				__log.info("visitEnd Adding __DEPENDENCY_INFO to " + className);
 
 			}
 
-			__log.debug("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
+			__log.info("visitEnd Adding implementation of getDEPENDENCY_INFO() for " + className);
 
 			// This is the implementation of getDEPENDENCY_INFO
 			// TODO Add this as well
@@ -153,6 +176,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitFieldInsn(Opcodes.GETFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
 			mv.visitInsn(Opcodes.DUP);
+
 			Label ok = new Label();
 			mv.visitJumpInsn(Opcodes.IFNONNULL, ok);
 			mv.visitInsn(Opcodes.POP);
@@ -174,21 +198,19 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 			// TODO what does this do ? Introduce another method called
 			// __initPrimDepInfo() which initialize the dep info of all the
-			// static fields ?
-			__log.debug("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
+			// static fields ? Does this triggers when the constructor is
+			// invoked !
+			__log.info("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
 			//
 			mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
 			mv.visitCode();
 
-			// TODO Here this invokes write ? To what?
+			// Initialize the additional static fields
 			for (FieldNode fn : moreFields) {
-				__log.debug("Processing field " + fn.name);
-				// For all the static fields in this class we explicitly
-				// initialize the "external" DependencyInfo field
-				// then, since we are initializing the fields we must call write
-				// on them as well..
+				// This is initialization of NON Static additional fields, that
+				// is primitives and String(s)
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
-					__log.debug("visitEnd Adding initiatilization of static field " + fn.name);
+					__log.info("Adding initiatilization of field " + fn.name);
 
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
@@ -204,10 +226,92 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 					// "()V", false);
 					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
 				}
+				// Do not re-initialize static dep info
+
 			}
 			mv.visitInsn(Opcodes.RETURN);
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
+
+			__log.info("visitEnd Adding static initialization for " + className);
+
+			mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+			mv.visitCode();
+			for (FieldNode fn : moreFields) {
+				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
+					__log.info(
+							"visitEnd Adding static initialization of DepInfo () for " + fn.name + " in " + className);
+
+					Label l0 = new Label();
+					mv.visitLabel(l0);
+					mv.visitLineNumber(7, l0);
+					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+					mv.visitInsn(Opcodes.DUP);
+					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+							"()V", false);
+					mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name, Type.getDescriptor(DependencyInfo.class));
+				}
+			}
+			mv.visitInsn(Opcodes.RETURN);
+			mv.visitMaxs(2, 0);
+			mv.visitEnd();
+
+			// Introduce a getter method for each of those moreFields. Static
+			// fields require a static getter.Then we
+			// look it up using reflection since accessing private fields is not
+			// possible.
+			// BTW UGLY HACK !
+			// This is basically the same as getDepInfo
+			for (FieldNode fn : moreFields) {
+
+				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
+					// Assumption: the static DEP INFO already initialized
+					__log.info(
+							"visitEnd Adding implementation of public static get" + fn.name + "(); for " + className);
+					mv = super.visitMethod(Opcodes.ACC_STATIC + Opcodes.ACC_PUBLIC, "get" + fn.name,
+							"()" + Type.getDescriptor(DependencyInfo.class), null, null);
+					mv.visitCode();
+					Label l0 = new Label();
+					mv.visitLabel(l0);
+					mv.visitLineNumber(10, l0);
+					mv.visitFieldInsn(Opcodes.GETSTATIC, className, fn.name, Type.getDescriptor(DependencyInfo.class));
+					mv.visitInsn(Opcodes.ARETURN);
+					mv.visitMaxs(1, 0);
+					mv.visitEnd();
+					//
+				} else {
+					__log.info("visitEnd Adding implementation of get" + fn.name + "(); for " + className);
+					mv = super.visitMethod(Opcodes.ACC_PUBLIC, "get" + fn.name,
+							"()" + Type.getDescriptor(DependencyInfo.class), null, null);
+					mv.visitCode();
+					mv.visitVarInsn(Opcodes.ALOAD, 0);
+					mv.visitFieldInsn(Opcodes.GETFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
+					mv.visitInsn(Opcodes.DUP);
+					// Check if null...
+					Label ok1 = new Label();
+					mv.visitJumpInsn(Opcodes.IFNONNULL, ok1);
+					mv.visitInsn(Opcodes.POP);
+					mv.visitVarInsn(Opcodes.ALOAD, 0);
+
+					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+					mv.visitInsn(Opcodes.DUP_X1);
+
+					mv.visitInsn(Opcodes.DUP);
+					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+							"()V", false);
+
+					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
+
+					mv.visitLabel(ok1);
+
+					mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1,
+							new Object[] { Type.getInternalName(DependencyInfo.class) });
+					mv.visitInsn(Opcodes.ARETURN);
+					mv.visitMaxs(0, 0);
+					mv.visitEnd();
+				}
+			}
+
 		}
 		super.visitEnd();
 	}

@@ -2,9 +2,6 @@ package de.unisaarland.instrumentation;
 
 import java.io.Serializable;
 
-import ch.usi.dag.disl.util.Logging;
-import ch.usi.dag.util.logging.Logger;
-
 /**
  * This class implements the Taint object
  * 
@@ -62,76 +59,32 @@ public final class DependencyInfo implements Serializable {
 	 * @param testID
 	 */
 	public void write() {
-		// System.out.println("DependencyInfo.write() " + CURRENT_TEST);
-		// TODO Compute conflict dynamically
-		// TODO IN_CAPTURE remove from here and place this in event handler
-		// or something ?
-		// TODO ignored remove from here and place this in event handler or
-		// something ?
-		if (IN_CAPTURE || ignored || conflict) {
+		System.out.println("DependencyInfo.write() " + IN_CAPTURE + " " + ignored + " " + conflict + " LW " + lastWrite
+				+ " CURRENT TEST " + CURRENT_TEST);
+		if (!IN_CAPTURE || ignored || conflict) {
+			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
 			return;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
-
+			System.out.println("DependencyInfo.read() CONFLICT !");
 			conflict = true;
-
-			// TODO What if TestID is not available ?
-
-			// TODO What we do with complex objects? Do we propagate the info
-			// about this new write down there?
-			// Isn't already included in the write(testID) stuff ?
-			// TODO Snag the value of the field. - We do not need this but we
-			// might need to propagate the values and serialize instead ?
-			// if (fields != null) {
-			// // Snag the value of the field only if there is at least a
-			// // SF associated to this object
-			// for (StaticField sf : fields) {
-			// if (sf != null) {
-			// // FIXME What shall we do here ?!
-			// if (sf.isConflict()) {
-			// // TODO(gyori): The xmlEl is somehow null. When
-			// // can
-			// // this be null?
-			// // sf.markConflictAndSerialize(writeGen);
-			// } else {
-			// sf.markConflictAndSerialize(lastWrite);
-			// }
-			// }
-			// }
-			// }
 		}
 		lastWrite = CURRENT_TEST;
+		System.out.println("DependencyInfo.write() LW " + lastWrite);
 	}
 
 	public void read() {
-		// System.out.println("DependencyInfo.read() " + CURRENT_TEST);
-		if (IN_CAPTURE || ignored || conflict) {
+		System.out.println("DependencyInfo.read() " + IN_CAPTURE + " " + ignored + " " + conflict + " LR " + lastRead
+				+ " CURRENT TEST " + CURRENT_TEST);
+
+		if (!IN_CAPTURE || ignored || conflict) {
+			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
 			return;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
+			System.out.println("DependencyInfo.read() CONFLICT !");
 			conflict = true;
-
-			// TODO What if TestID is not available ?
-
-			// // Snag the value of the static fields AT THIS TIME !
-			// if (fields != null) { /*
-			// * could be null if only pointed to by
-			// * ignored heap roots
-			// */
-			// for (StaticField sf : fields) {
-			// if (sf != null) {
-			// if (sf.isConflict()) {
-			// // TODO(gyori): The xmlEl is somehow null. When can
-			// // this be null?
-			// } else {
-			// // Write the current state of this particular SF at
-			// // this time
-			//
-			// sf.markConflictAndSerialize(lastWrite);
-			// }
-			// }
-			// }
-			// }
 		}
 		lastRead = CURRENT_TEST;
+		System.out.println("DependencyInfo.read() LR: " + lastRead);
 	}
 
 	// Not really sure why there is those accesses to the tags
@@ -169,4 +122,8 @@ public final class DependencyInfo implements Serializable {
 	// for (int i = 0; i < fields.length; i++)
 	// fields[i] = null;
 	// }
+
+	public String toString() {
+		return "LW: " + lastWrite + "; LR:" + lastRead + ";" + (isConflict() ? " >>>> CONFLICT " : "");
+	}
 }

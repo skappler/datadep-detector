@@ -1,7 +1,9 @@
 package de.unisaarland.analysis;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
 import de.unisaarland.instrumentation.DependencyInfo;
-import de.unisaarland.instrumentation.DependencyInstrumented;
 import de.unisaarland.instrumentation.Instrumenter;
 
 public class DataDepEventHandler {
@@ -40,154 +42,155 @@ public class DataDepEventHandler {
 			String fieldOwner, String fieldDesc, String fieldName, //
 			Object fieldObject, //
 			boolean isArray, boolean isPrimitive) {
-
-		if (isPrimitive || fieldObject instanceof String) {
-			if (ownerObject instanceof DependencyInstrumented) {
-				System.out.println("Access of primitive/String fields not implemented");
-				// TODO How to access those additional fields ?
-				// DependencyInfo d = ((DependencyInstrumented)
-				// fieldObject).getDEPENDENCY_INFO();
-				// System.out.println("Accessed array: " + fieldOwner + "." +
-				// fieldName);
-				// d.read();
-			}
-		} else if (isArray) {
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Accessed array: " + fieldOwner + "." + fieldName);
-				d.read();
-			}
-		} else {
-			// Regular object - What this is null ?
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Accessed field: " + fieldOwner + "." + fieldName);
-				d.read();
-			}
-		}
+		// TODO Move this into a guard ?!
+		// /*
+		// * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO"
+		// fields
+		// * dynamically added to classes are not intercepted by the guards...
+		// */
+		// if (fieldName.endsWith("__DEPENDENCY_INFO")) {
+		// // System.out.println(
+		// // "DataDepEventHandler.onInstanceFieldPut() Ignoring artificial
+		// // tracking field " + fieldName);
+		// return;
+		// }
+		// if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
+		// if (ownerObject instanceof DependencyInstrumented) {
+		// DependencyInfo d = extractDependencyInfo(ownerObject, fieldName);
+		// System.out.println("Read primitive/String : " + fieldOwner + "." +
+		// fieldName);
+		// d.read();
+		// System.out.println(d);
+		// }
+		// } else if (isArray) {
+		// if (fieldObject instanceof DependencyInstrumented) {
+		// DependencyInfo d = ((DependencyInstrumented)
+		// fieldObject).getDEPENDENCY_INFO();
+		// System.out.println("Accessed array: " + fieldOwner + "." +
+		// fieldName);
+		// d.read();
+		// System.out.println(d);
+		// }
+		// } else {
+		// // Regular object - What this is null ?
+		// if (fieldObject instanceof DependencyInstrumented) {
+		// DependencyInfo d = ((DependencyInstrumented)
+		// fieldObject).getDEPENDENCY_INFO();
+		// System.out.println("Accessed field: " + fieldOwner + "." +
+		// fieldName);
+		// d.read();
+		// System.out.println(d);
+		// }
+		// }
 
 	}
 
 	public void onInstanceFieldPut(Object ownerObject, //
 			String fieldOwner, String fieldDesc, String fieldName, //
-			Object fieldObject, //
+			Object fieldObject, // FIXME Note that this is wrong
 			boolean isArray, boolean isPrimitive) {
 
-		/*
-		 * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO" fields
-		 * dynamically added to classes are not intercepted by the guards...
-		 */
+		// // System.out
+		// // .println("DataDepEventHandler.onInstanceFieldPut() " + fieldOwner
+		// + "
+		// // " + fieldName + " " + fieldDesc);
+		//
+		// // TODO Move this into a guard ?!
+		// /*
+		// * TODO For some reason the "<Primitive/String>__DEPENDENCY_INFO"
+		// fields
+		// * dynamically added to classes are not intercepted by the guards...
+		// */
+		// if (fieldName.endsWith("__DEPENDENCY_INFO")) {
+		// // System.out.println(
+		// // "DataDepEventHandler.onInstanceFieldPut() Ignoring artificial
+		// // tracking field " + fieldName);
+		// return;
+		// }
+		//
+		// if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
+		// if (ownerObject instanceof DependencyInstrumented) {
+		// System.out.println("Wrote primitive/String : " + fieldOwner + "." +
+		// fieldName);
+		// DependencyInfo d = extractDependencyInfo(ownerObject, fieldName);
+		// d.write();
+		// System.out.println(d);
+		// }
+		// } else if (isArray) {
+		// if (fieldObject instanceof DependencyInstrumented) {
+		// System.out.println("Wrote array ref: " + fieldOwner + "." +
+		// fieldName);
+		// DependencyInfo d = ((DependencyInstrumented)
+		// fieldObject).getDEPENDENCY_INFO();
+		// d.write();
+		// System.out.println(d);
+		// }
+		// } else {
+		// // Regular object - What this is null ?
+		// if (fieldObject instanceof DependencyInstrumented) {
+		// System.out.println("Wrote field: " + fieldOwner + "." + fieldName + "
+		// of desc " + fieldDesc);
+		// DependencyInfo d = ((DependencyInstrumented)
+		// fieldObject).getDEPENDENCY_INFO();
+		// d.write();
+		// System.out.println(d);
+		// }
+		// }
+	}
+
+	// Static fields have no owner. Owners are instances, static fields belong
+	// to classes
+
+	public void onStaticFieldGet(String fieldOwner, String fieldDesc, String fieldName,
+			//
+			Object owner, //
+			//
+			boolean isArray, boolean isPrimitive) {
+
+		// For some reason the PUT guard cannot stop DependencyInfo objects ?!
 		if (Instrumenter.isIgnoredClass(fieldDesc)) {
-			// System.out.println("DataDepEventHandler.onInstanceFieldPut()
-			// Ignoring " + fieldOwner + "." + fieldName
-			// + " of type " + fieldDesc);
 			return;
 		}
 
-		if (isPrimitive || fieldObject instanceof String) {
-			if (ownerObject instanceof DependencyInstrumented) {
-				System.out.println("Access of primitive/String fields not implemented for " + fieldOwner + "."
-						+ fieldName + " -- " + fieldDesc);
-				// TODO How to access those additional fields ?
-				// DependencyInfo d = ((DependencyInstrumented)
-				// fieldObject).getDEPENDENCY_INFO();
-				// System.out.println("Accessed array: " + fieldOwner + "." +
-				// fieldName);
-				// d.write();
-			}
-		} else if (isArray) {
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Wrote array ref: " + fieldOwner + "." + fieldName);
-				d.write();
-			}
+		// TODO null check !!! ?!
+		System.out.println("DataDepEventHandler.onStaticFieldGet() " + fieldOwner + "." + fieldName + " " + owner);
+
+		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
+		if (d != null) {
+			System.out.println("DataDepEventHandler.onStaticFieldPut() d " + d);
+			d.read();
+			System.out.println(d);
 		} else {
-			// Regular object - What this is null ?
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Wrote field: " + fieldOwner + "." + fieldName + " of desc " + fieldDesc);
-				d.write();
-			}
-		}
-	}
+			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
 
-	// Static fields have no owner. Owners are instances, static fields belong
-	// to classes
-
-	public void onStaticFieldGet(String fieldOwner, String fieldDesc, String fieldName, Object fieldObject,
-			boolean isArray, boolean isPrimitive) {
-
-		/*
-		 * TODO For some reason System.out is not filtered out by the
-		 * guard...actually, it is not even checked for inclusion... Can be a
-		 * bug ? Anyway, it seems that System.out is actually instrumented, that
-		 * is, deps info is there... why so ?!
-		 */
-		if (Instrumenter.isIgnoredClass(fieldOwner)) {
-			// System.out.println("DataDepEventHandler.onStaticFieldGet()
-			// Ignoring " + fieldOwner + "." + fieldName);
-			return;
-		}
-
-		// TODO Auto-generated method stub
-		if (isPrimitive || fieldObject instanceof String) {
-			// TODO How to access those static primitive fields then ?!
-			// DependencyInfo d = ((DependencyInstrumented)
-			// fieldObject).getDEPENDENCY_INFO();
-			// System.out.println("Accessed array: " + fieldOwner + "." +
-			// fieldName);
-			// d.read();
-		} else if (isArray) {
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Accessed static array: " + fieldOwner + "." + fieldName);
-				d.read();
-			}
-		} else {
-			// Regular object - What this is null ?
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Accessed static field: " + fieldOwner + "." + fieldName);
-				d.read();
-			}
 		}
 
 	}
 
 	// Static fields have no owner. Owners are instances, static fields belong
 	// to classes
-	public void onStaticFieldPut(String fieldOwner, String fieldDesc, String fieldName, Object fieldObject,
+	public void onStaticFieldPut(String fieldOwner, String fieldDesc, String fieldName,
+			//
+			Object owner, //
+			Object oldValue, Object newValue, // Probably they are not required
+			//
 			boolean isArray, boolean isPrimitive) {
-		/*
-		 * TODO For some reason System.out is not filtered out by the
-		 * guard...actually, it is not even checked for inclusion... Can be a
-		 * bug ? Anyway, it seems that System.out is actually instrumented, that
-		 * is, deps info is there... why so ?!
-		 */
-		if (Instrumenter.isIgnoredClass(fieldOwner)) {
+
+		// For some reason the PUT guard cannot stop DependencyInfo objects ?!
+		if (Instrumenter.isIgnoredClass(fieldDesc)) {
 			return;
 		}
 
-		if (isPrimitive || fieldObject instanceof String) {
-			// TODO How to access those static primitive fields then ?!
-			// DependencyInfo d = ((DependencyInstrumented)
-			// fieldObject).getDEPENDENCY_INFO();
-			// System.out.println("Accessed array: " + fieldOwner + "." +
-			// fieldName);
-			// d.read();
-		} else if (isArray) {
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Wrote static array: " + fieldOwner + "." + fieldName);
-				d.write();
-			}
+		System.out.println("DataDepEventHandler.onStaticFieldPut() " + fieldOwner + "." + fieldName + " from "
+				+ oldValue + " to " + newValue);
+		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
+		if (d != null) {
+			System.out.println("DataDepEventHandler.onStaticFieldPut() d " + d);
+			d.write();
+			System.out.println(d);
 		} else {
-			// Regular object - What this is null ?
-			if (fieldObject instanceof DependencyInstrumented) {
-				DependencyInfo d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
-				System.out.println("Wrote static field: " + fieldOwner + "." + fieldName);
-				d.write();
-			}
+			System.out.println("DataDepEventHandler.onStaticFieldPut() WARNING null dep info");
+
 		}
 
 	}
@@ -205,6 +208,50 @@ public class DataDepEventHandler {
 			Object fieldObject, boolean isArray, boolean isPrimitive) {
 		// TODO Auto-generated method stub
 		System.out.println("On Array Load : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
+
+	}
+
+	private static DependencyInfo extractDependencyInfo(Object ownerObject, String fieldName) {
+
+		for (Method m : ownerObject.getClass().getMethods()) {
+			System.out.println("DataDepEventHandler.extractDependencyInfo() Method " + m);
+			if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
+				try {
+					System.out.println("DataDepEventHandler.extractDependencyInfo() invoking " + m);
+					//
+					return (DependencyInfo) m.invoke(ownerObject);
+				} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+					e.printStackTrace();
+				}
+			}
+		}
+		// This should never happen ....
+		System.out.println("DataDepEventHandler.extractDependencyInfo() Cannot find accessor method for " + fieldName);
+		return null;
+
+	}
+
+	private static DependencyInfo extractStaticDependencyInfo(Object owner, String fieldOwner, String fieldName) {
+
+		if (owner == null) {
+			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Null object");
+			return null;
+		}
+		try {
+			// TODO What about null ? Can it really happen?
+			Class ownerClass = owner.getClass();
+			for (Method m : ownerClass.getMethods()) {
+				if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
+					System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Invoking " + m);
+					return (DependencyInfo) m.invoke(null, new Object[0]);
+				}
+			}
+		} catch (Exception e) {
+			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() FAILED with " + e);
+			e.printStackTrace();
+		}
+		// This should never happen ....
+		return null;
 
 	}
 }
