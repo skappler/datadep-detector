@@ -128,6 +128,12 @@
 					<artifactId>asm-all</artifactId>
 					<version>5.0.3</version>
 				</dependency>
+				<!-- We depend on internal classes of JUnit, therefore no test scope -->
+				<dependency>
+					<groupId>junit</groupId>
+					<artifactId>junit</artifactId>
+					<version>4.12</version>
+				</dependency>
 			</dependencies>
 			<build>
 				<plugins>
