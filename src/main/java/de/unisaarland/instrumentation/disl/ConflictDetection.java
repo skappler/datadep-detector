@@ -1,13 +1,9 @@
 package de.unisaarland.instrumentation.disl;
 
-import org.junit.runner.Description;
-import org.junit.runner.Request;
-
 import ch.usi.dag.disl.annotation.AfterReturning;
 import ch.usi.dag.disl.annotation.Before;
 import ch.usi.dag.disl.annotation.SyntheticLocal;
 import ch.usi.dag.disl.dynamiccontext.DynamicContext;
-import ch.usi.dag.disl.marker.BodyMarker;
 import ch.usi.dag.disl.marker.BytecodeMarker;
 import ch.usi.dag.disl.staticcontext.MethodStaticContext;
 import de.unisaarland.analysis.DataDepEventHandler;
@@ -50,33 +46,6 @@ public class ConflictDetection {
 	static Object arrayRef;
 	@SyntheticLocal
 	static int index;
-
-	/**
-	 * // * Test Lifecycle. TODO: For this implementation I assume that tests
-	 * are // * executed as Requests to JUnitCore. One test method corresponds
-	 * to one // * request. Otherwise, it would be enough to register an event
-	 * handler like // * PreparingEventListener //
-	 **/
-	// @Before(marker = BodyMarker.class, scope =
-	// "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
-	// public static void beforeTestExecution(DynamicContext dc) {
-	// Request request = dc.getMethodArgumentValue(0, Request.class);
-	// // TODO By default we know there is only one test per request:
-	// Description desc =
-	// request.getRunner().getDescription().getChildren().iterator().next();
-	// // TODO This might not be correct, check the class names !
-	// // In case of failed static initialization method name gets
-	// // initializationError instead of the actual method name !
-	// //
-	// DataDepEventHandler.instanceOf().beforeTestExecution(desc.getClassName(),
-	// // desc.getMethodName());
-	// }
-	//
-	// @AfterReturning(marker = BodyMarker.class, scope =
-	// "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
-	// public static void afterTestExecution() {
-	// DataDepEventHandler.instanceOf().afterTestExecution();
-	// }
 
 	/** GETFIELD **/
 	@Before(marker = BytecodeMarker.class, args = "getfield", //
@@ -124,7 +93,7 @@ public class ConflictDetection {
 
 		DataDepEventHandler.instanceOf().onInstanceFieldPut(owner, fsc.getFieldOwner(), fsc.getFieldDesc(),
 				fsc.getFieldName(), dc.getThis(), // This is the actual snippet
-													// /
+				// /
 				// oldVal, newVal,//
 				fsc.isArray(), fsc.isPrimitive());
 	}
@@ -134,11 +103,14 @@ public class ConflictDetection {
 	 * info in managed in the outer class for static fields
 	 **/
 
-	@Before(marker = BytecodeMarker.class, args = "putstatic", guard = PutGuard.class)
-	public static void beforePutStatic(FieldStaticContext fsc, DynamicContext dc) {
-		oldVal = dc.getStaticFieldValue(fsc.getFieldOwner(), fsc.getFieldName(), fsc.getFieldDesc(), Object.class);
-		newVal = dc.getStackValue(0, Object.class);
-	}
+	// @Before(marker = BytecodeMarker.class, args = "putstatic", guard =
+	// PutGuard.class)
+	// public static void beforePutStatic(FieldStaticContext fsc, DynamicContext
+	// dc) {
+	// oldVal = dc.getStaticFieldValue(fsc.getFieldOwner(), fsc.getFieldName(),
+	// fsc.getFieldDesc(), Object.class);
+	// newVal = dc.getStackValue(0, Object.class);
+	// }
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "putstatic", //
 			guard = PutGuard.class)
@@ -146,7 +118,8 @@ public class ConflictDetection {
 
 		DataDepEventHandler.instanceOf().onStaticFieldPut(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(),
 				dc.getThis(), // The class containing the static field ?
-				oldVal, newVal, fsc.isArray(), fsc.isPrimitive());
+				// oldVal, newVal,
+				fsc.isArray(), fsc.isPrimitive());
 	}
 
 	/*

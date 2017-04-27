@@ -19,6 +19,11 @@ public class Instrumenter {
 			owner = owner.substring(1, owner.length() - 1);
 		}
 
+		// TODO How to deal with inner classes ?!
+		if (owner.contains("$")) {
+			return true;
+		}
+
 		// TODO This is too strict for the moment ...
 		return owner.startsWith("java/") //
 				|| owner.startsWith("sun/")//

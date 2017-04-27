@@ -44,6 +44,11 @@ public class DataDepEventHandler {
 		return INSTANCE;
 	}
 
+	private String getCurrentTest() {
+		return testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
+				+ testNumToMethod.get(DependencyInfo.CURRENT_TEST);
+	}
+
 	// TODO does it make any difference if the field is static ?
 	public void onInstanceFieldGet(Object ownerObject, //
 			String fieldOwner, String fieldDesc, String fieldName, //
@@ -57,24 +62,27 @@ public class DataDepEventHandler {
 		if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
 			if (ownerObject instanceof DependencyInstrumented) {
 				d = extractDependencyInfo(ownerObject, fieldName);
-				System.out.println("Read primitive/String : " + fieldOwner + "." + fieldName);
+				System.out.println(getCurrentTest() + " Read primitive/String : " + fieldOwner + "." + fieldName);
 			}
 		} else if (isArray) {
 			if (fieldObject instanceof DependencyInstrumented) {
-				System.out.println("Read array: " + fieldOwner + "." + fieldName);
+				System.out.println(getCurrentTest() + " Read array: " + fieldOwner + "." + fieldName);
 				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
 			}
 		} else {
 			// Regular object - What this is null ?
 			if (fieldObject instanceof DependencyInstrumented) {
-				System.out.println("Read field: " + fieldOwner + "." + fieldName);
+				System.out.println(getCurrentTest() + " Read field: " + fieldOwner + "." + fieldName);
 				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
 			}
 		}
 
 		if (d != null) {
+			int sourceTestID = d.getLastWrite();
 			if (d.read()) {
-				int sourceTestID = d.getLastWrite();
+
+				System.out.println("CONFLICT ! ");
+
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
@@ -109,28 +117,32 @@ public class DataDepEventHandler {
 
 		DependencyInfo d = null;
 
-		System.out.println(
-				"DataDepEventHandler.onInstanceFieldPut() " + fieldOwner + "." + fieldName + " " + ownerObject);
 		if (isPrimitive || fieldDesc.equals("Ljava/lang/String;")) {
 			if (ownerObject instanceof DependencyInstrumented) {
-				System.out.println("Wrote primitive/String : " + fieldOwner + "." + fieldName);
+				System.out.println(getCurrentTest() + " Wrote primitive/String : " + fieldOwner + "." + fieldName);
 				d = extractDependencyInfo(ownerObject, fieldName);
 			}
 		} else if (isArray) {
 			if (fieldObject instanceof DependencyInstrumented) {
-				System.out.println("Wrote array ref: " + fieldOwner + "." + fieldName);
+				System.out.println(getCurrentTest() + " Wrote array ref: " + fieldOwner + "." + fieldName);
 				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
 			}
 		} else {
 			// Regular object - What this is null ?
 			if (fieldObject instanceof DependencyInstrumented) {
-				System.out.println("Wrote field: " + fieldOwner + "." + fieldName + " of desc " + fieldDesc);
+				System.out.println(
+						getCurrentTest() + " Wrote field: " + fieldOwner + "." + fieldName + " of desc " + fieldDesc);
 				d = ((DependencyInstrumented) fieldObject).getDEPENDENCY_INFO();
 			}
 		}
 		if (d != null) {
+			// Before calling the write, otherwise we overwrite it !
+			int sourceTestID = d.getLastWrite();
+
 			if (d.write()) {
-				int sourceTestID = d.getLastWrite();
+
+				System.out.println("CONFLICT ! ");
+
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
@@ -162,12 +174,14 @@ public class DataDepEventHandler {
 			return;
 		}
 
-		System.out.println("DataDepEventHandler.onStaticFieldGet() " + fieldOwner + "." + fieldName + " " + owner);
-
 		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
 		if (d != null) {
+			System.out.println(getCurrentTest() + " Read " + fieldOwner + "." + fieldName);
+			int sourceTestID = d.getLastWrite();
 			if (d.read()) {
-				int sourceTestID = d.getLastWrite();
+
+				System.out.println("CONFLICT ! ");
+
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
@@ -191,7 +205,8 @@ public class DataDepEventHandler {
 	public void onStaticFieldPut(String fieldOwner, String fieldDesc, String fieldName,
 			//
 			Object owner, //
-			Object oldValue, Object newValue, // Probably they are not required
+			// Object oldValue, Object newValue, // Probably they are not
+			// required
 			//
 			boolean isArray, boolean isPrimitive) {
 
@@ -205,10 +220,10 @@ public class DataDepEventHandler {
 		// + oldValue + " to " + newValue);
 		DependencyInfo d = extractStaticDependencyInfo(owner, fieldOwner, fieldName);
 		if (d != null) {
-			// System.out.println("DataDepEventHandler.onStaticFieldPut() d " +
-			// d);
+			System.out.println(getCurrentTest() + " Wrote " + fieldOwner + "." + fieldName);
+			int sourceTestID = d.getLastWrite();
 			if (d.write()) {
-				int sourceTestID = d.getLastWrite();
+				System.out.println("CONFLICT ! ");
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //

@@ -53,7 +53,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 	/// TODO No idea about this ...
 	public void visitLdcInsn(Object cst) {
-		__log.debug("RWTrackingMethodVisitor.visitLdcInsn()");
+		__log.debug("RWTrackingMethodVisitor.visitLdcInsn() " + cst);
 
 		if (cst instanceof Type && patchLDCClass) {
 			super.visitLdcInsn(((Type) cst).getInternalName().replace("/", "."));
@@ -65,8 +65,9 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					"()Ljava/lang/ClassLoader;", false);
 			super.visitMethodInsn(Opcodes.INVOKESTATIC, "java/lang/Class", "forName",
 					"(Ljava/lang/String;ZLjava/lang/ClassLoader;)Ljava/lang/Class;", false);
-		} else
+		} else {
 			super.visitLdcInsn(cst);
+		}
 	}
 
 	int tmpLField = -1;

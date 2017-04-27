@@ -127,16 +127,22 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 		 * applied to this class
 		 */
 		try {
-			__log.info("Info: Transforming " + className);
-			System.out.println("RWDependencyClassFileTransformer.transform() Transforming " + className);
+			__log.debug("Transforming " + className);
 			// TODO Shall we prevent this transformation for any reason? For
 			// example, this is a class which belongs to the instrumentation as
 			// well or DiSL will take care of it ?
-			ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+			// ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_MAXS);
+			// This made it ?!
+			ClassWriter cw = new ClassWriter(cr, ClassWriter.COMPUTE_FRAMES);
 
 			cr.accept(new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cw, skipFrames)),
 					ClassReader.EXPAND_FRAMES);
-			__log.info("Info: Done with " + className + " bytes " + cw.toByteArray().length);
+
+			__log.debug("Done with " + className + " bytes " + cw.toByteArray().length + " unmarshall ");
+
+			// This fails with FULL
+			// ClassNodeHelper.FULL.unmarshal(cw.toByteArray());
+
 			return cw.toByteArray();
 		} catch (Throwable ex) {
 			__log.error("Problems transforming " + className + "  " + ex.getMessage());
@@ -176,8 +182,9 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 			// ex.printStackTrace();
 			// }
 			// Is this safe ?!
-			System.exit(-1);
-			return new byte[0];
+			// System.exit(-1);
+			// return new byte[0];
+			return null;
 
 		}
 	}

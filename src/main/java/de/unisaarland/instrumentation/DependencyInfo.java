@@ -63,9 +63,10 @@ public final class DependencyInfo implements Serializable {
 		// ignored + " " + conflict + " LW " + lastWrite
 		// + " CURRENT TEST " + CURRENT_TEST);
 		if (!IN_CAPTURE || ignored || conflict) {
-			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
+			// System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
 			return false;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
+			System.out.println("DependencyInfo.write() Conflict between " + lastWrite + " and " + CURRENT_TEST);
 			conflict = true;
 			lastWrite = CURRENT_TEST;
 			return true;
@@ -81,9 +82,11 @@ public final class DependencyInfo implements Serializable {
 		// ignored + " " + conflict + " LR " + lastRead
 		// + " CURRENT TEST " + CURRENT_TEST);
 		if (!IN_CAPTURE || ignored || conflict) {
-			System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
+			// System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
 			return false;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
+			System.out.println("DependencyInfo.read() Conflict between " + lastWrite + " and " + CURRENT_TEST);
+			lastRead = CURRENT_TEST;
 			conflict = true;
 			return true;
 		} else {
