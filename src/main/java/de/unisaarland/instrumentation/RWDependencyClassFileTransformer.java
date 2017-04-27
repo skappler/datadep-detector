@@ -127,7 +127,8 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 		 * applied to this class
 		 */
 		try {
-			__log.debug("\n\n ---------------\n Info: Transforming " + className);
+			__log.info("Info: Transforming " + className);
+			System.out.println("RWDependencyClassFileTransformer.transform() Transforming " + className);
 			// TODO Shall we prevent this transformation for any reason? For
 			// example, this is a class which belongs to the instrumentation as
 			// well or DiSL will take care of it ?
@@ -135,7 +136,7 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 
 			cr.accept(new SerialVersionUIDAdder(new DependencyTrackingClassVisitor(cw, skipFrames)),
 					ClassReader.EXPAND_FRAMES);
-			__log.debug("Info: Done with " + className);
+			__log.info("Info: Done with " + className + " bytes " + cw.toByteArray().length);
 			return cw.toByteArray();
 		} catch (Throwable ex) {
 			__log.error("Problems transforming " + className + "  " + ex.getMessage());

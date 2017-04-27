@@ -22,6 +22,7 @@ public class Instrumenter {
 		// TODO This is too strict for the moment ...
 		return owner.startsWith("java/") //
 				|| owner.startsWith("sun/")//
+				|| owner.startsWith("jdk/internal/org/objectweb/asm") //
 				// TODO Probably we should be able to use the Shadow plugin to
 				// change those package names
 				|| owner.startsWith("ch/usi/dag/disl")//

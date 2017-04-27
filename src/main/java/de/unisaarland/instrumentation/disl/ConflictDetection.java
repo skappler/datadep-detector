@@ -6,7 +6,6 @@ import org.junit.runner.Request;
 import ch.usi.dag.disl.annotation.AfterReturning;
 import ch.usi.dag.disl.annotation.Before;
 import ch.usi.dag.disl.annotation.SyntheticLocal;
-import ch.usi.dag.disl.classcontext.ClassContext;
 import ch.usi.dag.disl.dynamiccontext.DynamicContext;
 import ch.usi.dag.disl.marker.BodyMarker;
 import ch.usi.dag.disl.marker.BytecodeMarker;
@@ -53,39 +52,44 @@ public class ConflictDetection {
 	static int index;
 
 	/**
-	 * Test Lifecycle. TODO: For this implementation I assume that tests are
-	 * executed as Requests to JUnitCore. One test method corresponds to one
-	 * request. Otherwise, it would be enough to register an event handler like
-	 * PreparingEventListener
+	 * // * Test Lifecycle. TODO: For this implementation I assume that tests
+	 * are // * executed as Requests to JUnitCore. One test method corresponds
+	 * to one // * request. Otherwise, it would be enough to register an event
+	 * handler like // * PreparingEventListener //
 	 **/
-	@Before(marker = BodyMarker.class, scope = "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
-	public static void beforeTestExecution(MethodStaticContext msc, DynamicContext dc) {
-
-		Request request = dc.getMethodArgumentValue(0, Request.class);
-		// TODO By default we know there is only one test per request:
-		Description desc = request.getRunner().getDescription().getChildren().iterator().next();
-		// TODO This might not be correct, check the class names !
-		DataDepEventHandler.instanceOf().beforeTestExecution(desc.getClassName(), desc.getMethodName());
-	}
-
-	@AfterReturning(marker = BodyMarker.class, scope = "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
-	public static void afterTestExecution() {
-		DataDepEventHandler.instanceOf().afterTestExecution();
-	}
+	// @Before(marker = BodyMarker.class, scope =
+	// "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
+	// public static void beforeTestExecution(DynamicContext dc) {
+	// Request request = dc.getMethodArgumentValue(0, Request.class);
+	// // TODO By default we know there is only one test per request:
+	// Description desc =
+	// request.getRunner().getDescription().getChildren().iterator().next();
+	// // TODO This might not be correct, check the class names !
+	// // In case of failed static initialization method name gets
+	// // initializationError instead of the actual method name !
+	// //
+	// DataDepEventHandler.instanceOf().beforeTestExecution(desc.getClassName(),
+	// // desc.getMethodName());
+	// }
+	//
+	// @AfterReturning(marker = BodyMarker.class, scope =
+	// "org.junit.runner.JUnitCore.run(org.junit.runner.Request)")
+	// public static void afterTestExecution() {
+	// DataDepEventHandler.instanceOf().afterTestExecution();
+	// }
 
 	/** GETFIELD **/
 	@Before(marker = BytecodeMarker.class, args = "getfield", //
 			guard = GetGuard.class,
 			// TODO What's SCOPE ?
 			order = 100)
-	public static void beforeGetField(FieldStaticContext fsc, DynamicContext dc) {
+	public static void beforeGetField(DynamicContext dc) {
 		owner = dc.getStackValue(0, Object.class);
 	}
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "getfield", //
 			guard = GetGuard.class)
 	public static void afterRetGetField(FieldStaticContext fsc, //
-			MethodStaticContext msc, //
 			DynamicContext dc) {
 
 		DataDepEventHandler.instanceOf().onInstanceFieldGet(owner, fsc.getFieldOwner(), fsc.getFieldDesc(),
@@ -94,11 +98,9 @@ public class ConflictDetection {
 	}
 
 	/** GETSTATIC **/
-
 	@AfterReturning(marker = BytecodeMarker.class, args = "getstatic", //
 			guard = GetGuard.class)
-	public static void afterRetGetStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
-			DynamicContext dc) {
+	public static void afterRetGetStatic(FieldStaticContext fsc, DynamicContext dc) {
 		DataDepEventHandler.instanceOf().onStaticFieldGet(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(), //
 				//
 				dc.getThis(),
@@ -108,7 +110,7 @@ public class ConflictDetection {
 
 	/** PUTFIELD **/
 	@Before(marker = BytecodeMarker.class, args = "putfield", guard = PutGuard.class, order = 100)
-	public static void beforePutField(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
+	public static void beforePutField(DynamicContext dc) {
 		owner = dc.getStackValue(1, Object.class);
 		//
 		// oldVal = dc.getInstanceFieldValue(owner, fsc.getFieldOwner(),
@@ -118,7 +120,7 @@ public class ConflictDetection {
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "putfield", //
 			guard = PutGuard.class)
-	public static void afterRetPutField(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
+	public static void afterRetPutField(FieldStaticContext fsc, DynamicContext dc) {
 
 		DataDepEventHandler.instanceOf().onInstanceFieldPut(owner, fsc.getFieldOwner(), fsc.getFieldDesc(),
 				fsc.getFieldName(), dc.getThis(), // This is the actual snippet
@@ -133,23 +135,23 @@ public class ConflictDetection {
 	 **/
 
 	@Before(marker = BytecodeMarker.class, args = "putstatic", guard = PutGuard.class)
-	public static void beforePutStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
-			DynamicContext dc) {
+	public static void beforePutStatic(FieldStaticContext fsc, DynamicContext dc) {
 		oldVal = dc.getStaticFieldValue(fsc.getFieldOwner(), fsc.getFieldName(), fsc.getFieldDesc(), Object.class);
 		newVal = dc.getStackValue(0, Object.class);
 	}
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "putstatic", //
 			guard = PutGuard.class)
-	public static void afterRetPutStatic(FieldStaticContext fsc, MethodStaticContext msc, ClassContext cc,
-			DynamicContext dc) {
+	public static void afterRetPutStatic(FieldStaticContext fsc, DynamicContext dc) {
 
 		DataDepEventHandler.instanceOf().onStaticFieldPut(fsc.getFieldOwner(), fsc.getFieldDesc(), fsc.getFieldName(),
 				dc.getThis(), // The class containing the static field ?
 				oldVal, newVal, fsc.isArray(), fsc.isPrimitive());
 	}
 
-	// TODO Arrays will take care of them later...
+	/*
+	 * For Array references we cannot rely on FieldStaticContext !
+	 */
 	/** ARRAY LOAD **/
 	@Before(marker = BytecodeMarker.class, args = "iaload,aaload,baload,caload,daload,faload,laload,saload", guard = LoadGuard.class)
 	public static void beforeArrayLoad(DynamicContext dc) {
@@ -158,11 +160,11 @@ public class ConflictDetection {
 		arrayRef = dc.getStackValue(1, Object.class);
 	}
 
-	@AfterReturning(marker = BytecodeMarker.class, args = "iaload,aaload,baload,caload,daload,faload,laload,saload", //
-			guard = LoadGuard.class)
-	public static void afterRetArrayLoad(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
-		DataDepEventHandler.instanceOf().onArrayLoad(index, arrayRef, fsc.getFieldOwner(), fsc.getFieldDesc(),
-				fsc.getFieldName(), dc.getThis(), fsc.isArray(), fsc.isPrimitive());
+	@AfterReturning(marker = BytecodeMarker.class, args = "iaload,aaload,baload,caload,daload,faload,laload,saload", guard = LoadGuard.class)
+	public static void afterRetArrayLoad(MethodStaticContext msc, DynamicContext dc) {
+		DataDepEventHandler.instanceOf().onArrayLoad(index, arrayRef, //
+				msc.thisClassCanonicalName(), msc.thisMethodName(), msc.thisMethodDescriptor(), //
+				dc.getThis());
 	}
 
 	/** ARRAY STORE **/
@@ -178,11 +180,11 @@ public class ConflictDetection {
 		arrayRef = dc.getStackValue(2, Object.class);
 	}
 
-	@AfterReturning(marker = BytecodeMarker.class, args = "iastore,aastore,bastore,castore,dastore,fastore,lastore,sastore", //
-			guard = StoreGuard.class)
-	public static void afterRetArrayStore(FieldStaticContext fsc, MethodStaticContext msc, DynamicContext dc) {
-		DataDepEventHandler.instanceOf().onArrayStore(index, arrayRef, fsc.getFieldOwner(), fsc.getFieldDesc(),
-				fsc.getFieldName(), dc.getThis(), fsc.isArray(), fsc.isPrimitive());
+	@AfterReturning(marker = BytecodeMarker.class, args = "iastore,aastore,bastore,castore,dastore,fastore,lastore,sastore", guard = StoreGuard.class)
+	public static void afterRetArrayStore(MethodStaticContext msc, DynamicContext dc) {
+		DataDepEventHandler.instanceOf().onArrayStore(index, arrayRef, //
+				msc.thisClassCanonicalName(), msc.thisMethodName(), msc.thisMethodDescriptor(), //
+				dc.getThis());
 	}
 
 }

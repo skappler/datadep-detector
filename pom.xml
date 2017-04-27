@@ -100,6 +100,9 @@
 					<url>file:////${basedir}/local-repo</url>
 				</repository>
 			</repositories>
+			<properties>
+				<asm.version>5.0.3</asm.version>
+			</properties>
 			<dependencies>
 				<dependency>
 					<groupId>disl</groupId>
@@ -120,13 +123,13 @@
 				<dependency>
 					<groupId>org.ow2.asm</groupId>
 					<artifactId>asm-debug-all</artifactId>
-					<version>5.0.3</version>
+					<version>${asm.version}</version>
 				</dependency>
 				<!-- TODO Not sure how depends on this one -->
 				<dependency>
 					<groupId>org.ow2.asm</groupId>
 					<artifactId>asm-all</artifactId>
-					<version>5.0.3</version>
+					<version>${asm.version}</version>
 				</dependency>
 				<!-- We depend on internal classes of JUnit, therefore no test scope -->
 				<dependency>
@@ -158,9 +161,8 @@
 						<configuration>
 							<archive>
 								<manifestEntries>
-									<DiSL-Transformer>
-										de.unisaarland.instrumentation.RWDependencyClassFileTransformer
-									</DiSL-Transformer>
+									<!-- <DiSL-Transformer> de.unisaarland.instrumentation.RWDependencyClassFileTransformer 
+										</DiSL-Transformer> -->
 									<DiSL-Classes>de.unisaarland.instrumentation.disl.ConflictDetection</DiSL-Classes>
 								</manifestEntries>
 							</archive>

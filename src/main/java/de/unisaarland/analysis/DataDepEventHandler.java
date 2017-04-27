@@ -84,7 +84,7 @@ public class DataDepEventHandler {
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
 				// Print out the Conflict data
-				System.out.println(dataDependency);
+				// System.out.println(dataDependency);
 			}
 		} else {
 			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
@@ -140,7 +140,7 @@ public class DataDepEventHandler {
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
 				// Print out the Conflict data
-				System.out.println(dataDependency);
+				// System.out.println(dataDependency);
 			}
 		} else {
 			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
@@ -177,11 +177,11 @@ public class DataDepEventHandler {
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
 				// Print out the Conflict data
-				System.out.println(dataDependency);
+				// System.out.println(dataDependency);
 			}
 		} else {
-			System.out.println("DataDepEventHandler.onStaticFieldGet() WARNING null dep info");
-
+			System.out.println(
+					"DataDepEventHandler.onStaticFieldGet() WARNING null dep info for " + fieldOwner + "/" + fieldName);
 		}
 
 	}
@@ -218,10 +218,11 @@ public class DataDepEventHandler {
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
 				// Print out the Conflict data
-				System.out.println(dataDependency);
+				// System.out.println(dataDependency);
 			}
 		} else {
-			System.out.println("DataDepEventHandler.onStaticFieldPut() WARNING null dep info");
+			System.out.println(
+					"DataDepEventHandler.onStaticFieldPut() WARNING null dep info for " + fieldOwner + "/" + fieldName);
 		}
 
 	}
@@ -230,14 +231,14 @@ public class DataDepEventHandler {
 	// TODO No idea what arrayRef is compared to fieldValue...
 	// FIXME Handle arrays of primitives !
 	public void onArrayStore(int index, Object arrayRef, String fieldOwner, String fieldDesc, String fieldName,
-			Object fieldObject, boolean isArray, boolean isPrimitive) {
+			Object fieldObject) {
 		// TODO Auto-generated method stub
 		System.out.println("On Array Store : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
 
 	}
 
 	public void onArrayLoad(int index, Object arrayRef, String fieldOwner, String fieldDesc, String fieldName,
-			Object fieldObject, boolean isArray, boolean isPrimitive) {
+			Object fieldObject) {
 		// TODO Auto-generated method stub
 		System.out.println("On Array Load : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
 
@@ -289,29 +290,39 @@ public class DataDepEventHandler {
 	}
 
 	// TODO References to Test Class and Test Method
+	// THIS DOES NOT WORK!
+	/*
+	 * When a static initialization happens we get the wrong testMethod for some
+	 * reason, so we use listenere instead [exec]
+	 * ConflictDetection.beforeTestExecution() Starting test:
+	 * crystal.client.ClientPreferencesTest.initializationError ID 14
+	 * 
+	 * [exec] DependencyCollector.main(...).new RunListener()
+	 * {...}.testStarted()
+	 * initializationError(crystal.client.ClientPreferencesTest) [exec]
+	 * DependencyCollector.main(...).new RunListener() {...}.testFailure()
+	 * initializationError(crystal.client.ClientPreferencesTest):
+	 * crystal/client/ClientPreferences$DuplicateProjectNameException [exec]
+	 * DependencyCollector.main(...).new RunListener() {...}.testFinished()
+	 * initializationError(crystal.client.ClientPreferencesTest)
+	 * 
+	 */
 	public void beforeTestExecution(String testClass, String testMethod) {
 
 		DependencyInfo.CURRENT_TEST++;
 		DependencyInfo.IN_CAPTURE = true;
-		//
-		System.out.println("ConflictDetection.beforeTestExecution() Starting test: " + testClass + "." + testMethod
-				+ " ID " + DependencyInfo.CURRENT_TEST);
+
 		testNumToTestClass.put(DependencyInfo.CURRENT_TEST, testClass);
 		testNumToMethod.put(DependencyInfo.CURRENT_TEST, testMethod);
-
-		System.out.println("DataDepEventHandler.beforeTestExecution() " + testNumToMethod);
 
 	}
 
 	public void afterTestExecution() {
 		DependencyInfo.IN_CAPTURE = false;
-		// Notify Event Handler here
-		System.out.println("ConflictDetection.afterTestExecution() Finished test : "
-				+ testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + " "
-				+ testNumToMethod.get(DependencyInfo.CURRENT_TEST) + " ID " + DependencyInfo.CURRENT_TEST);
 		// Reset the DepInfo data which have a conflict ... Recursive ?!
 		for (DependencyInfo d : conflicts) {
-			System.out.println("DataDepEventHandler.afterTestExecution() Clearing conflict");
+			// System.out.println("DataDepEventHandler.afterTestExecution()
+			// Clearing conflict");
 			d.clearConflict();
 		}
 	}

@@ -81,12 +81,18 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 		// http://stackoverflow.com/questions/9535060/get-the-modifiers-of-a-field-using-the-asm-tree-api
 		// boolean isPublic = (access & Opcodes.ACC_PUBLIC) != 0;
-		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
 		Type t = Type.getType(desc);
+
+		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+		boolean isFinal = (access & Opcodes.ACC_FINAL) != 0;
+		boolean isPrimitiveOrString = (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)
+				|| (desc.equals("Ljava/lang/String;"));
 
 		// Static fields and primitives - Why this triggers even if the field is
 		// not static ?!
-		if (isStatic) {
+		if (isStatic && isFinal && isPrimitiveOrString) {
+			__log.debug("\t Skip static final primitive/String field : " + name);
+		} else if (isStatic) {
 			// Same access of the original field ?!
 			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 					null, null));
@@ -196,66 +202,84 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 
-			// TODO what does this do ? Introduce another method called
-			// __initPrimDepInfo() which initialize the dep info of all the
-			// static fields ? Does this triggers when the constructor is
-			// invoked !
-			__log.debug("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
-			//
-			mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
-			mv.visitCode();
+			boolean add__initPrimDepInfo = false;
+			boolean add__clinit = false;
 
-			// Initialize the additional static fields
 			for (FieldNode fn : moreFields) {
-				// This is initialization of NON Static additional fields, that
-				// is primitives and String(s)
+				__log.debug("More field " + fn);
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
-					__log.debug("Adding initiatilization of field " + fn.name);
-
-					mv.visitVarInsn(Opcodes.ALOAD, 0);
-					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
-					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
-							"()V", false);
-
-					// This propagates the write, but should be already there
-					// using DiSL while instrumenting PUTFIELD ? TODO Check that
-					// mv.visitInsn(Opcodes.DUP);
-					// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
-					// Type.getInternalName(DependencyInfo.class), "write",
-					// "()V", false);
-					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
-				}
-				// Do not re-initialize static dep info
-
-			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(0, 0);
-			mv.visitEnd();
-
-			__log.debug("visitEnd Adding static initialization for " + className);
-
-			mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-			mv.visitCode();
-			for (FieldNode fn : moreFields) {
-				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-					__log.debug(
-							"visitEnd Adding static initialization of DepInfo () for " + fn.name + " in " + className);
-
-					Label l0 = new Label();
-					mv.visitLabel(l0);
-					mv.visitLineNumber(7, l0);
-					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
-					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
-							"()V", false);
-					mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name, Type.getDescriptor(DependencyInfo.class));
+					add__initPrimDepInfo = true;
+				} else {
+					add__clinit = true;
 				}
 			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(2, 0);
-			mv.visitEnd();
+			if (add__initPrimDepInfo) {
+				// TODO what does this do ? Introduce another method called
+				// __initPrimDepInfo() which initialize the dep info of all the
+				// static fields ? Does this triggers when the constructor is
+				// invoked !
+				__log.debug("visitEnd Adding implementation of __initPrimDepInfo () for " + className);
+				//
+				mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
+				mv.visitCode();
 
+				// Initialize the additional static fields
+				for (FieldNode fn : moreFields) {
+					// This is initialization of NON Static additional fields,
+					// that are either primitives and String(s)
+					if ((fn.access & Opcodes.ACC_STATIC) == 0) {
+						__log.debug("Adding initiatilization of field " + fn.name);
+
+						mv.visitVarInsn(Opcodes.ALOAD, 0);
+						mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+						mv.visitInsn(Opcodes.DUP);
+						mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+								"()V", false);
+
+						// This propagates the write, but should be already
+						// there
+						// using DiSL while instrumenting PUTFIELD ? TODO Check
+						// that
+						// mv.visitInsn(Opcodes.DUP);
+						// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+						// Type.getInternalName(DependencyInfo.class), "write",
+						// "()V", false);
+						mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name,
+								Type.getDescriptor(DependencyInfo.class));
+					}
+					// Do not re-initialize static dep info
+
+				}
+				mv.visitInsn(Opcodes.RETURN);
+				mv.visitMaxs(0, 0);
+				mv.visitEnd();
+			}
+
+			if (add__clinit) {
+				__log.debug("visitEnd Adding static initialization for " + className);
+				mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+				mv.visitCode();
+				for (FieldNode fn : moreFields) {
+					if ((fn.access & Opcodes.ACC_STATIC) != 0) {
+						__log.debug("visitEnd Adding static initialization of DepInfo () for " + fn.name + " in "
+								+ className);
+
+						Label l0 = new Label();
+						mv.visitLabel(l0);
+						mv.visitLineNumber(7, l0);
+						mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+						mv.visitInsn(Opcodes.DUP);
+						mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+								"()V", false);
+						mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name,
+								Type.getDescriptor(DependencyInfo.class));
+					}
+				}
+				mv.visitInsn(Opcodes.RETURN);
+				mv.visitMaxs(2, 0);
+				mv.visitEnd();
+
+			}
 			// Introduce a getter method for each of those moreFields. Static
 			// fields require a static getter.Then we
 			// look it up using reflection since accessing private fields is not

@@ -7,28 +7,60 @@ import org.objectweb.asm.tree.FieldInsnNode;
 import ch.usi.dag.disl.staticcontext.MethodStaticContext;
 
 public class FieldStaticContext extends MethodStaticContext {
+
+	//
+
 	public String getFieldOwner() {
+		// System.out.println("FieldStaticContext.getFieldOwner() " +
+		// staticContextData);
+		// System.out.println("FieldStaticContext.getFieldOwner() " +
+		// staticContextData.getRegionStart());
 		return ((FieldInsnNode) staticContextData.getRegionStart()).owner;
 	}
 
 	public String getFieldName() {
+
+		// System.out.println("FieldStaticContext.getFieldName() " +
+		// staticContextData);
+		// System.out.println("FieldStaticContext.getFieldName() " +
+		// staticContextData.getRegionStart());
+
+		// For some reason
+
 		return ((FieldInsnNode) staticContextData.getRegionStart()).name;
 	}
 
 	public String getFieldDesc() {
+		// System.out.println("FieldStaticContext.getFieldDesc() " +
+		// staticContextData);
+		// System.out.println("FieldStaticContext.getFieldDesc() " +
+		// staticContextData.getRegionStart());
 		return ((FieldInsnNode) staticContextData.getRegionStart()).desc;
 	}
 
 	public boolean isReferenceField() {
+		if (getFieldDesc() == null) {
+			System.out.println("FieldStaticContext.isReferenceField() Null Desc");
+			return false;
+		}
 		return getFieldDesc().startsWith("L");
 	}
 
 	public boolean isArray() {
+		if (getFieldDesc() == null) {
+			// Not sure how to deal with this case
+			System.out.println("FieldStaticContext.isArray() Null Desc");
+			return false;
+		}
 		return getFieldDesc().startsWith("[");
 	}
 
 	public boolean isBoxedType() {
 		String desc = getFieldDesc();
+		if (desc == null) {
+			System.out.println("FieldStaticContext.isBoxedType() Null Desc");
+			return false;
+		}
 		return desc.equals("Ljava/lang/Boolean;") || //
 				desc.equals("Ljava/lang/Character;") || //
 				desc.equals("Ljava/lang/Float;") || //

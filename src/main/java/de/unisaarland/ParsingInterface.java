@@ -43,7 +43,8 @@ public class ParsingInterface {
 				String className = line.substring(0, line.lastIndexOf("."));
 				String methodName = line.substring(line.lastIndexOf(".") + 1, line.length());
 				tests.add(Request.method(Class.forName(className), methodName));
-				System.out.println("ParsingInterface.getTestRequests() Added " + className + " " + methodName);
+				// System.out.println("ParsingInterface.getTestRequests() Added
+				// " + className + " " + methodName);
 			}
 			// note that Scanner suppresses exceptions
 			if (sc.ioException() != null) {
