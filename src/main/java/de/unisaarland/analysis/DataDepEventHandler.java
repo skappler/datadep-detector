@@ -316,4 +316,9 @@ public class DataDepEventHandler {
 		}
 	}
 
+	public List<DataDependency> getDataDependencies() {
+		// TODO Make a copy out of it ...
+		return dataDependencies;
+	}
+
 }

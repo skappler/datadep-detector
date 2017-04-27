@@ -22,16 +22,21 @@ public class Instrumenter {
 		// TODO This is too strict for the moment ...
 		return owner.startsWith("java/") //
 				|| owner.startsWith("sun/")//
+				// TODO Probably we should be able to use the Shadow plugin to
+				// change those package names
 				|| owner.startsWith("ch/usi/dag/disl")//
 				|| owner.startsWith("de/unisaarland/instrumentation")//
 				|| owner.startsWith("de/unisaarland/analysis")//
+				|| owner.startsWith("de/unisaarland/DependencyCollector")//
+				|| owner.startsWith("de/unisaarland/ParsingInterface")//
 				// FIXME. Apparently adding JUnit to the project results in bad
 				// behaviors instrumenting JUnitCore has an error (see
-				// JUnitCore.trace)!
+				// JUnitCore.trace)! -
 				|| owner.startsWith("org/junit")//
 				|| owner.startsWith("junit/framework")//
 				|| owner.startsWith("com/sun")//
-		;
+				//
+				|| owner.startsWith("com/lexicalscope");
 		// return owner.startsWith("java/lang/Object") ||
 		// owner.startsWith("java/lang/Number")
 		// || owner.startsWith("java/lang/Comparable") ||
