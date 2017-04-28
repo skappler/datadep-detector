@@ -81,7 +81,6 @@
 			<artifactId>jdom2</artifactId>
 			<version>2.0.6</version>
 		</dependency>
-
 		<dependency>
 			<groupId>jaxen</groupId>
 			<artifactId>jaxen</artifactId>
@@ -161,9 +160,11 @@
 						<configuration>
 							<archive>
 								<manifestEntries>
-									<!-- <DiSL-Transformer> de.unisaarland.instrumentation.RWDependencyClassFileTransformer 
-										</DiSL-Transformer> -->
+									<DiSL-Transformer>
+										de.unisaarland.instrumentation.RWDependencyClassFileTransformer
+									</DiSL-Transformer>
 									<DiSL-Classes>de.unisaarland.instrumentation.disl.ConflictDetection</DiSL-Classes>
+									<!-- <DiSL-Classes>de.unisaarland.instrumentation.disl.Debug</DiSL-Classes> -->
 								</manifestEntries>
 							</archive>
 						</configuration>

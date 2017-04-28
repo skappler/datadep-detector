@@ -5,7 +5,6 @@ import ch.usi.dag.disl.annotation.Before;
 import ch.usi.dag.disl.annotation.SyntheticLocal;
 import ch.usi.dag.disl.dynamiccontext.DynamicContext;
 import ch.usi.dag.disl.marker.BytecodeMarker;
-import ch.usi.dag.disl.staticcontext.MethodStaticContext;
 import de.unisaarland.analysis.DataDepEventHandler;
 import de.unisaarland.instrumentation.disl.context.FieldStaticContext;
 import de.unisaarland.instrumentation.guard.GetGuard;
@@ -133,11 +132,11 @@ public class ConflictDetection {
 		arrayRef = dc.getStackValue(1, Object.class);
 	}
 
+	// TODO implement an ArrayStaticContext that tell you if elements are
+	// primitives or strings
 	@AfterReturning(marker = BytecodeMarker.class, args = "iaload,aaload,baload,caload,daload,faload,laload,saload", guard = LoadGuard.class)
-	public static void afterRetArrayLoad(MethodStaticContext msc, DynamicContext dc) {
-		DataDepEventHandler.instanceOf().onArrayLoad(index, arrayRef, //
-				msc.thisClassCanonicalName(), msc.thisMethodName(), msc.thisMethodDescriptor(), //
-				dc.getThis());
+	public static void afterRetArrayLoad(DynamicContext dc) {
+		DataDepEventHandler.instanceOf().onArrayLoad(index, arrayRef, dc.getThis());
 	}
 
 	/** ARRAY STORE **/
@@ -154,10 +153,8 @@ public class ConflictDetection {
 	}
 
 	@AfterReturning(marker = BytecodeMarker.class, args = "iastore,aastore,bastore,castore,dastore,fastore,lastore,sastore", guard = StoreGuard.class)
-	public static void afterRetArrayStore(MethodStaticContext msc, DynamicContext dc) {
-		DataDepEventHandler.instanceOf().onArrayStore(index, arrayRef, //
-				msc.thisClassCanonicalName(), msc.thisMethodName(), msc.thisMethodDescriptor(), //
-				dc.getThis());
+	public static void afterRetArrayStore(DynamicContext dc) {
+		DataDepEventHandler.instanceOf().onArrayStore(index, arrayRef, dc.getThis());
 	}
 
 }

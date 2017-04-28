@@ -27,6 +27,10 @@ public class RWDependencyClassFileTransformer implements ch.usi.dag.disl.Transfo
 	@Override
 	public byte[] transform(byte[] classfileBuffer) throws Exception {
 
+		if (Boolean.getBoolean("skipTracking")) {
+			return classfileBuffer;
+		}
+
 		ClassReader cr = new ClassReader(classfileBuffer);
 		String className = cr.getClassName();
 		__log.debug("Processing " + className);

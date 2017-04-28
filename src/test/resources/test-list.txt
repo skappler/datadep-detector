@@ -1,0 +1,2 @@
+de.unisaarland.DummyTestClass.dummyTest
+de.unisaarland.DummyTestClass.anotherDummyTest

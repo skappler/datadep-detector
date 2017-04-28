@@ -1,22 +1,19 @@
 package de.unisaarland.analysis;
 
-public class DataDependency {
+public class DataDependency extends CompactDataDependency {
 
 	private String fieldName;
 	private String fieldOwner;
 	private int sourceTestID;
 	private int targetTestID;
-	private String sourceTest;
-	private String targetTest;
 
 	// Use a factory method ?
 	public DataDependency(String fieldOwner, String fieldName, //
 			int sourceTestID, int targetTestID, String sourceTest, String targetTest) {
+		super(sourceTest, targetTest);
 		this.fieldName = fieldName;
 		this.fieldOwner = fieldOwner;
-		this.sourceTest = sourceTest;
 		this.sourceTestID = sourceTestID;
-		this.targetTest = targetTest;
 		this.targetTestID = targetTestID;
 	}
 
@@ -26,14 +23,6 @@ public class DataDependency {
 
 	public String getFieldOwner() {
 		return fieldOwner;
-	}
-
-	public String getSourceTest() {
-		return sourceTest;
-	}
-
-	public String getTargetTest() {
-		return targetTest;
 	}
 
 	@Override

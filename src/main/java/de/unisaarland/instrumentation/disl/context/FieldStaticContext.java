@@ -11,30 +11,14 @@ public class FieldStaticContext extends MethodStaticContext {
 	//
 
 	public String getFieldOwner() {
-		// System.out.println("FieldStaticContext.getFieldOwner() " +
-		// staticContextData);
-		// System.out.println("FieldStaticContext.getFieldOwner() " +
-		// staticContextData.getRegionStart());
 		return ((FieldInsnNode) staticContextData.getRegionStart()).owner;
 	}
 
 	public String getFieldName() {
-
-		// System.out.println("FieldStaticContext.getFieldName() " +
-		// staticContextData);
-		// System.out.println("FieldStaticContext.getFieldName() " +
-		// staticContextData.getRegionStart());
-
-		// For some reason
-
 		return ((FieldInsnNode) staticContextData.getRegionStart()).name;
 	}
 
 	public String getFieldDesc() {
-		// System.out.println("FieldStaticContext.getFieldDesc() " +
-		// staticContextData);
-		// System.out.println("FieldStaticContext.getFieldDesc() " +
-		// staticContextData.getRegionStart());
 		return ((FieldInsnNode) staticContextData.getRegionStart()).desc;
 	}
 

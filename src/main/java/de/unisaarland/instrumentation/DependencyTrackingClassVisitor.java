@@ -126,12 +126,9 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
 		AnalyzerAdapter an = null;
 
+		// This avoids duplicating the code
 		if ("<clinit>".equals(name)) {
-			System.out.println("DependencyTrackingClassVisitor.visitMethod() Class " + className
-					+ " has alreadt a static initializer");
 			hasStaticInitialize = true;
-			// Call the method visitor which add your stuff
-
 		}
 
 		__log.debug("DependencyTrackingClassVisitor.visitMethod() " + name);
@@ -255,7 +252,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				mv.visitCode();
 				for (FieldNode fn : moreFields) {
 					if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-						__log.info("visitEnd Adding static initialization of DepInfo () for " + fn.name + " in "
+						__log.debug("visitEnd Adding static initialization of DepInfo () for " + fn.name + " in "
 								+ className);
 
 						Label l0 = new Label();
@@ -269,7 +266,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name,
 								Type.getDescriptor(DependencyInfo.class));
 					} else {
-						__log.info("visitEnd Skipping static initialization of DepInfo () for " + fn.name + " in "
+						__log.debug("visitEnd Skipping static initialization of DepInfo () for " + fn.name + " in "
 								+ className);
 					}
 				}

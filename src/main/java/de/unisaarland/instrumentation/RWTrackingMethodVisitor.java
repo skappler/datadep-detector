@@ -40,7 +40,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		this.isStaticInitializer = "<clinit>".equals(methodName);
 		this.moreFields = moreFields;
 		//
-		__log.info("RWTrackingMethodVisitor.RWTrackingMethodVisitor() " + methodName + " static init ? "
+		__log.debug("RWTrackingMethodVisitor.RWTrackingMethodVisitor() " + methodName + " static init ? "
 				+ isStaticInitializer);
 	}
 
@@ -50,7 +50,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	 */
 	@Override
 	protected void onMethodEnter() {
-		__log.info("RWTrackingMethodVisitor.onMethodEnter()");
+		__log.debug("RWTrackingMethodVisitor.onMethodEnter()");
 		if (this.inUninitializedSuper) {
 			this.inUninitializedSuper = false;
 			super.visitVarInsn(ALOAD, 0);
@@ -62,7 +62,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			// much
 			for (FieldNode fn : moreFields) {
 				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-					__log.info("RWTrackingMethodVisitor.onMethodEnter() Adding static initialization of DepInfo () for "
+					__log.debug("RWTrackingMethodVisitor.onMethodEnter() Adding static initialization of DepInfo () for "
 							+ fn.name + " in " + clazz);
 
 					Label l0 = new Label();
@@ -75,7 +75,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					// Problem is: if this is a primitive we cannot
 					mv.visitFieldInsn(Opcodes.PUTSTATIC, clazz, fn.name, Type.getDescriptor(DependencyInfo.class));
 				} else {
-					__log.info(
+					__log.debug(
 							"RWTrackingMethodVisitor.onMethodEnter() Skipping static initialization of DepInfo () for "
 									+ fn.name + " in " + clazz);
 				}
