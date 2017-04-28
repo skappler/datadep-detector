@@ -3,12 +3,14 @@ package de.unisaarland.instrumentation;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
+import org.objectweb.asm.tree.FieldNode;
 
 import ch.usi.dag.disl.util.Logging;
 import ch.usi.dag.util.logging.Logger;
@@ -26,14 +28,20 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	private boolean patchLDCClass;
 	private String clazz;
 	private boolean inUninitializedSuper = false;
+	private boolean isStaticInitializer = false;
+	private List<FieldNode> moreFields;
 
 	public RWTrackingMethodVisitor(MethodVisitor mv, boolean patchLDCClass, String className, int acc,
-			String methodName, String desc) {
+			String methodName, String desc, List<FieldNode> moreFields) {
 		super(Opcodes.ASM5, mv, acc, methodName, desc);
 		this.patchLDCClass = patchLDCClass;
 		this.clazz = className;
 		this.inUninitializedSuper = "<init>".equals(methodName);
-		__log.debug("RWTrackingMethodVisitor.RWTrackingMethodVisitor() " + methodName);
+		this.isStaticInitializer = "<clinit>".equals(methodName);
+		this.moreFields = moreFields;
+		//
+		__log.info("RWTrackingMethodVisitor.RWTrackingMethodVisitor() " + methodName + " static init ? "
+				+ isStaticInitializer);
 	}
 
 	/**
@@ -42,11 +50,36 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	 */
 	@Override
 	protected void onMethodEnter() {
-		__log.debug("RWTrackingMethodVisitor.onMethodEnter()");
+		__log.info("RWTrackingMethodVisitor.onMethodEnter()");
 		if (this.inUninitializedSuper) {
 			this.inUninitializedSuper = false;
 			super.visitVarInsn(ALOAD, 0);
 			super.visitMethodInsn(INVOKEVIRTUAL, clazz, "__initPrimDepInfo", "()V", false);
+		}
+		if (this.isStaticInitializer) {
+			// Add the code before to invoke all the static field.. probably
+			// this can be optimized otherwise the byte of this method grows too
+			// much
+			for (FieldNode fn : moreFields) {
+				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
+					__log.info("RWTrackingMethodVisitor.onMethodEnter() Adding static initialization of DepInfo () for "
+							+ fn.name + " in " + clazz);
+
+					Label l0 = new Label();
+					super.visitLabel(l0);
+					super.visitLineNumber(7, l0);
+					super.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+					super.visitInsn(Opcodes.DUP);
+					super.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+							"()V", false);
+					// Problem is: if this is a primitive we cannot
+					mv.visitFieldInsn(Opcodes.PUTSTATIC, clazz, fn.name, Type.getDescriptor(DependencyInfo.class));
+				} else {
+					__log.info(
+							"RWTrackingMethodVisitor.onMethodEnter() Skipping static initialization of DepInfo () for "
+									+ fn.name + " in " + clazz);
+				}
+			}
 		}
 		this.inUninitializedSuper = false;
 	}

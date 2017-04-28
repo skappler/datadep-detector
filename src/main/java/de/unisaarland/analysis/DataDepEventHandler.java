@@ -80,9 +80,6 @@ public class DataDepEventHandler {
 		if (d != null) {
 			int sourceTestID = d.getLastWrite();
 			if (d.read()) {
-
-				System.out.println("CONFLICT ! ");
-
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
@@ -140,9 +137,6 @@ public class DataDepEventHandler {
 			int sourceTestID = d.getLastWrite();
 
 			if (d.write()) {
-
-				System.out.println("CONFLICT ! ");
-
 				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
@@ -169,6 +163,10 @@ public class DataDepEventHandler {
 			//
 			boolean isArray, boolean isPrimitive) {
 
+		if (!DependencyInfo.IN_CAPTURE) {
+			return;
+		}
+
 		// For some reason the GET guard cannot stop DependencyInfo objects ?!
 		if (Instrumenter.isIgnoredClass(fieldDesc)) {
 			return;
@@ -179,11 +177,6 @@ public class DataDepEventHandler {
 			System.out.println(getCurrentTest() + " Read " + fieldOwner + "." + fieldName);
 			int sourceTestID = d.getLastWrite();
 			if (d.read()) {
-
-				System.out.println("CONFLICT ! ");
-
-				//
-				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
 						sourceTestID, DependencyInfo.CURRENT_TEST, //
 						testNumToTestClass.get(sourceTestID) + "." + testNumToMethod.get(sourceTestID),
@@ -210,6 +203,10 @@ public class DataDepEventHandler {
 			//
 			boolean isArray, boolean isPrimitive) {
 
+		if (!DependencyInfo.IN_CAPTURE) {
+			return;
+		}
+
 		// For some reason the PUT guard cannot stop DependencyInfo objects ?!
 		if (Instrumenter.isIgnoredClass(fieldDesc)) {
 			return;
@@ -223,8 +220,6 @@ public class DataDepEventHandler {
 			System.out.println(getCurrentTest() + " Wrote " + fieldOwner + "." + fieldName);
 			int sourceTestID = d.getLastWrite();
 			if (d.write()) {
-				System.out.println("CONFLICT ! ");
-				//
 				conflicts.add(d);
 				DataDependency dataDependency = new DataDependency(fieldOwner, fieldName, //
 						sourceTestID, DependencyInfo.CURRENT_TEST, //
@@ -247,15 +242,24 @@ public class DataDepEventHandler {
 	// FIXME Handle arrays of primitives !
 	public void onArrayStore(int index, Object arrayRef, String fieldOwner, String fieldDesc, String fieldName,
 			Object fieldObject) {
-		// TODO Auto-generated method stub
-		System.out.println("On Array Store : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
+
+		if (!DependencyInfo.IN_CAPTURE) {
+			return;
+		} else {
+			// TODO Auto-generated method stub
+			System.out.println("On Array Store : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
+		}
 
 	}
 
 	public void onArrayLoad(int index, Object arrayRef, String fieldOwner, String fieldDesc, String fieldName,
 			Object fieldObject) {
-		// TODO Auto-generated method stub
-		System.out.println("On Array Load : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
+
+		if (!DependencyInfo.IN_CAPTURE) {
+			return;
+		} else {
+			System.out.println("On Array Load : " + index + " " + arrayRef + " " + fieldOwner + "." + fieldName);
+		}
 
 	}
 
@@ -281,8 +285,7 @@ public class DataDepEventHandler {
 	private static DependencyInfo extractStaticDependencyInfo(Object owner, String fieldOwner, String fieldName) {
 
 		if (owner == null) {
-			// System.out.println("DataDepEventHandler.extractStaticDependencyInfo()
-			// Null object");
+			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Null Owner");
 			return null;
 		}
 		try {
@@ -290,38 +293,27 @@ public class DataDepEventHandler {
 			Class ownerClass = owner.getClass();
 			for (Method m : ownerClass.getMethods()) {
 				if (m.getName().startsWith("get" + fieldName + "__DEPENDENCY_INFO")) {
-					// System.out.println("DataDepEventHandler.extractStaticDependencyInfo()
-					// Invoking " + m);
+					System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Invoking " + m);
 					return (DependencyInfo) m.invoke(null, new Object[0]);
 				}
 			}
+			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() Cannot find method " + "get"
+					+ fieldName + "__DEPENDENCY_INFO");
+			// TODO debug:
+			for (Method m : ownerClass.getMethods()) {
+				System.out.println("DataDepEventHandler.extractStaticDependencyInfo() -- " + m);
+			}
+
 		} catch (Exception e) {
 			System.out.println("DataDepEventHandler.extractStaticDependencyInfo() FAILED with " + e);
 			e.printStackTrace();
 		}
+
 		// This should never happen ....
 		return null;
 
 	}
 
-	// TODO References to Test Class and Test Method
-	// THIS DOES NOT WORK!
-	/*
-	 * When a static initialization happens we get the wrong testMethod for some
-	 * reason, so we use listenere instead [exec]
-	 * ConflictDetection.beforeTestExecution() Starting test:
-	 * crystal.client.ClientPreferencesTest.initializationError ID 14
-	 * 
-	 * [exec] DependencyCollector.main(...).new RunListener()
-	 * {...}.testStarted()
-	 * initializationError(crystal.client.ClientPreferencesTest) [exec]
-	 * DependencyCollector.main(...).new RunListener() {...}.testFailure()
-	 * initializationError(crystal.client.ClientPreferencesTest):
-	 * crystal/client/ClientPreferences$DuplicateProjectNameException [exec]
-	 * DependencyCollector.main(...).new RunListener() {...}.testFinished()
-	 * initializationError(crystal.client.ClientPreferencesTest)
-	 * 
-	 */
 	public void beforeTestExecution(String testClass, String testMethod) {
 
 		DependencyInfo.CURRENT_TEST++;

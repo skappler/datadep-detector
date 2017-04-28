@@ -123,14 +123,16 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 
+		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+		AnalyzerAdapter an = null;
+
 		if ("<clinit>".equals(name)) {
 			System.out.println("DependencyTrackingClassVisitor.visitMethod() Class " + className
 					+ " has alreadt a static initializer");
 			hasStaticInitialize = true;
+			// Call the method visitor which add your stuff
 
 		}
-		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
-		AnalyzerAdapter an = null;
 
 		__log.debug("DependencyTrackingClassVisitor.visitMethod() " + name);
 
@@ -140,7 +142,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		}
 
 		// TODO Not sure what this actually does
-		RWTrackingMethodVisitor rtmv = new RWTrackingMethodVisitor(mv, patchLDCClass, className, access, name, desc);
+		RWTrackingMethodVisitor rtmv = new RWTrackingMethodVisitor(mv, patchLDCClass, className, access, name, desc,
+				moreFields);
 		mv = rtmv;
 
 		if (!skipFrames) {
@@ -248,31 +251,33 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 			if (!hasStaticInitialize) {
 				__log.debug("visitEnd Adding static initializer for " + className);
-			} else {
-				__log.debug("visitEnd TODO NEED TO Update static initializer for " + className);
+				mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
+				mv.visitCode();
+				for (FieldNode fn : moreFields) {
+					if ((fn.access & Opcodes.ACC_STATIC) != 0) {
+						__log.info("visitEnd Adding static initialization of DepInfo () for " + fn.name + " in "
+								+ className);
+
+						Label l0 = new Label();
+						mv.visitLabel(l0);
+						mv.visitLineNumber(7, l0);
+						mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+						mv.visitInsn(Opcodes.DUP);
+						mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
+								"()V", false);
+						// Problem is: if this is a primitive we cannot
+						mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name,
+								Type.getDescriptor(DependencyInfo.class));
+					} else {
+						__log.info("visitEnd Skipping static initialization of DepInfo () for " + fn.name + " in "
+								+ className);
+					}
+				}
+				mv.visitInsn(Opcodes.RETURN);
+				mv.visitMaxs(2, 0);
+				mv.visitEnd();
 			}
 			//
-			mv = super.visitMethod(Opcodes.ACC_STATIC, "<clinit>", "()V", null, null);
-			mv.visitCode();
-			for (FieldNode fn : moreFields) {
-				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-					__log.debug(
-							"visitEnd Adding static initialization of DepInfo () for " + fn.name + " in " + className);
-
-					Label l0 = new Label();
-					mv.visitLabel(l0);
-					mv.visitLineNumber(7, l0);
-					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
-					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
-							"()V", false);
-					// Problem is: if this is a primitive we cannot
-					mv.visitFieldInsn(Opcodes.PUTSTATIC, className, fn.name, Type.getDescriptor(DependencyInfo.class));
-				}
-			}
-			mv.visitInsn(Opcodes.RETURN);
-			mv.visitMaxs(2, 0);
-			mv.visitEnd();
 
 			// Introduce a getter method for each of those moreFields. Static
 			// fields require a static getter.Then we
