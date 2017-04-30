@@ -104,5 +104,8 @@ public class DependencyCollector {
 				}
 			}
 		}
+
+		// Explicit shutdown ?!
+		System.exit(0);
 	}
 }
