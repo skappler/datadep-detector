@@ -446,7 +446,7 @@ public class HeapWalker {
 				//
 				dep.field = sf.field;
 				// TODO: Do not propagate the XML value !
-				// dep.value = sf.getValue();
+				dep.value = sf.getValue();
 				deps.add(dep);
 				// This thing clear previous conflicts informations, however, in
 				// case of reads in subsequent tests
