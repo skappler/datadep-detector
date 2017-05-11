@@ -65,6 +65,7 @@ public class AbstractCrystalIT {
 		System.out.println("CrystalIT.buildEnumSet()");
 	}
 
+	// TODO Probably a matchers of some sort is already available...
 	static void has(Collection<Entry<String, String>> depsData, String testName, String depName) {
 		for (Entry<String, String> d : depsData) {
 			if (d.getValue().equals(testName) && d.getKey().equals(depName)) {
@@ -73,6 +74,21 @@ public class AbstractCrystalIT {
 		}
 		// TODO Potential Alternatives - help debugging
 		Assert.fail("Missing dep: " + depName + " -- " + testName + " in " + depsData);
+	}
+	
+	/**
+	 * Fails if we find the specified dependency
+	 * 
+	 * @param depsData
+	 * @param testName
+	 * @param depName
+	 */
+	static void hasNot(Collection<Entry<String, String>> depsData, String testName, String depName) {
+		for (Entry<String, String> d : depsData) {
+			if (d.getValue().equals(testName) && d.getKey().equals(depName)) {
+				Assert.fail("Found unexpected: " + depName + " -- " + testName + " in " + depsData);
+			}
+		}
 	}
 
 	// Copied from java.lang.reflect.Field
@@ -113,6 +129,16 @@ public class AbstractCrystalIT {
 		return values;
 	}
 
+	Collection<Entry<String, String>> extractAllDepValues(LinkedList<StaticFieldDependency> deps) {
+
+		Collection<Entry<String, String>> values = new ArrayList<Entry<String, String>>();
+		// There might be more ....
+		for (StaticFieldDependency sf : deps) {
+			values.addAll(extractDepsData(sf));
+		}
+		return values;
+	}
+
 	Collection<Entry<String, String>> extractDepsData(StaticFieldDependency sf) {
 		List<Entry<String, String>> deps = new ArrayList<Entry<String, String>>();
 		// Extract root dep
@@ -121,10 +147,10 @@ public class AbstractCrystalIT {
 
 		// Extract deps on values
 		String xmlValue = sf.value;
-		System.out.println("AbstractCrystalIT.extractDepsData() " + sf.value);
 
 		if (xmlValue == null || xmlValue.trim().equals("")) {
 			System.out.println("AbstractCrystalIT.extractDepsData() Empry xmlValue for static field " + sf);
+			// Can we say the it is the dep here ?
 			return deps;
 		}
 		SAXBuilder builder = new SAXBuilder();
