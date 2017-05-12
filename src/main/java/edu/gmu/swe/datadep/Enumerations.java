@@ -48,6 +48,8 @@ public class Enumerations {
 				"org.jdom2.input.sax.XMLReaders$NONSingleton", //
 				"org.jdom2.input.sax.XMLReaders$DTDSingleton", //
 				"org.jdom2.input.sax.XMLReaders$XSDSingleton", //
+				//
+				"org.junit.internal.runners.rules.RuleFieldValidator",
 
 		}));
 

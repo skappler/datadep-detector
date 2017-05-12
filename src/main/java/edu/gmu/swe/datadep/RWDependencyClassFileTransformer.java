@@ -31,7 +31,10 @@ public class RWDependencyClassFileTransformer implements ClassFileTransformer {
 		ClassReader cr = new ClassReader(classfileBuffer);
 		String className = cr.getClassName();
 		innerException = false;
+		//
 		if (Instrumenter.isIgnoredClass(className)) {
+			// System.out.println("RWDependencyClassFileTransformer.transform()
+			// Ignore " + className);
 			return classfileBuffer;
 		}
 

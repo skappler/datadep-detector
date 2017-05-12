@@ -68,7 +68,9 @@ public class StaticField implements Serializable {
 			// somewhere !
 
 			field.setAccessible(true);
-			value = HeapWalker.serialize(field.get(null)); // This invoke the shared XStream stuff which is configured to 
+			value = HeapWalker.serialize(
+					// How is this treated ?!
+					field.get(null)); // This invoke the shared XStream stuff which is configured to 
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}

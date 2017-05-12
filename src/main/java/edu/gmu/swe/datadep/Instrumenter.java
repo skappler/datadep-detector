@@ -59,7 +59,11 @@ public class Instrumenter {
 				|| owner.startsWith("java/lang/Class") || owner.startsWith("java/lang/reflect/Method")
 				|| owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long") //
 				// Ignore string type
-				|| owner.equals("java/lang/String");
+				|| owner.equals("java/lang/String")
+				//
+				|| Enumerations.get().contains( owner.replaceAll("/", "."))
+				//
+				;
 	}
 
 	public static boolean isMockedClass(String owner) {

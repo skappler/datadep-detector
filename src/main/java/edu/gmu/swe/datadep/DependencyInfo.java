@@ -11,6 +11,9 @@ public final class DependencyInfo implements Serializable {
 	public static int CURRENT_TEST_COUNT = 1;
 
 	private boolean ignored;
+
+	private boolean logMe;
+
 	private int crawledGen;
 	private int writeGen;
 	// private int readGen; // Will this overflow the memory ?!
@@ -71,6 +74,15 @@ public final class DependencyInfo implements Serializable {
 	 */
 	public void write() {
 
+		if (logMe) {
+			System.out
+					.println("DependencyInfo.write() Before write " + writeGen + " after write " + CURRENT_TEST_COUNT);
+
+			/// This is the only way to really debug this code
+			// Exception ex = new RuntimeException();
+			// ex.printStackTrace();
+		}
+
 		try {
 			// By adding this we lose deps on repoKind ?
 			if (IN_CAPTURE || ignored || conflict) {
@@ -123,9 +135,16 @@ public final class DependencyInfo implements Serializable {
 		this.ignored = ignored;
 	}
 
+	public void logMe() {
+		this.logMe = true;
+	}
+
 	public static boolean IN_CAPTURE = false;
 
 	public void read() {
+		if (logMe) {
+			System.out.println("DependencyInfo.read() " + writeGen);
+		}
 		if (IN_CAPTURE || ignored || conflict) {
 			return;
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
@@ -165,6 +184,7 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public static void write(Object obj) {
+
 		if (obj instanceof MockedClass) {
 			return;
 		} else if (obj instanceof DependencyInstrumented) {

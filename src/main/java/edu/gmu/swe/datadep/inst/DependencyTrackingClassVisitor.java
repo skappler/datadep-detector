@@ -1,6 +1,8 @@
 package edu.gmu.swe.datadep.inst;
 
+import java.util.AbstractMap;
 import java.util.LinkedList;
+import java.util.Map.Entry;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -14,6 +16,7 @@ import org.objectweb.asm.tree.FieldNode;
 
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.DependencyInstrumented;
+import edu.gmu.swe.datadep.Enumerations;
 import edu.gmu.swe.datadep.Instrumenter;
 
 public class DependencyTrackingClassVisitor extends ClassVisitor {
@@ -38,10 +41,49 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		this.isClass = (access & Opcodes.ACC_INTERFACE) == 0;
 		this.className = name;
 		this.patchLDCClass = (version & 0xFFFF) < Opcodes.V1_5;
+
+		// Do not add on the class the taint field, so their instances will not
+		// be tainted
 		if (!superName.equals("java/lang/Object") && !Instrumenter.isIgnoredClass(superName)) {
 			addTaintField = false;
 		}
-		// Add interface
+
+		// If we completely ignore Enums and Strings this is not needed anymore
+		// !
+		// Do not add on the class the taint field to String
+		// if (String.class.getName().equals(this.className.replace("/", ".")))
+		// {
+		// addTaintField = false;
+		// }
+		// // Do not add on the class the taint field to enumerations
+		// if (Enumerations.get().contains(this.className.replace("/", "."))) {
+		// addTaintField = false;
+		// }
+
+		// Tainting interface
+
+		// Do not let Enum and String implement the DependencyInstrumented
+		// interface
+		// if (String.class.getName().equals(this.className.replace("/", ".")))
+		// {
+		// System.out.println("Do not add Tainting interface to " +
+		// this.className);
+		// super.visit(version, access, name, signature, superName, interfaces);
+		// return;
+		// }
+		// // Do not add on the class the taint field to enumerations
+		// if (Enumerations.get().contains(this.className.replace("/", "."))) {
+		// System.out.println("Do not add Tainting interface to " +
+		// this.className);
+		// super.visit(version, access, name, signature, superName, interfaces);
+		// return;
+		// }
+
+		if (Instrumenter.isIgnoredClass(name)) {
+			System.out.println(">>>> WARN THIS SHOULD NEVER HAPPEN !");
+
+		}
+
 		if (!Instrumenter.isIgnoredClass(name) && isClass) { // && (access &
 																// Opcodes.ACC_ENUM)
 																// == 0) {
@@ -53,51 +95,62 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				signature = signature + Type.getDescriptor(DependencyInstrumented.class);
 
 		}
+		// else {
+		// System.out.println("Do not add Tainting interface to " +
+		// this.className);
+		// }
 		super.visit(version, access, name, signature, superName, interfaces);
 	}
 
-	LinkedList<FieldNode> moreFields = new LinkedList<FieldNode>();
+	// With the original type associated
+	LinkedList<Entry<FieldNode, Type>> moreFields = new LinkedList<Entry<FieldNode, Type>>();
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
 		Type t = Type.getType(desc);
 
-		// if (name.equals("a")) {
-		// System.out.println("DependencyTrackingClassVisitor.visitField() A " +
-		// value + " " + desc);
-		// System.out.println("DependencyTrackingClassVisitor.visitField()
-		// (access & Opcodes.ACC_STATIC) != 0 "
-		// + ((access & Opcodes.ACC_STATIC) != 0));
-		// System.out.println("DependencyTrackingClassVisitor.visitField()"
-		// + ((t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)));
-		// }
+		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
+		boolean isPrimitive = (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT);
+		boolean isEnum = ((access & Opcodes.ACC_ENUM) != 0)
+				|| (Enumerations.get().contains(t.getClassName().replace("/", ".")));
+		boolean isString = desc.equals("Ljava/lang/String;");
 
-		// if (name.equals("_parent")) {
-		// System.out.println("DependencyTrackingClassVisitor.visitField()
-		// _parent " + value + " " + desc);
-		// System.out.println("DependencyTrackingClassVisitor.visitField()
-		// (access & Opcodes.ACC_STATIC) != 0 "
-		// + ((access & Opcodes.ACC_STATIC) != 0));
-		// System.out.println("DependencyTrackingClassVisitor.visitField()"
-		// + ((t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)));
-		// }
+		// Enum elements are fields of type enums and their type is the same as
+		// the containing class
+		boolean isEnumElement = isEnum
+				&& t.getClassName().replace("/", ",").equals(this.className.replaceAll("/", "."));
 
-		// No static or primitive field ?
-		// NOT SURE ABOUT THE MEANING OF: (access & Opcodes.ACC_STATIC) != 0 --
-		// non-static ?
-		// (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT) - it's a
-		// primitive
-		// So if you are STATIC OR PRIMITIVE (OR STRING) the container class
-		// (which we are visiting) gets attached ad DEP INFO for that field
-		// (which might have it's own DEP field as well, that's how you get 2 of
-		// them
-		//
-		if ((access & Opcodes.ACC_STATIC) != 0 || (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT)
-				|| (desc.equals("Ljava/lang/String;"))) {
-			moreFields.add(new FieldNode(access, name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
-					null, null));
+		// Static fields of any type requires an additional static taint field
+		if (isEnumElement) {
+			System.out.println(">>>>> WARNING THIS SHOULD NEVER HAPPEN. Skip ENUM ITEM " + this.className + "." + name);
+
+		} else if (isStatic) {
+			moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
+					name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
+
+			;
+		} else {
+			// Primitive types require an additional taint field. Primitive
+			// types are ALWAYS != null
+			if (isPrimitive) {
+				moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
+						name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
+			} else
+			// String types require an additional taint field. String
+			// types can be null
+			if (isString) {
+				moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
+						name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
+			} else
+			// Enum field (but not EnumItems) require an additional taint field.
+			// Enum fields
+			// types can be null
+			if (isEnum) {
+				moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
+						name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
+			}
 		}
-
+		// resume the original visit
 		return super.visitField(access, name, desc, signature, value);
 
 	}
@@ -122,15 +175,19 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitEnd() {
-		for (FieldNode fn : moreFields) {
-			fn.accept(cv);
+		// Register the synthetic fields with the class
+		for (Entry<FieldNode, Type> e : moreFields) {
+			e.getKey().accept(cv);
 		}
 		if (isClass) {
 
 			// Add field to store dep info
-			if (addTaintField)
+			if (addTaintField) {
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
+			}
+			// Implement the getDEPENDENCY_INFO method. Initialize the object if
+			// null
 			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO",
 					"()" + Type.getDescriptor(DependencyInfo.class), null, null);
 			mv.visitCode();
@@ -157,18 +214,50 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitMaxs(0, 0);
 			mv.visitEnd();
 
+			// Implement Additional fields initialization
+
 			mv = super.visitMethod(Opcodes.ACC_PUBLIC, "__initPrimDepInfo", "()V", null, null);
 			mv.visitCode();
-			for (FieldNode fn : moreFields) {
+			for (Entry<FieldNode, Type> e : moreFields) {
+				FieldNode fn = e.getKey();
+				Type t = e.getValue();
+
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
+					//
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
+					// Call constructor
 					mv.visitInsn(Opcodes.DUP);
 					mv.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",
 							"()V", false);
-					mv.visitInsn(Opcodes.DUP);
-					mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
-							"()V", false);
+
+					if ((Enumerations.get().contains(t.getClassName().replaceAll("/", ".")))
+							|| String.class.getName().equals(t.getClassName().replaceAll("/", "."))) {
+						// System.out.println("DependencyTrackingClassVisitor.visitEnd()
+						// Do not propage write for "
+						// + fn.name + " corresponding type " +
+						// t.getClassName());
+						// Call write
+						// mv.visitInsn(Opcodes.DUP);
+						// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+						// Type.getInternalName(DependencyInfo.class), "reset",
+						// "()V", false);
+						// Call write
+					} else {
+						// Call write
+						mv.visitInsn(Opcodes.DUP);
+						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
+								"()V", false);
+					}
+					String loggedField = "data";
+					if (fn.name.equals(loggedField)) {
+						System.out.println("DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + loggedField);
+						mv.visitInsn(Opcodes.DUP);
+						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "logMe",
+								"()V", false);
+					}
+
+					// Finally store the value in the field
 					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
 				}
 			}

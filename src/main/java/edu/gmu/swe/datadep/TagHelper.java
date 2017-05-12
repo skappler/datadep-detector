@@ -29,10 +29,12 @@ public final class TagHelper {
 		if (engaged == 0)
 			throw new IllegalStateException();
 		DependencyInfo ret = _getTag(obj);
+
 		if (ret == null) {
 			ret = new DependencyInfo();
 			setTag(obj, ret);
 		}
+
 		return ret;
 	}
 
