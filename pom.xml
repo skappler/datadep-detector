@@ -50,7 +50,9 @@
 					<forkCount>1</forkCount>
 					<reuseForks>false</reuseForks>
 					<jvm>${project.build.directory}/jre-inst/bin/java</jvm>
-					<argLine>-Xbootclasspath/p:${project.build.directory}/${project.build.finalName}.jar
+					<argLine>
+						-noverify
+						-Xbootclasspath/p:${project.build.directory}/${project.build.finalName}.jar
 						-agentpath:${project.build.directory}/libdeptracker.so
 						-javaagent:${project.build.directory}/${project.build.finalName}.jar
 					</argLine>
@@ -137,12 +139,12 @@
 			<artifactId>xstream</artifactId>
 			<version>1.4.8</version>
 		</dependency>
-		<!--  WHY SCOPE IS NOT TEST ?! -->
+		<!-- WHY SCOPE IS NOT TEST ?! -->
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.11</version>
-			<scope>test</scope> 
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>org.jdom</groupId>
