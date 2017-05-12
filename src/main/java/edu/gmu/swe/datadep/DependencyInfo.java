@@ -89,6 +89,9 @@ public final class DependencyInfo implements Serializable {
 				return;
 			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 				conflict = true;
+				if (logMe) {
+					System.out.println(">>>>> DependencyInfo.read(): Conflict ! ");
+				}
 				if (xmlEl != null) {
 					if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
 						System.out.println("DependencyInfo.write() " + "FOUND NULL DI " + getWriteGen() + " "
@@ -143,13 +146,15 @@ public final class DependencyInfo implements Serializable {
 
 	public void read() {
 		if (logMe) {
-			System.out.println("DependencyInfo.read() " + writeGen);
+			System.out.println(">>>>> DependencyInfo.read(): last written " + writeGen);
 		}
 		if (IN_CAPTURE || ignored || conflict) {
 			return;
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			conflict = true;
-
+			if (logMe) {
+				System.out.println(">>>>> DependencyInfo.read(): Conflict ! ");
+			}
 			// Why this should be repeated for all the sf ?
 			if (xmlEl != null) {
 				if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
@@ -157,7 +162,7 @@ public final class DependencyInfo implements Serializable {
 				} else {
 					xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
 							+ HeapWalker.testNumToMethod.get(getWriteGen()));
-					xmlEl.setAttribute("setBy", "DependencyInfo-Read");
+					xmlEl.setAttribute("setBy", "DependencyInfo-Read-"+writeGen);
 				}
 			}
 

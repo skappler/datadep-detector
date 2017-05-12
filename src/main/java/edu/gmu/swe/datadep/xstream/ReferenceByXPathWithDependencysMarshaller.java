@@ -81,7 +81,8 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 									try {
 										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
 									} catch (NoSuchFieldException e) {
-										// System.out.println("NoSuchFieldException for map type " + source.getClass());
+										// System.out.println("NoSuchFieldException
+										// for map type " + source.getClass());
 										finf = null;
 									}
 								}
@@ -115,7 +116,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							}
 						}
 					}
-				} 
+				}
 				// else {
 				// System.out.println(
 				// "ReferenceByXPathWithDependencysMarshaller.convert(...).new
@@ -124,9 +125,9 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 
 				// TODO Not sure what is doing here ...
 				// Why this does not fail for String == null ?
-				if (source instanceof String) {
-					source = ((String) source).trim();
-				}
+				// if (source instanceof String) {
+				// source = ((String) source).trim();
+				// }
 				if (source instanceof char[]) {
 					source = new String((char[]) source).trim().toCharArray();
 				}
@@ -134,10 +135,21 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 				// TODO What's this ?
 				converter.marshal(source, writer, context);
 
+				// Without the check on WrappedPrimitive, the latest
+				// wr.recentNode was always the lastest primitive seen, while
+				// the xmlEl corresponded to something else
 				if (source != null) {
+
+					// System.out.println("ReferenceByXPathWithDependencysMarshaller
+					// Source class: " + source.getClass());
+
 					JDomHackWriter wr = (JDomHackWriter) writer.underlyingWriter();
 					DependencyInfo inf = TagHelper.getOrFetchTag(source);
-					if (inf != null) {
+
+					if (inf != null && (source instanceof WrappedPrimitive)) {
+						// System.out.println("ReferenceByXPathWithDependencysMarshaller:
+						// Recent node " + wr.recentNode
+						// + " for " + inf + " source is " + source);
 						inf.xmlEl = wr.recentNode;
 					}
 				}

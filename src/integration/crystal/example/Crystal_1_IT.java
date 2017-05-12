@@ -57,15 +57,14 @@ public class Crystal_1_IT extends AbstractCrystalIT {
 
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest.data");
 
-		// This fails why ?!
-		// hasNot(depsData, "crystal.model.DataSourceTest.testSetField",
-		// "crystal.model.DataSource");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSource");
 
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__remoteCmd");
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__testCommand");
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__a_second_testCommand");
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__a_third_testCommand");
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__a_fourth_testCommand ");
+		//
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__a_fifth_testCommand");
 
 		/**
@@ -105,9 +104,7 @@ public class Crystal_1_IT extends AbstractCrystalIT {
 
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "__cloneString");
 		// -- TODO Not sure why field names have this form _+<FIELD_NAME>
-		// This fails why /
-		// hasNot(depsData, "crystal.model.DataSourceTest.testSetField",
-		// "crystal.model.DataSource");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSource");
 		//
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__remoteCmd");
 		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__testCommand");

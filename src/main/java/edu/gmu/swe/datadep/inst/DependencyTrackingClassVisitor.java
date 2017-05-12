@@ -233,10 +233,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 					if ((Enumerations.get().contains(t.getClassName().replaceAll("/", ".")))
 							|| String.class.getName().equals(t.getClassName().replaceAll("/", "."))) {
-						// System.out.println("DependencyTrackingClassVisitor.visitEnd()
-						// Do not propage write for "
-						// + fn.name + " corresponding type " +
-						// t.getClassName());
+//						System.out.println("DependencyTrackingClassVisitor.visitEnd() Do not propage write for "
+//								+ fn.name + " corresponding type " + t.getClassName());
 						// Call write
 						// mv.visitInsn(Opcodes.DUP);
 						// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
@@ -249,10 +247,12 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					String loggedField = "data";
-					if (fn.name.equals(loggedField)) {
-						System.out.println("DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + loggedField);
+					String loggedField = "testCommand";
+					if (fn.name.contains(loggedField)) {
+						// System.out.println("DependencyTrackingClassVisitor.visitEnd()
+						// Enabling LOG for " + fn.name);
 						mv.visitInsn(Opcodes.DUP);
+						// TODO Can we pass a variable String here ?
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "logMe",
 								"()V", false);
 					}
