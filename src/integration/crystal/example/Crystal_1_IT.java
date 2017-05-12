@@ -23,7 +23,8 @@ public class Crystal_1_IT extends AbstractCrystalIT {
 		Collection<Entry<String, String>> depsData;
 
 		//
-		//
+		// TODO If something is declared by not initialized while something else
+		// is initialize at null which one creates a conflict?
 		//
 		executeTest(DataSourceTest.class, "testSetField");
 

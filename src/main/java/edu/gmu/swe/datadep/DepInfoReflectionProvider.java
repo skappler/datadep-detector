@@ -23,7 +23,8 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			validateFieldAccess(field);
 			try {
 				Object value = field.get(object);
-				if (field.getType().isPrimitive() || field.getType().isAssignableFrom(String.class)) {
+				if (field.getType().isPrimitive() || field.getType().isAssignableFrom(String.class)
+						|| field.getType().isEnum()) {
 
 					Field depField = field.getDeclaringClass().getDeclaredField(field.getName() + "__DEPENDENCY_INFO");
 					depField.setAccessible(true);
@@ -36,9 +37,11 @@ public class DepInfoReflectionProvider extends PureJavaReflectionProvider {
 			} catch (IllegalAccessException e) {
 				throw new ObjectAccessException("Could not get field " + field.getClass() + "." + field.getName(), e);
 			} catch (NoSuchFieldException e) {
-				// TODO Not sure why this happens for joda-time but it is annoying
-				//System.out
-				//		.println("[WARNING] Could not get dep info field " + field.getClass() + "." + field.getName());
+				// TODO Not sure why this happens for joda-time but it is
+				// annoying
+				// System.out
+				// .println("[WARNING] Could not get dep info field " +
+				// field.getClass() + "." + field.getName());
 				continue;
 				// throw new ObjectAccessException("Could not get dep info field
 				// " + field.getClass() + "." + field.getName(), e);

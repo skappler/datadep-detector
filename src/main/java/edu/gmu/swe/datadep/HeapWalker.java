@@ -151,7 +151,6 @@ public class HeapWalker {
 
 		// Ignore static fields of taint data
 		if (f.getDeclaringClass().equals(DependencyInfo.class)) {
-			// Enums might be instrumented, so we blacklist their inner fields
 			// System.out.println("HeapWalker.isBlackListedSF() Ignore " +
 			// f.getDeclaringClass() + "." + f.getName());
 			return true;
@@ -485,7 +484,6 @@ public class HeapWalker {
 				dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
 				//
 				dep.field = sf.field;
-				// TODO: Do not propagate the XML value !
 				dep.value = sf.getValue();
 				deps.add(dep);
 				// This thing clear previous conflicts informations, however, in
@@ -552,10 +550,6 @@ public class HeapWalker {
 								visitFieldForIgnore(obj);
 							}
 						} else if (shouldCapture(f)) {
-
-							if (f.getName().equals("_repoKind")) {
-								System.out.println("HeapWalker.walkAndFindDependencies() Visiting " + f.getName());
-							}
 
 							if (f.getName().endsWith("__DEPENDENCY_INFO")) {
 								fieldName = fieldName.replace("__DEPENDENCY_INFO", "");
@@ -638,9 +632,9 @@ public class HeapWalker {
 				} catch (NoClassDefFoundError e) {
 				}
 				for (Field f : allFields) {
-					if (f.getName().equals("_repoKind")) {
-						System.out.println("HeapWalker.visitFieldForIgnore()" + f.getName());
-					}
+//					if (f.getName().equals("_repoKind")) {
+//						System.out.println("HeapWalker.visitFieldForIgnore()" + f.getName());
+//					}
 					/// NOT SURE ABOUT THIS, Shall be Enum/String as well ?!
 					if (!f.getType().isPrimitive() && !Modifier.isStatic(f.getModifiers())) {
 						try {
@@ -771,8 +765,7 @@ public class HeapWalker {
 			}
 			// For objects at which this fiethat are null
 			if (inf.getWriteGen() == 0) {
-				// System.out.println("HeapWalker.visitField() Forcing write for
-				// " + obj);
+//				System.out.println("HeapWalker.visitField() Forcing write for " + obj);
 				inf.write();
 			}
 			if (found)
@@ -807,6 +800,10 @@ public class HeapWalker {
 				} catch (NoClassDefFoundError e) {
 				}
 				for (Field f : allFields) {
+
+//					if (f.getName().equals("_repoKind")) {
+//						System.out.println("HeapWalker.visitField() Visiting " + f.getName());
+//					}
 					// Primitive and the other fields are skipped, but NOT their
 					// dependencyInfo taint !
 					if (!(f.getType().isPrimitive() || f.getType().isEnum()
@@ -830,16 +827,24 @@ public class HeapWalker {
 									continue;
 								}
 								if (f1.getName().equals(f.getName().replace("__DEPENDENCY_INFO", ""))) {
+
 									// System.out.println(
 									// "HeapWalker.visitField() Found
 									// corresponding prim " + f1.getName());
-									//
+
 									f1.setAccessible(true);
 									if (f1.get(obj) == null) {
-										// System.out.println(
-										// "HeapWalker.visitField() Do not
-										// propogate taint for null objects");
+//										System.out.println(
+//												"HeapWalker.visitField() Do not propogate taint for null objects");
 									} else {
+										if (f.getName().replace("__DEPENDENCY_INFO", "").equals("_repoKind")) {
+											DependencyInfo di = (DependencyInfo) f.get(obj);
+											// System.out.println(
+											// "HeapWalker.visitField() Dep info
+											// for repoKind " + di.getWriteGen()
+											// + " - " + di.isConflict() + " " +
+											// di.isIgnored() + "");
+										}
 										visitField(root, f.get(obj), alreadyInConflict);
 									}
 								}
@@ -851,6 +856,12 @@ public class HeapWalker {
 							e.printStackTrace();
 						}
 					}
+					// else {
+					// if (f.getName().equals("_repoKind")) {
+					// System.out.println("HeapWalker.visitField() Skip " +
+					// f.getName());
+					// }
+					// }
 				}
 			} else if (obj.getClass().isArray() && !obj.getClass().getComponentType().isPrimitive()) {
 				inf.setCrawledGen();

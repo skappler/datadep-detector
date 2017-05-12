@@ -46,7 +46,7 @@ public class FilteringFieldMapper extends MapperWrapper {
 
 	@Override
 	public Class defaultImplementationOf(Class type) {
-		if (type.isPrimitive() || type.isAssignableFrom(String.class))
+		if (type.isPrimitive() || type.isAssignableFrom(String.class) || type.isEnum())
 			return WrappedPrimitive.class;
 		return String.class;
 	}
