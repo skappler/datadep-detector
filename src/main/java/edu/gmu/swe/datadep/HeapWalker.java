@@ -470,8 +470,10 @@ public class HeapWalker {
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
-		System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() Last executed test is " + className + "."
-				+ methodName + " ID : " + testCount + " \n\n\n ");
+
+		// System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() Last
+		// executed test is " + className + "."
+		// + methodName + " ID : " + testCount + " \n\n\n ");
 		testCount++;
 
 		// First - clean up from last generation: make sure that all static

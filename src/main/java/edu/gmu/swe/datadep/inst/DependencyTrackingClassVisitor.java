@@ -192,8 +192,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public void visitEnd() {
 		// Logging
-		List<String> fieldsLogged = Arrays.asList(new String[] { //
-				"_shortName" });
+		List<String> fieldsLogged = Arrays.asList(new String[] {});
 		// "crystal.model.DataSource",
 		// //
 		//

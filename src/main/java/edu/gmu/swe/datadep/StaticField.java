@@ -55,8 +55,9 @@ public class StaticField implements Serializable {
 
 	public void markConflictAndSerialize(int writeGen) {
 
-		System.out.println("\n\nStaticField.markConflictAndSerialize() SF " + System.identityHashCode(this) + " -- "
-				+ field.getName() + "  Write Gen " + writeGen);
+		// System.out.println("\n\nStaticField.markConflictAndSerialize() SF " +
+		// System.identityHashCode(this) + " -- "
+		// + field.getName() + " Write Gen " + writeGen);
 
 		conflict = true;
 		// Update the write of the first conflicting test
