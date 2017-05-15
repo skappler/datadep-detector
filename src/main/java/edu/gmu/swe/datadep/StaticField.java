@@ -21,7 +21,6 @@ import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
 import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
-import org.junit.Assert;
 
 public class StaticField implements Serializable {
 	private static final long serialVersionUID = 1L;
