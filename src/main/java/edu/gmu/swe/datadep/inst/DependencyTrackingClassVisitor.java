@@ -150,6 +150,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			if (isPrimitive) {
 				moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
 						name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
+				//
 			} else
 			// String types require an additional taint field. String
 			// types can be null
@@ -192,7 +193,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	public void visitEnd() {
 		// Logging
 		List<String> fieldsLogged = Arrays.asList(new String[] {});
-		// //
 		// "crystal.model.DataSource",
 		// //
 		//
@@ -285,15 +285,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					// USE A MATCHER HERE
-					// String patternString = "_hide";
-					// Pattern pattern = Pattern.compile(patternString);
-					// Matcher matcher = pattern.matcher(fn.name);
-
-					// if (matcher.matches()) {
-					// fn is the DEP_INFO
-					// Enable logging
-
 					if (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO", ""))) {
 						logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
 					}

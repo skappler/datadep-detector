@@ -61,6 +61,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						}
 
 						if (inf != null && inf.isConflict()) {
+							//
 							if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
 								System.out.println("FOUND NULL RBXPath " + inf.getWriteGen() + " "
 										+ HeapWalker.testNumToTestClass.size());
@@ -71,6 +72,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								// + inf.isConflict());
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+								writer.addAttribute("dependsOnId", "" + inf.getWriteGen());
 
 								writer.addAttribute("setBy", "ReferenceByXPathWithDependencysMarshaller");
 							}
@@ -107,6 +109,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 											writer.addAttribute("size_dependsOn",
 													HeapWalker.testNumToTestClass.get(inf.getWriteGen()) + "."
 															+ HeapWalker.testNumToMethod.get(inf.getWriteGen()));
+											writer.addAttribute("size_dependsOnId", "" + inf.getWriteGen());
 											writer.addAttribute("setBy", "ReferenceByXPathWithDependencysMarshaller");
 										}
 									}

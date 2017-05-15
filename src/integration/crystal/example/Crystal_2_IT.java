@@ -42,19 +42,21 @@ public class Crystal_2_IT extends AbstractCrystalIT {
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest.data");
 
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetEnabled");
-		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest._hide");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__hide");
 
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testIsHidden");
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest.data");
 		// crystal.model.DataSourceTest.testIsHidden,crystal.model.DataSourceTest.testSetEnabled
-		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest._enabled");
-		hasNot(depsData, "crystal.model.DataSourceTest.testSetEnabled", "crystal.model.DataSourceTest._enabled");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__enabled");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetEnabled", "__enabled");
 
-		// depsData = runTestAndGetDeps(DataSourceTest.class, "testSetParent");
-		// depsData = runTestAndGetDeps(DataSourceTest.class, "testSetKind");
-		// depsData = runTestAndGetDeps(DataSourceTest.class,
-		// "testSetCloneString");
-		// depsData = runTestAndGetDeps(DataSourceTest.class, "testToString");
+		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetParent");
+		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetKind");
+		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetCloneString");
+		depsData = runTestAndGetDeps(DataSourceTest.class, "testToString");
+
+		has(depsData, "crystal.model.DataSourceTest.testSetCloneString", "__cloneString");
+		hasNot(depsData, "crystal.model.DataSourceTest.testSetField", "__cloneString");
 	}
 
 }

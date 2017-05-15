@@ -4,17 +4,27 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Field;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
+import org.jdom2.JDOMException;
+import org.jdom2.filter.Filters;
+import org.jdom2.input.SAXBuilder;
 import org.jdom2.output.Format;
 import org.jdom2.output.XMLOutputter;
+import org.jdom2.xpath.XPathExpression;
+import org.jdom2.xpath.XPathFactory;
+import org.junit.Assert;
 
 public class StaticField implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
 	private boolean conflict;
 	public Element value;
 	public int dependsOn;
@@ -54,6 +64,11 @@ public class StaticField implements Serializable {
 	}
 
 	public void markConflictAndSerialize(int writeGen) {
+
+		// System.out.println("\n\nStaticField.markConflictAndSerialize() SF " +
+		// System.identityHashCode(this) + " -- "
+		// + field.getName() + " Write Gen " + writeGen);
+
 		conflict = true;
 		// Update the write of the first conflicting test
 		if (writeGen > dependsOn) {
@@ -108,6 +123,36 @@ public class StaticField implements Serializable {
 		return sw.toString();
 	}
 
+	// Probably this can be done in a smarte way directly elaborating Element
+	public static List<Entry<String, Integer>> getDependencies(String xmlValue) {
+		List<Entry<String, Integer>> deps = new ArrayList<Entry<String, Integer>>();
+		if (xmlValue == null || xmlValue.trim().equals("")) {
+			return deps;
+		}
+		SAXBuilder builder = new SAXBuilder();
+		try {
+			Document document = (Document) builder.build(new StringReader(xmlValue));
+
+			// Select only elements with the dependsOnId attribute
+			String query = "//*[@dependsOnId]";
+			XPathExpression<Element> xpe = XPathFactory.instance().compile(query, Filters.element());
+			for (Element urle : xpe.evaluate(document)) {
+
+				Integer depAttrIds = Integer.parseInt(urle.getAttribute("dependsOnId").getValue());
+
+				Entry<String, Integer> dep = new AbstractMap.SimpleEntry<String, Integer>(urle.getName(), depAttrIds);
+
+				deps.add(dep);
+			}
+
+		} catch (IOException io) {
+			System.out.println(io.getMessage());
+		} catch (JDOMException jdomex) {
+			System.out.println(jdomex.getMessage());
+		}
+		return deps;
+	}
+
 	@Override
 	public String toString() {
 		return "StaticField [field=" + field + ", conflict=" + conflict + ", value="
@@ -120,4 +165,5 @@ public class StaticField implements Serializable {
 		value = null;
 		dependsOn = 0;
 	}
+
 }

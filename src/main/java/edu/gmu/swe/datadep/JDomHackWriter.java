@@ -13,8 +13,6 @@ public class JDomHackWriter extends JDom2Writer {
 		this.skipValues = skipValues;
 	}
 
-	// Here we can check if the current node had deps attributes and use a stack
-	// to keep the entire subtree
 	// @Override
 	// public String encodeAttribute(String name) {
 	// System.out.println("JDomHackWriter.encodeAttribute() " + name);

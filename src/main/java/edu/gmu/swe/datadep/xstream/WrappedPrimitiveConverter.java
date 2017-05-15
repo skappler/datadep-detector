@@ -23,9 +23,9 @@ public class WrappedPrimitiveConverter implements Converter {
 
 	@Override
 	public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
-		
+
 		DependencyInfo dep = ((WrappedPrimitive) source).inf;
-		
+
 		if (dep != null && dep.isConflict()) {
 			if (HeapWalker.testNumToTestClass.get(dep.getWriteGen()) == null) {
 				System.out.println("FOUND NULL WP " + dep.getWriteGen() + " " + HeapWalker.testNumToTestClass.size()
@@ -33,6 +33,7 @@ public class WrappedPrimitiveConverter implements Converter {
 			} else {
 				writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(dep.getWriteGen()) + "."
 						+ HeapWalker.testNumToMethod.get(dep.getWriteGen()));
+				writer.addAttribute("dependsOnId", "" + dep.getWriteGen());
 				writer.addAttribute("setBy", "WrappedPrimitiveConverter");
 			}
 		}

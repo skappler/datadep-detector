@@ -10,7 +10,6 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
-import org.objectweb.asm.tree.FieldNode;
 
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.Enumerations;
@@ -276,12 +275,10 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					super.visitJumpInsn(IFNULL, l1);
 					// IF BRANCH == NOT NULL >> Value is not null
 					// [objectref, value]
-					// At this point I need to retrieve the value of the field
-					// (can be null ?!)
 					super.visitInsn(SWAP);
 					// [value, objectref]
 					super.visitInsn(DUP);
-					// [value, objectref, objectref ]
+					// [value, objectref, objectref]
 					super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
 							Type.getDescriptor(DependencyInfo.class));
 					// [value, objectref, value2 ]
@@ -295,6 +292,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 					// [objectref, value ] -->
 					super.visitFieldInsn(opcode, owner, name, desc);
+					// []
 
 				} else {
 
