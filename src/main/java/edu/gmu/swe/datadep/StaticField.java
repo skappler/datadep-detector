@@ -14,7 +14,7 @@ import org.jdom2.output.XMLOutputter;
 
 public class StaticField implements Serializable {
 	private static final long serialVersionUID = 1L;
-	
+
 	private boolean conflict;
 	public Element value;
 	public int dependsOn;
@@ -54,6 +54,10 @@ public class StaticField implements Serializable {
 	}
 
 	public void markConflictAndSerialize(int writeGen) {
+
+		System.out.println("\n\nStaticField.markConflictAndSerialize() SF " + System.identityHashCode(this) + " -- "
+				+ field.getName() + "  Write Gen " + writeGen);
+
 		conflict = true;
 		// Update the write of the first conflicting test
 		if (writeGen > dependsOn) {

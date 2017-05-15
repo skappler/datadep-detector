@@ -130,21 +130,19 @@ public final class DependencyInfo implements Serializable {
 					for (StaticField sf : fields) {
 						if (sf != null) {
 							// FIXME What shall we do here ?!
-							// if (sf.isConflict()) {
-							// TODO(gyori): The xmlEl is somehow null. When
-							// can
-							// this be null?
-							// sf.markConflictAndSerialize(writeGen);
-							// } else {
-							sf.markConflictAndSerialize(writeGen);
-							// }
+							if (sf.isConflict()) {
+								// TODO(gyori): The xmlEl is somehow null. When
+								// can
+								// this be null?
+								// sf.markConflictAndSerialize(writeGen);
+							} else {
+								sf.markConflictAndSerialize(writeGen);
+							}
 						}
 					}
 				}
 			}
-		} finally
-
-		{
+		} finally {
 			// This must always run
 			writeGen = CURRENT_TEST_COUNT;
 		}
@@ -198,17 +196,18 @@ public final class DependencyInfo implements Serializable {
 			if (fields != null) {
 				for (StaticField sf : fields) {
 					if (sf != null) {
-						// if (sf.isConflict()) {
-						// TODO(gyori): The xmlEl is somehow null. When can
-						// this be null?
-						// } else {
-						// Write the current state of this particular SF at
-						// this time
-						// System.out.println("DependencyInfo.read() Serialize
-						// Static Field " + sf.field.getName() + " - "
-						// + System.identityHashCode(sf));
-						sf.markConflictAndSerialize(writeGen);
-						// }
+						if (sf.isConflict()) {
+							// TODO(gyori): The xmlEl is somehow null. When can
+							// this be null?
+						} else {
+							// Write the current state of this particular SF at
+							// this time
+							// System.out.println("DependencyInfo.read()
+							// Serialize
+							// Static Field " + sf.field.getName() + " - "
+							// + System.identityHashCode(sf));
+							sf.markConflictAndSerialize(writeGen);
+						}
 					}
 				}
 			}

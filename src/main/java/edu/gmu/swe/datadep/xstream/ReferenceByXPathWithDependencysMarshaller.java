@@ -61,6 +61,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						}
 
 						if (inf != null && inf.isConflict()) {
+							//
 							if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
 								System.out.println("FOUND NULL RBXPath " + inf.getWriteGen() + " "
 										+ HeapWalker.testNumToTestClass.size());

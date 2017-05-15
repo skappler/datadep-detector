@@ -1,7 +1,9 @@
 package edu.gmu.swe.datadep.inst;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.objectweb.asm.ClassVisitor;
@@ -190,7 +192,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public void visitEnd() {
 		// Logging
-		// List<String> fieldsLogged = Arrays.asList(new String[] { //
+		List<String> fieldsLogged = Arrays.asList(new String[] { //
+				"_shortName" });
 		// "crystal.model.DataSource",
 		// //
 		//
@@ -234,9 +237,9 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
 
-			// if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
-			// logMe(mv, this.className, this.className.replaceAll("/", "."));
-			// }
+			if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
+				logMe(mv, this.className, this.className.replaceAll("/", "."));
+			}
 
 			mv.visitLabel(ok);
 			mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1,
@@ -283,11 +286,9 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					// if
-					// (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO",
-					// ""))) {
-					// logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
-					// }
+					if (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO", ""))) {
+						logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
+					}
 
 					// Finally store the value in the field
 					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));

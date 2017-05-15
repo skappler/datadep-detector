@@ -441,7 +441,7 @@ public class HeapWalker {
 	}
 
 	private static final LinkedHashMap<String, Object> nameToInstance = new LinkedHashMap();
-	static int testCount = 1; // 1 Because we count INIT.INIT as test ?
+	static int testCount = 1;
 	public static HashMap<Integer, String> testNumToMethod = new HashMap<Integer, String>();
 	public static HashMap<Integer, String> testNumToTestClass = new HashMap<>();
 
@@ -467,13 +467,13 @@ public class HeapWalker {
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
 
-		// // System.out.println("\n\n\n HeapWalker.walkAndFindDependencies()
-		// \n\n\n ");
-
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
+		System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() Last executed test is " + className + "."
+				+ methodName + " ID : " + testCount + " \n\n\n ");
 		testCount++;
+
 		// First - clean up from last generation: make sure that all static
 		// field up-pointers are cleared out
 		for (WeakReference<DependencyInfo> inf : lastGenReachable) {
