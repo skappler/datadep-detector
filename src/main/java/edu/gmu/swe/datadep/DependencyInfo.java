@@ -20,8 +20,21 @@ public final class DependencyInfo implements Serializable {
 
 	private boolean conflict;
 
-	public Element xmlEl;
+	//
+	private Element xmlEl;
 	StaticField[] fields;
+
+	public void setXmlEl(Element xmlEl) {
+		// if (logMe) {
+		// System.out.println(this.logMeName + " set XML from " + this.xmlEl + "
+		// to " + xmlEl);
+		// }
+		this.xmlEl = xmlEl;
+	}
+
+	public Element getXmlEl() {
+		return xmlEl;
+	}
 
 	// Note that this is the value at the moment of the conflict detection !
 	private String value;
@@ -32,6 +45,8 @@ public final class DependencyInfo implements Serializable {
 
 	private StackTraceElement[] ex;
 
+	private String logMeName;
+
 	public int getCrawledGen() {
 		return crawledGen;
 	}
@@ -41,6 +56,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public boolean isConflict() {
+		if (logMe && conflict) {
+			System.out.println(this.logMeName + " is in Conflict !");
+		}
 		return conflict;
 	}
 
@@ -75,8 +93,8 @@ public final class DependencyInfo implements Serializable {
 	public void write() {
 
 		if (logMe) {
-			System.out
-					.println("DependencyInfo.write() Before write " + writeGen + " after write " + CURRENT_TEST_COUNT);
+			System.out.println(
+					this.logMeName + " write() Before write " + writeGen + " after write " + CURRENT_TEST_COUNT);
 
 			/// This is the only way to really debug this code
 			// Exception ex = new RuntimeException();
@@ -90,7 +108,7 @@ public final class DependencyInfo implements Serializable {
 			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 				conflict = true;
 				if (logMe) {
-					System.out.println(">>>>> DependencyInfo.read(): Conflict ! ");
+					System.out.println(">>>>> " + this.logMeName + " write(): Conflict ! ");
 				}
 				if (xmlEl != null) {
 					if (HeapWalker.testNumToTestClass.get(getWriteGen()) == null) {
@@ -112,19 +130,21 @@ public final class DependencyInfo implements Serializable {
 					for (StaticField sf : fields) {
 						if (sf != null) {
 							// FIXME What shall we do here ?!
-							if (sf.isConflict()) {
-								// TODO(gyori): The xmlEl is somehow null. When
-								// can
-								// this be null?
-								// sf.markConflictAndSerialize(writeGen);
-							} else {
-								sf.markConflictAndSerialize(writeGen);
-							}
+							// if (sf.isConflict()) {
+							// TODO(gyori): The xmlEl is somehow null. When
+							// can
+							// this be null?
+							// sf.markConflictAndSerialize(writeGen);
+							// } else {
+							sf.markConflictAndSerialize(writeGen);
+							// }
 						}
 					}
 				}
 			}
-		} finally {
+		} finally
+
+		{
 			// This must always run
 			writeGen = CURRENT_TEST_COUNT;
 		}
@@ -138,22 +158,26 @@ public final class DependencyInfo implements Serializable {
 		this.ignored = ignored;
 	}
 
-	public void logMe() {
+	public void logMe(String name) {
 		this.logMe = true;
+		this.logMeName = name;
 	}
 
 	public static boolean IN_CAPTURE = false;
 
+	// TODO read and write shares a lot of code, extract to common private
+	// method !!
+
 	public void read() {
 		if (logMe) {
-			System.out.println(">>>>> DependencyInfo.read(): last written " + writeGen);
+			System.out.println(this.logMeName + " read(): last written " + writeGen);
 		}
 		if (IN_CAPTURE || ignored || conflict) {
 			return;
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			conflict = true;
 			if (logMe) {
-				System.out.println(">>>>> DependencyInfo.read(): Conflict ! ");
+				System.out.println(">>>>> " + this.logMeName + " read(): Conflict ! ");
 			}
 			// Why this should be repeated for all the sf ?
 			if (xmlEl != null) {
@@ -162,25 +186,28 @@ public final class DependencyInfo implements Serializable {
 				} else {
 					xmlEl.setAttribute("dependsOn", HeapWalker.testNumToTestClass.get(getWriteGen()) + "."
 							+ HeapWalker.testNumToMethod.get(getWriteGen()));
-					xmlEl.setAttribute("setBy", "DependencyInfo-Read-"+writeGen);
+					xmlEl.setAttribute("setBy", "DependencyInfo-Read-" + writeGen);
 				}
 			}
 
-			// Snag the value of the static fields AT THIS TIME !
-			if (fields != null) { /*
-									 * could be null if only pointed to by
-									 * ignored heap roots
-									 */
+			// Snag the value of the static fields at the time of the conflict,
+			// possibly this override previous values, which is bad:
+			// write a <-foo (conflict a)
+			// write a.1 <- boo (rewrite the entire a ?!)
+			// Do we really need the serialization after all ?!
+			if (fields != null) {
 				for (StaticField sf : fields) {
 					if (sf != null) {
-						if (sf.isConflict()) {
-							// TODO(gyori): The xmlEl is somehow null. When can
-							// this be null?
-						} else {
-							// Write the current state of this particular SF at
-							// this time
-							sf.markConflictAndSerialize(writeGen);
-						}
+						// if (sf.isConflict()) {
+						// TODO(gyori): The xmlEl is somehow null. When can
+						// this be null?
+						// } else {
+						// Write the current state of this particular SF at
+						// this time
+						System.out.println("DependencyInfo.read() Serialize Static Field " + sf.field.getName() + " - "
+								+ System.identityHashCode(sf));
+						sf.markConflictAndSerialize(writeGen);
+						// }
 					}
 				}
 			}
@@ -214,6 +241,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public void clearConflict() {
+		if (logMe) {
+			System.out.println(">>>>> " + this.logMeName + " clearConflict()");
+		}
 		this.conflict = false;
 	}
 
@@ -221,5 +251,12 @@ public final class DependencyInfo implements Serializable {
 		if (fields != null)
 			for (int i = 0; i < fields.length; i++)
 				fields[i] = null;
+	}
+
+	public String printMe() {
+		if (logMe)
+			return this.logMeName;
+		else
+			return "";
 	}
 }

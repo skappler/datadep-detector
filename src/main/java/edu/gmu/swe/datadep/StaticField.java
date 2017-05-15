@@ -14,6 +14,7 @@ import org.jdom2.output.XMLOutputter;
 
 public class StaticField implements Serializable {
 	private static final long serialVersionUID = 1L;
+	
 	private boolean conflict;
 	public Element value;
 	public int dependsOn;
@@ -68,9 +69,11 @@ public class StaticField implements Serializable {
 			// somewhere !
 
 			field.setAccessible(true);
+			//
 			value = HeapWalker.serialize(
 					// How is this treated ?!
-					field.get(null)); // This invoke the shared XStream stuff which is configured to 
+					field.get(null)); // This invoke the shared XStream stuff
+										// which is configured to
 		} catch (IllegalArgumentException | IllegalAccessException e) {
 			e.printStackTrace();
 		}
@@ -108,8 +111,8 @@ public class StaticField implements Serializable {
 	@Override
 	public String toString() {
 		return "StaticField [field=" + field + ", conflict=" + conflict + ", value="
-				+ ((value != null || value.getContent().size() > 0) ? "present" : "null") + ", dependsOn=" + dependsOn
-				+ "]";
+				+ ((value != null && value.getContent() != null && value.getContent().size() > 0) ? "present" : "null")
+				+ ", dependsOn=" + dependsOn + "]";
 	}
 
 	public void clearConflict() {

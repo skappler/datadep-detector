@@ -19,15 +19,18 @@ public final class TagHelper {
 			return ((DependencyInstrumented) obj).getDEPENDENCY_INFO();
 		else if (obj instanceof DependencyInfo)
 			return (DependencyInfo) obj;
-		/* We need to check for null since String objects might be null */
-		else if ((obj instanceof WrappedPrimitive) && obj != null)
+		/* We need to check for null since String objects might be null ? */
+		else if ((obj instanceof WrappedPrimitive) ) // && obj != null) -> This might raise NPE ?
 			return ((WrappedPrimitive) obj).inf;
+		
 		return getOrInitTag(obj);
 	}
 
 	public static DependencyInfo getOrInitTag(Object obj) {
 		if (engaged == 0)
 			throw new IllegalStateException();
+		
+		// Not sure what this does if obj is null ...
 		DependencyInfo ret = _getTag(obj);
 
 		if (ret == null) {
