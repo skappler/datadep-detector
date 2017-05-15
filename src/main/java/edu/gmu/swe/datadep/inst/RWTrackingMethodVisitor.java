@@ -10,6 +10,7 @@ import org.objectweb.asm.Type;
 import org.objectweb.asm.commons.AdviceAdapter;
 import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
+import org.objectweb.asm.tree.FieldNode;
 
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.Enumerations;
@@ -131,10 +132,12 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		switch (opcode) {
 		case GETFIELD: // On FIELD read/access
 
-			// Call Read to the object no matter what
+			// [ objectref ] -->
 			super.visitInsn(DUP);
+			// [ objectref, objectref ] -->
 			super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "read",
 					"(Ljava/lang/Object;)V", false);
+			// [ objectref ] -->
 
 			Type t = Type.getType(desc);
 			switch (t.getSort()) {
@@ -263,53 +266,51 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			}
 			if (t.getSort() == Type.ARRAY || t.getSort() == Type.OBJECT) {
 
-				// if
-				// (Enumerations.get().contains(t.getClassName().replaceAll("/",
-				// "."))
-				// ||
-				// String.class.getName().equals(t.getClassName().replaceAll("/",
-				// ".")) //
-				// ) {
-				// // THIS IS THE ACTUAL PUT FIELD value, objref -> pop pop
-				// super.visitFieldInsn(opcode, owner, name, desc);
-				// // // super.visitInsn(DUP); // > value, value, objectref
-				// super.visitVarInsn(ALOAD, 0);
-				// super.visitFieldInsn(GETFIELD, owner, name, desc);
-				// // //
-				// Label l1 = new Label();
-				// // Check if null -> pop value
-				// super.visitJumpInsn(IFNULL, l1); // > value, objectref
-				//
-				// // // // IF BRANCH == NOT NULL
-				// // super.visitInsn(SWAP); //
-				// // super.visitInsn(DUP);
-				// super.visitVarInsn(ALOAD, 0);
-				// super.visitFieldInsn(Opcodes.GETFIELD, owner, name +
-				// "__DEPENDENCY_INFO",
-				// Type.getDescriptor(DependencyInfo.class));
-				// super.visitMethodInsn(INVOKESTATIC,
-				// Type.getInternalName(DependencyInfo.class), "write",
-				// "(Ljava/lang/Object;)V", false);
-				// // super.visitInsn(SWAP);
-				// // // // ELSE BRANCH --> OBJECT IS NULL ?!
-				// // // // Label l4 = new Label();
-				// // // // super.visitJumpInsn(GOTO, l4);
-				// super.visitLabel(l1);
-				// // // /// DO NOTHING
-				// // // /// LOG THIS NOT NULL
-				// // // super.visitLabel(l4);
-				//
+				if (Enumerations.get().contains(t.getClassName().replaceAll("/", "."))
+						|| String.class.getName().equals(t.getClassName().replaceAll("/", ".")) //
+				) {
+					// [objectref, value]
+					super.visitInsn(DUP);
+					// [objectref, value, value]
+					Label l1 = new Label();
+					super.visitJumpInsn(IFNULL, l1);
+					// IF BRANCH == NOT NULL >> Value is not null
+					// [objectref, value]
+					// At this point I need to retrieve the value of the field
+					// (can be null ?!)
+					super.visitInsn(SWAP);
+					// [value, objectref]
+					super.visitInsn(DUP);
+					// [value, objectref, objectref ]
+					super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+							Type.getDescriptor(DependencyInfo.class));
+					// [value, objectref, value2 ]
+					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
+							"(Ljava/lang/Object;)V", false);
+					// [value, objectref ]
+					super.visitInsn(SWAP);
+					// [value, objectref ]
+					// ELSE BRANCH --> OBJECT IS NULL ?! Do nothing
+					super.visitLabel(l1);
 
-				// } else {
+					// [objectref, value ] -->
+					super.visitFieldInsn(opcode, owner, name, desc);
 
-				super.visitInsn(SWAP);
-				super.visitInsn(DUP);
-				super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
-						"(Ljava/lang/Object;)V", false);
-				super.visitInsn(SWAP);
-				// THIS IS THE ACTUAL PUT FIELD value, objref -> pop pop
-				super.visitFieldInsn(opcode, owner, name, desc);
-				// }
+				} else {
+
+					// [objectref, value ] -->
+					super.visitInsn(SWAP);
+					// [value, objectref] -->
+					super.visitInsn(DUP);
+					// [value, objectref, objectref] -->
+					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
+							"(Ljava/lang/Object;)V", false);
+					// [value, objectref ] -->
+					super.visitInsn(SWAP);
+					// [objectref, value ] -->
+					super.visitFieldInsn(opcode, owner, name, desc);
+					// []
+				}
 			} else {
 				switch (t.getSize()) {
 				case 1:
@@ -372,4 +373,5 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	public void setAnalyzer(AnalyzerAdapter an) {
 		this.an = an;
 	}
+
 }
