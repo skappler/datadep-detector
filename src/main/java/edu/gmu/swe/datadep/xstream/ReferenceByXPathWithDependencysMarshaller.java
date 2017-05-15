@@ -1,8 +1,15 @@
 package edu.gmu.swe.datadep.xstream;
 
+import java.io.IOException;
+import java.io.StringWriter;
 import java.lang.reflect.Field;
 import java.util.Hashtable;
 import java.util.Map;
+
+import org.jdom2.Document;
+import org.jdom2.Element;
+import org.jdom2.output.Format;
+import org.jdom2.output.XMLOutputter;
 
 import com.thoughtworks.xstream.converters.Converter;
 import com.thoughtworks.xstream.converters.ConverterLookup;
@@ -32,6 +39,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 
 	@Override
 	public void convert(Object item, final Converter converter) {
+
 		super.convert(item, new Converter() {
 			@Override
 			public boolean canConvert(Class type) {
@@ -43,32 +51,31 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 
 				if (source != null) {
 					if (HeapWalker.CAPTURE_TAINTS) {
-
 					} else {
-						// This will return a dep object even if the object is
-						// null, but every time an object is null it generates a
-						// new one !
+
+						// This actually can return a null inf !
 						DependencyInfo inf = TagHelper.getOrFetchTag(source);
-						// if source is a string it might be null we need to
-						// check that
+						//
 						if (source instanceof WrappedPrimitive) {
 							inf = ((WrappedPrimitive) source).inf;
 						}
-						// else if (source instanceof String) {
-						// inf = ((WrappedPrimitive) source).inf; /* Ok ?! */
-						// }
 
 						if (inf != null && inf.isConflict()) {
 							if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
 								System.out.println("FOUND NULL RBXPath " + inf.getWriteGen() + " "
 										+ HeapWalker.testNumToTestClass.size());
 							} else {
+
+								// System.out.println("ReferenceByXPathWithDependencysMarshaller:
+								// found CONFLICT "
+								// + inf.isConflict());
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
 
 								writer.addAttribute("setBy", "ReferenceByXPathWithDependencysMarshaller");
 							}
 						}
+
 						if (source instanceof Map) {
 							try {
 								Map m = (Map) source;
@@ -115,45 +122,68 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								e.printStackTrace();
 							}
 						}
-					}
-				}
-				// else {
-				// System.out.println(
-				// "ReferenceByXPathWithDependencysMarshaller.convert(...).new
-				// Converter() {...}.marshal() source is null");
-				// }
 
+					}
+				} // Source == null ?
+
+				// FIXME ALessio Commented this out ..
 				// TODO Not sure what is doing here ...
 				// Why this does not fail for String == null ?
 				// if (source instanceof String) {
 				// source = ((String) source).trim();
 				// }
-				if (source instanceof char[]) {
-					source = new String((char[]) source).trim().toCharArray();
-				}
+				// if (source instanceof char[]) {
+				// source = new String((char[]) source).trim().toCharArray();
+				// }
 
-				// TODO What's this ?
+				// Propagate the marshalling to the original object, will this
+				// "create" all the other marshalling objects, such that we can
+				// eventually attach the last generated one with
 				converter.marshal(source, writer, context);
 
-				// Without the check on WrappedPrimitive, the latest
-				// wr.recentNode was always the lastest primitive seen, while
-				// the xmlEl corresponded to something else
+				// At this point the marshalling of all the objects is done
+				// but what's missing ?
+
 				if (source != null) {
 
+					//
 					// System.out.println("ReferenceByXPathWithDependencysMarshaller
 					// Source class: " + source.getClass());
 
 					JDomHackWriter wr = (JDomHackWriter) writer.underlyingWriter();
+					//
 					DependencyInfo inf = TagHelper.getOrFetchTag(source);
+					//
+					if (source instanceof WrappedPrimitive) {
+						WrappedPrimitive wP = (WrappedPrimitive) source;
 
-					if (inf != null && (source instanceof WrappedPrimitive)) {
-						// System.out.println("ReferenceByXPathWithDependencysMarshaller:
-						// Recent node " + wr.recentNode
-						// + " for " + inf + " source is " + source);
-						inf.xmlEl = wr.recentNode;
+						if (inf != null) {///
+							String prettyPrint = getValue(wr.recentNode);
+							// System.out.println("ReferenceByXPathWithDependencysMarshaller:
+							// Recent node for " + wP.prim
+							// + " " + prettyPrint + " for " + inf + " source is
+							// " + source);
+							inf.setXmlEl(wr.recentNode);
+						}
 					}
 				}
+			}
 
+			private String getValue(Element value) {
+				StringWriter sw = new StringWriter();
+				XMLOutputter out = new XMLOutputter();
+
+				try {
+					if (value != null && value.getContent().size() > 0) {
+						Element e = (Element) value.getContent().get(0);
+						out.output(new Document(e.detach()), sw);
+						out.setFormat(Format.getPrettyFormat());
+					}
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				return sw.toString();
 			}
 
 			@Override

@@ -187,6 +187,9 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		case GETSTATIC: // All static fields inside a class are managed via an
 						// external DEP_INFO data
 			super.visitFieldInsn(opcode, owner, name, desc);
+
+			// If the class which contains this
+
 			if (!Instrumenter.isIgnoredClass(owner)) {
 
 				super.visitFieldInsn(opcode, owner, name + "__DEPENDENCY_INFO",
@@ -259,58 +262,36 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			}
 			if (t.getSort() == Type.ARRAY || t.getSort() == Type.OBJECT) {
 
-				// deal with String as well. Read from the declaring class the
-				// corresponding dep info data
-				//
-				// Enums and such might be here, but other might be here as well
-				// ?!!
-				// if ( Instrumenter.isIgnoredClass( t.getClassName() ) ) {
-
-				// If the following code does not run, it works for String ? For
-				// Enums is ok, but results in missing the write inside the
-				// owner ? In particular this c
 				if (Enumerations.get().contains(t.getClassName().replaceAll("/", "."))
 						|| String.class.getName().equals(t.getClassName().replaceAll("/", ".")) //
 				) {
-
-					// System.out.println("RWTrackingMethodVisitor.visitFieldInsn()
-					// Patching PUTFIELD for field " + owner
-					// + "." + name + " inside " + this.clazz + "." +
-					// this.methodName);
-
-					// TODO t.getSize here should be 1
-					// On the stack now we have value
-					// VALUE is on > value, objectref
-
-					//
-					// mv.visitFieldInsn(GETFIELD, "crystal/model/DataSource",
-					// "_repoKind", "Lcrystal/model/DataSource$RepoKind;");
-
-					// super.visitInsn(DUP); // > value, value, objectref
+					// THIS IS THE ACTUAL PUT FIELD value, objref -> pop pop
+					super.visitFieldInsn(opcode, owner, name, desc);
+//					// super.visitInsn(DUP); // > value, value, objectref
 					super.visitVarInsn(ALOAD, 0);
 					super.visitFieldInsn(GETFIELD, owner, name, desc);
-					//
+//					//
 					Label l1 = new Label();
-					// // Check if null -> pop value
+					 // Check if null -> pop value
 					super.visitJumpInsn(IFNULL, l1); // > value, objectref
-					Label l2 = new Label();
-					super.visitLabel(l2);
 
-					// // IF BRANCH == NOT NULL
-					super.visitInsn(SWAP); //
-					super.visitInsn(DUP);
+//					// // IF BRANCH == NOT NULL
+//					super.visitInsn(SWAP); //
+//					super.visitInsn(DUP);
+					super.visitVarInsn(ALOAD, 0);
 					super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
 							Type.getDescriptor(DependencyInfo.class));
 					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
 							"(Ljava/lang/Object;)V", false);
-					super.visitInsn(SWAP);
-					// // ELSE BRANCH --> OBJECT IS NULL ?!
-					// // Label l4 = new Label();
-					// // super.visitJumpInsn(GOTO, l4);
+//					super.visitInsn(SWAP);
+//					// // ELSE BRANCH --> OBJECT IS NULL ?!
+//					// // Label l4 = new Label();
+//					// // super.visitJumpInsn(GOTO, l4);
 					super.visitLabel(l1);
-					// /// DO NOTHING
-					// /// LOG THIS NOT NULL
-					// super.visitLabel(l4);
+//					// /// DO NOTHING
+//					// /// LOG THIS NOT NULL
+//					// super.visitLabel(l4);
+					//
 
 				} else {
 
@@ -319,28 +300,9 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
 							"(Ljava/lang/Object;)V", false);
 					super.visitInsn(SWAP);
+					// THIS IS THE ACTUAL PUT FIELD value, objref -> pop pop
+					super.visitFieldInsn(opcode, owner, name, desc);
 				}
-				// THIS IS THE ACTUAL PUT FIELD value, objref -> pop pop
-				super.visitFieldInsn(opcode, owner, name, desc);
-
-				// //
-				// if (name.equals("_remoteCmd")) {
-				// super.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-				// "Ljava/io/PrintStream;");
-				// super.visitLdcInsn("AFTER PUFIELD " + this.clazz + "." + name
-				// + " >> is --- ");
-				// super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream",
-				// "print", "(Ljava/lang/String;)V",
-				// false);
-				// super.visitFieldInsn(GETSTATIC, "java/lang/System", "out",
-				// "Ljava/io/PrintStream;");
-				// //
-				// super.visitVarInsn(ALOAD, 0);
-				// super.visitFieldInsn(GETFIELD, owner, name, desc);
-				// super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream",
-				// "println", "(Ljava/lang/Object;)V",
-				// false);
-				// }
 			} else {
 				switch (t.getSize()) {
 				case 1:

@@ -5,7 +5,6 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 
 import org.junit.Assert;
-import org.junit.Test;
 
 import crystal.model.DataSourceTest;
 import edu.gmu.swe.datadep.HeapWalker;
@@ -17,7 +16,7 @@ import edu.gmu.swe.datadep.StaticFieldDependency;
  */
 public class Crystal_1_IT extends AbstractCrystalIT {
 
-	@Test
+	//	@Test
 	public void testEmptySetKind() {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
