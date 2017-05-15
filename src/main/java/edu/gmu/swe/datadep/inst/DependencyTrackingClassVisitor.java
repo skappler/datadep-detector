@@ -1,7 +1,9 @@
 package edu.gmu.swe.datadep.inst;
 
 import java.util.AbstractMap;
+import java.util.Arrays;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map.Entry;
 
 import org.objectweb.asm.ClassVisitor;
@@ -111,6 +113,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
 		boolean isPrimitive = (t.getSort() != Type.ARRAY && t.getSort() != Type.OBJECT);
+		boolean isFinal = (access & Opcodes.ACC_FINAL) != 0;
+
 		boolean isEnum = ((access & Opcodes.ACC_ENUM) != 0)
 				|| (Enumerations.get().contains(t.getClassName().replace("/", ".")));
 		boolean isString = desc.equals("Ljava/lang/String;");
@@ -120,15 +124,26 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		boolean isEnumElement = isEnum
 				&& t.getClassName().replace("/", ",").equals(this.className.replaceAll("/", "."));
 
+		// System.out.println("DependencyTrackingClassVisitor.visitField() " +
+		// this.className + "." + name);
+
 		// Static fields of any type requires an additional static taint field
+		// Final and primitive are constant, however, the test which initializes
+		// them might be relevant so we keep them
+		//
+		// if (isFinal && isPrimitive) {
+		// System.out.println(">>> DependencyTrackingClassVisitor.visitField()
+		// Skip Final Static Primitive "
+		// + this.className + "." + name);
+		// } else
+		//
 		if (isEnumElement) {
 			System.out.println(">>>>> WARNING THIS SHOULD NEVER HAPPEN. Skip ENUM ITEM " + this.className + "." + name);
 
 		} else if (isStatic) {
+
 			moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
 					name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
-
-			;
 		} else {
 			// Primitive types require an additional taint field. Primitive
 			// types are ALWAYS != null
@@ -175,6 +190,18 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitEnd() {
+		// Logging
+		List<String> fieldsLogged = Arrays.asList(new String[] {});
+		// //
+		// "crystal.model.DataSource",
+		// //
+		//
+		// "_a_primitive_int", "_hide", "_enabled", "_shortName",
+		// "_cloneString", "_repoKind", "_parent",
+		// "_oldHistory", "_history", "_testCommand", "_a_second_testCommand",
+		// "_a_fifth_testCommand",
+		// "_remoteCmd", "_compileCommand" });
+
 		// Register the synthetic fields with the class
 		for (Entry<FieldNode, Type> e : moreFields) {
 			e.getKey().accept(cv);
@@ -191,6 +218,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO",
 					"()" + Type.getDescriptor(DependencyInfo.class), null, null);
 			mv.visitCode();
+
 			mv.visitVarInsn(Opcodes.ALOAD, 0);
 			mv.visitFieldInsn(Opcodes.GETFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
@@ -207,6 +235,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 					false);
 			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
+
+			if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
+				logMe(mv, this.className, this.className.replaceAll("/", "."));
+			}
+
 			mv.visitLabel(ok);
 			mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1,
 					new Object[] { Type.getInternalName(DependencyInfo.class) });
@@ -223,7 +256,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				Type t = e.getValue();
 
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
-					//
+
+					// Create Taint data
 					mv.visitVarInsn(Opcodes.ALOAD, 0);
 					mv.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
 					// Call constructor
@@ -233,8 +267,10 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 					if ((Enumerations.get().contains(t.getClassName().replaceAll("/", ".")))
 							|| String.class.getName().equals(t.getClassName().replaceAll("/", "."))) {
-//						System.out.println("DependencyTrackingClassVisitor.visitEnd() Do not propage write for "
-//								+ fn.name + " corresponding type " + t.getClassName());
+						// System.out.println("DependencyTrackingClassVisitor.visitEnd()
+						// Do not propage write for "
+						// + fn.name + " corresponding type " +
+						// t.getClassName());
 						// Call write
 						// mv.visitInsn(Opcodes.DUP);
 						// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
@@ -242,19 +278,24 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						// "()V", false);
 						// Call write
 					} else {
-						// Call write
+						// True Primitives are initialized by default the moment
+						// they are declared, hence, they are written
+
 						mv.visitInsn(Opcodes.DUP);
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					String loggedField = "testCommand";
-					if (fn.name.contains(loggedField)) {
-						// System.out.println("DependencyTrackingClassVisitor.visitEnd()
-						// Enabling LOG for " + fn.name);
-						mv.visitInsn(Opcodes.DUP);
-						// TODO Can we pass a variable String here ?
-						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "logMe",
-								"()V", false);
+					// USE A MATCHER HERE
+					// String patternString = "_hide";
+					// Pattern pattern = Pattern.compile(patternString);
+					// Matcher matcher = pattern.matcher(fn.name);
+
+					// if (matcher.matches()) {
+					// fn is the DEP_INFO
+					// Enable logging
+
+					if (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO", ""))) {
+						logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
 					}
 
 					// Finally store the value in the field
@@ -266,5 +307,23 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitEnd();
 		}
 		super.visitEnd();
+	}
+
+	private void logMe(MethodVisitor mv, FieldNode fn, String msg) {
+		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + fn.name);
+		mv.visitInsn(Opcodes.DUP);
+		// Input to next method invocation
+		mv.visitLdcInsn(msg);
+		mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "logMe",
+				"(Ljava/lang/String;)V", false);
+	}
+
+	private void logMe(MethodVisitor mv, String className, String msg) {
+		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + className);
+		mv.visitInsn(Opcodes.DUP);
+		// Input to next method invocation
+		mv.visitLdcInsn(msg);
+		mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "logMe",
+				"(Ljava/lang/String;)V", false);
 	}
 }
