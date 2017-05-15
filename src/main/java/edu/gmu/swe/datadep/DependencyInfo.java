@@ -204,8 +204,9 @@ public final class DependencyInfo implements Serializable {
 						// } else {
 						// Write the current state of this particular SF at
 						// this time
-						System.out.println("DependencyInfo.read() Serialize Static Field " + sf.field.getName() + " - "
-								+ System.identityHashCode(sf));
+						// System.out.println("DependencyInfo.read() Serialize
+						// Static Field " + sf.field.getName() + " - "
+						// + System.identityHashCode(sf));
 						sf.markConflictAndSerialize(writeGen);
 						// }
 					}

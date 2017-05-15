@@ -76,7 +76,7 @@ public class HeapWalker {
 
 	static {
 		whiteList = fileToSet(System.getProperties(), "whitelist");
-		System.out.println("Loaded whitelist");
+		// // System.out.println("Loaded whitelist");
 		// ignores = fileToSet(System.getProperties(), "ignores");
 	}
 
@@ -88,15 +88,16 @@ public class HeapWalker {
 
 		// We do not capture fields that belongs to enums and Strings
 		if (f.getType().isEnum() && f.getType().equals(f.getDeclaringClass())) {
-			System.out
-					.println("HeapWalker.shouldCapture() DO not capture Enum items " + f.getType() + "." + f.getName());
+			// // System.out
+			// .println("HeapWalker.shouldCapture() DO not capture Enum items "
+			// + f.getType() + "." + f.getName());
 			return false;
 		}
 
 		String fieldName = getFieldFQN(f);
 		String fldLower = fieldName.toLowerCase();
 		if ((fldLower.contains("mockito")) || (fldLower.contains("$$"))) {
-			// System.out.println("***Ignored_Root: " + fieldName);
+			// // System.out.println("***Ignored_Root: " + fieldName);
 			return false;
 		}
 
@@ -138,25 +139,26 @@ public class HeapWalker {
 		// Ignore Synthetic fields like the one we autogenerate and the ones for
 		// enums
 		if (f.isSynthetic()) {
-			// System.out.println("Ignore static syntetic field " +
+			// // System.out.println("Ignore static syntetic field " +
 			// f.getDeclaringClass() + "." + f.getName());
 			return true;
 		}
 
-		if (fieldName.equals("serialVersionUID")) {
-			System.out.println("HeapWalker.isBlackListedSF() Blacklisting Static Field " + className + "." + fieldName);
+		if (fieldName.startsWith("serialVersionUID")) {
+			// System.out.println("HeapWalker.isBlackListedSF() Blacklisting
+			// Static Field " + className + "." + fieldName);
 		}
 
 		// Ignore enum items
 		if (f.getDeclaringClass().isEnum() && f.getType().isEnum() && f.getType().equals(f.getDeclaringClass())) {
-			// System.out.println("Ignore static enum item " +
+			// // System.out.println("Ignore static enum item " +
 			// f.getDeclaringClass() + "." + f.getName());
 			return true;
 		}
 
 		// Ignore static fields of taint data
 		if (f.getDeclaringClass().equals(DependencyInfo.class)) {
-			// System.out.println("HeapWalker.isBlackListedSF() Ignore " +
+			// // System.out.println("HeapWalker.isBlackListedSF() Ignore " +
 			// f.getDeclaringClass() + "." + f.getName());
 			return true;
 		}
@@ -465,7 +467,8 @@ public class HeapWalker {
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
 
-		System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() \n\n\n ");
+		// // System.out.println("\n\n\n HeapWalker.walkAndFindDependencies()
+		// \n\n\n ");
 
 		DependencyInfo.IN_CAPTURE = true;
 		testNumToMethod.put(testCount, methodName);
@@ -475,7 +478,8 @@ public class HeapWalker {
 		// field up-pointers are cleared out
 		for (WeakReference<DependencyInfo> inf : lastGenReachable) {
 			if (inf.get() != null) {
-				System.out.println("HeapWalker.walkAndFindDependencies() Resetting Taint for :" + inf.get().printMe());
+				// // System.out.println("HeapWalker.walkAndFindDependencies()
+				// Resetting Taint for :" + inf.get().printMe());
 				inf.get().clearSFs();
 				inf.get().clearConflict();
 			}
@@ -484,12 +488,16 @@ public class HeapWalker {
 
 		// Are duplicate allowed in sfPool ?
 
+		// FIXME Note that the number of Static Fields increases with time since
+		// at every walk a new one is created no matter what, this also includes
+		// the XML representation, and everything leaks to the memory....
 		LinkedList<StaticFieldDependency> deps = new LinkedList<StaticFieldDependency>();
 		for (StaticField sf : sfPool) {
 			if (sf.isConflict()) {
 
-				System.out.println("HeapWalker.walkAndFindDependencies() Conflict for SF " + sf.field + " "
-						+ System.identityHashCode(sf));
+				// // System.out.println("HeapWalker.walkAndFindDependencies()
+				// Conflict for SF " + sf.field + " "
+				// + System.identityHashCode(sf));
 				//
 				StaticFieldDependency dep = new StaticFieldDependency();
 				dep.depGen = sf.dependsOn;
@@ -545,6 +553,7 @@ public class HeapWalker {
 				// f.getType().isEnum())))
 				// {
 				if (!Modifier.isStatic(f.getModifiers())) {
+					// //
 					// System.out.println("HeapWalker.walkAndFindDependencies()
 					// SKIP non static field");
 					continue;
@@ -555,7 +564,7 @@ public class HeapWalker {
 					// This is imprecise because of the initialization problem,
 					// but we live with that, because those are automatically
 					// initialized the moment they are defined
-					// System.out.println(
+					// // System.out.println(
 					// "HeapWalker.walkAndFindDependencies() Skip static final
 					// primitive field " + fieldName);
 					continue;
@@ -579,6 +588,7 @@ public class HeapWalker {
 								DependencyInfo i = (DependencyInfo) depInfo.get(null);
 								i.setIgnored(true);
 
+								// //
 								// System.out.println("HeapWalker.walkAndFindDependencies()
 								// Blacklist " + fieldName);
 							} catch (Throwable t) {
@@ -600,9 +610,11 @@ public class HeapWalker {
 								StaticField sf = new StaticField(f.getDeclaringClass()
 										.getDeclaredField(f.getName().replace("__DEPENDENCY_INFO", "")));
 
-								System.out.println("HeapWalker.walkAndFindDependencies() CREATE NEW SF "
-										+ System.identityHashCode(sf) + " for "
-										+ f.getName().replace("__DEPENDENCY_INFO", ""));
+								// System.out.println("HeapWalker.walkAndFindDependencies()
+								// CREATE NEW SF "
+								// + System.identityHashCode(sf) + " for "
+								// + f.getName().replace("__DEPENDENCY_INFO",
+								// ""));
 								//
 								cache.put(fieldName, sf);
 							}
@@ -625,8 +637,9 @@ public class HeapWalker {
 							if ((origField.getType().isPrimitive() || origField.getType().isAssignableFrom(String.class)
 									|| origField.getType().isEnum())) {
 								//
-								System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
-										+ sf.field.getName());
+								// System.out.println("HeapWalker.walkAndFindDependencies()
+								// Adding SF to the Pool "
+								// + sf.field.getName());
 								sfPool.add(sf);
 							}
 
@@ -638,8 +651,10 @@ public class HeapWalker {
 							// Complext objects are processed here ...
 							if (!cache.containsKey(fieldName)) {
 								StaticField sf = new StaticField(f);
-								System.out.println("HeapWalker.walkAndFindDependencies() CREATE NEW SF "
-										+ System.identityHashCode(sf) + " for " + fieldName);
+								// System.out.println("HeapWalker.walkAndFindDependencies()
+								// CREATE NEW SF "
+								// + System.identityHashCode(sf) + " for " +
+								// fieldName);
 								cache.put(fieldName, sf);
 							}
 
@@ -648,18 +663,21 @@ public class HeapWalker {
 							Object obj = f.get(null);
 							sfPool.add(sf);
 
-							System.out.println(
-									"HeapWalker.walkAndFindDependencies() Start visiting the Real objects for SF:: "
-											+ fieldName);
+							// System.out.println(
+							// "HeapWalker.walkAndFindDependencies() Start
+							// visiting the Real objects for SF:: "
+							// + fieldName);
 							visitField(sf, obj, false);
 
 						} else {
 
-							System.out.println(
-									"?? ??? HeapWalker.walkAndFindDependencies() SKIPPING " + fieldName + " !?");
+							// System.out.println(
+							// "?? ??? HeapWalker.walkAndFindDependencies()
+							// SKIPPING " + fieldName + " !?");
 							// FIXME What's the meaning of this ? Probably
 							// do not propagate over primitive and
 							// Object-primitive like String, enums
+							// //
 							// System.out.println("HeapWalker.walkAndFindDependencies()
 							// not propagating " + f.getName()
 							// + " " + f.getType());
@@ -667,7 +685,7 @@ public class HeapWalker {
 
 					}
 					// else {
-					// System.out.println(
+					// // System.out.println(
 					// "\t\t\t ?? HeapWalker.walkAndFindDependencies() Here is
 					// both not blacklisted and not captuer !? "
 					// + fieldName);
@@ -679,7 +697,7 @@ public class HeapWalker {
 					e.printStackTrace();
 				}
 				// } else {
-				// System.out.println("HeapWalker.walkAndFindDependencies()
+				// // System.out.println("HeapWalker.walkAndFindDependencies()
 				// SKIPPING " + f.getName());
 				// }
 			}
@@ -711,7 +729,8 @@ public class HeapWalker {
 				}
 				for (Field f : allFields) {
 					// if (f.getName().equals("_repoKind")) {
-					// System.out.println("HeapWalker.visitFieldForIgnore()" +
+					// // System.out.println("HeapWalker.visitFieldForIgnore()"
+					// +
 					// f.getName());
 					// }
 					/// NOT SURE ABOUT THIS, Shall be Enum/String as well ?!
@@ -784,7 +803,7 @@ public class HeapWalker {
 		hm.put("b", "z");
 
 		hm.put("aaa", "baz");
-		System.out.println(HeapWalker.serialize(hm));
+		// System.out.println(HeapWalker.serialize(hm));
 	}
 
 	public static synchronized Element serialize(Object obj) {
@@ -836,7 +855,8 @@ public class HeapWalker {
 
 			DependencyInfo inf = TagHelper.getOrFetchTag(obj);
 
-			System.out.println("HeapWalker.visitField() getting tag " + inf.printMe());
+			// System.out.println("HeapWalker.visitField() getting tag " +
+			// inf.printMe());
 
 			if (inf.getCrawledGen() == DependencyInfo.CURRENT_TEST_COUNT) {
 				lastGenReachable.add(new WeakReference<DependencyInfo>(inf));
@@ -860,18 +880,20 @@ public class HeapWalker {
 						continue;
 
 					// Root is the new one, sf is the "old" one
-					// System.out.println(
+					// // System.out.println(
 					// "HeapWalker.visitField() Checking SF " + root.field + "("
 					// + System.identityHashCode(root)
 					// + ")" + " and " + sf.field + "(" +
 					// System.identityHashCode(sf) + ")");
 					// // Why this is not considered .equals ?
 					if (root == sf) {
-						System.out.println("HeapWalker.visitField() ALIAS FOUND");
+						// System.out.println("HeapWalker.visitField() ALIAS
+						// FOUND");
 						aliasFound = true;
 					} else if (root.field.equals(sf.field)) {
-						System.out.println(
-								">>> >>>> HeapWalker.visitField() Duplicate SF " + sf.field + " and " + root.field);
+						// System.out.println(
+						// ">>> >>>> HeapWalker.visitField() Duplicate SF " +
+						// sf.field + " and " + root.field);
 						// Shall we update root or change it to sf ?!
 					}
 				}
@@ -880,7 +902,8 @@ public class HeapWalker {
 			// We do we clear conflicts here ?! We probably should already read
 			// them before...
 			// To some reson, boolean are not included/considered here
-			System.out.println("HeapWalker.visitField() Checking conflicts for " + inf.printMe());
+			// System.out.println("HeapWalker.visitField() Checking conflicts
+			// for " + inf.printMe());
 			if (inf.isConflict()) {
 				inf.clearConflict();
 			}
@@ -888,7 +911,8 @@ public class HeapWalker {
 			// FIX ME TODO To not propagate this for objects that are not
 			// primitives !
 			if (inf.getWriteGen() == 0) {
-				System.out.println("HeapWalker.visitField() Forcing write for" + obj);
+				// System.out.println("HeapWalker.visitField() Forcing write
+				// for" + obj);
 				inf.write();
 			}
 
@@ -903,8 +927,9 @@ public class HeapWalker {
 				if (inf.fields[i] == null) {
 					inf.fields[i] = root;
 					inserted = true;
-					System.out.println("HeapWalker.visitField() Associating " + root.field + " to dep object for: "
-							+ inf.printMe());
+					// System.out.println("HeapWalker.visitField() Associating "
+					// + root.field + " to dep object for: "
+					// + inf.printMe());
 				}
 				// TODO Shall we remove from here the old sf ?!
 
@@ -919,7 +944,8 @@ public class HeapWalker {
 			}
 
 			if (obj.getClass() == DependencyInfo.class) {
-				System.out.println("HeapWalker.visitField() Skipping TAG : " + ((DependencyInfo) obj).printMe());
+				// System.out.println("HeapWalker.visitField() Skipping TAG : "
+				// + ((DependencyInfo) obj).printMe());
 				return;
 			}
 
@@ -943,7 +969,8 @@ public class HeapWalker {
 					// In any case those fields do not have a taint !
 					if ((f.getType().isPrimitive() || f.getType().isEnum()
 							|| f.getType().isAssignableFrom(String.class))) {
-						System.out.println("HeapWalker.visitField() Skip the visit to " + f.getName());
+						// System.out.println("HeapWalker.visitField() Skip the
+						// visit to " + f.getName());
 						continue;
 					}
 
@@ -964,14 +991,16 @@ public class HeapWalker {
 								//
 								if (f1.getName().equals(f.getName().replace("__DEPENDENCY_INFO", ""))) {
 
-									System.out.println("HeapWalker.visitField() Found taint corresponding to prim "
-											+ f1.getName());
+									// System.out.println("HeapWalker.visitField()
+									// Found taint corresponding to prim "
+									// + f1.getName());
 
 									f1.setAccessible(true);
 									//
 									if (f1.get(obj) == null) {
-										System.out.println(
-												"HeapWalker.visitField() Do not propogate taint for null objects");
+										// System.out.println(
+										// "HeapWalker.visitField() Do not
+										// propogate taint for null objects");
 									} else {
 										// Propagate the field to the TAINT
 										// object not the primitive one !!
@@ -988,7 +1017,7 @@ public class HeapWalker {
 					}
 					// else {
 					// if (f.getName().equals("_repoKind")) {
-					// System.out.println("HeapWalker.visitField() Skip " +
+					// // System.out.println("HeapWalker.visitField() Skip " +
 					// f.getName());
 					// }
 					// }
@@ -1001,7 +1030,8 @@ public class HeapWalker {
 				}
 			}
 		} else {
-			System.out.println("HeapWalker.visitField() Object is null ?" + root.field);
+			// System.out.println("HeapWalker.visitField() Object is null ?" +
+			// root.field);
 		}
 	}
 }

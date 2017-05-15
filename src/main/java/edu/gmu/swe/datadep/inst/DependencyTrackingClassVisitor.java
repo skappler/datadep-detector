@@ -1,9 +1,7 @@
 package edu.gmu.swe.datadep.inst;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Map.Entry;
 
 import org.objectweb.asm.ClassVisitor;
@@ -16,7 +14,6 @@ import org.objectweb.asm.commons.AnalyzerAdapter;
 import org.objectweb.asm.commons.LocalVariablesSorter;
 import org.objectweb.asm.tree.FieldNode;
 
-import crystal.model.DataSource;
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.DependencyInstrumented;
 import edu.gmu.swe.datadep.Enumerations;
@@ -152,10 +149,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
 						name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
 				//
-				if (name.equals("_hide") || name.equals("_enabled")) {
-					System.out.println(">>> DependencyTrackingClassVisitor.visitField() Adding external field for "
-							+ name + "==" + name + "__DEPENDENCY_INFO");
-				}
 			} else
 			// String types require an additional taint field. String
 			// types can be null
@@ -197,13 +190,15 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public void visitEnd() {
 		// Logging
-		List<String> fieldsLogged = Arrays.asList(new String[] { //
-				"crystal.model.DataSource",
-				//
-
-				"_a_primitive_int", "_hide", "_enabled", "_shortName", "_cloneString", "_repoKind", "_parent",
-				"_oldHistory", "_history", "_testCommand", "_a_second_testCommand", "_a_fifth_testCommand",
-				"_remoteCmd", "_compileCommand" });
+		// List<String> fieldsLogged = Arrays.asList(new String[] { //
+		// "crystal.model.DataSource",
+		// //
+		//
+		// "_a_primitive_int", "_hide", "_enabled", "_shortName",
+		// "_cloneString", "_repoKind", "_parent",
+		// "_oldHistory", "_history", "_testCommand", "_a_second_testCommand",
+		// "_a_fifth_testCommand",
+		// "_remoteCmd", "_compileCommand" });
 
 		// Register the synthetic fields with the class
 		for (Entry<FieldNode, Type> e : moreFields) {
@@ -239,9 +234,9 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
 
-			if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
-				logMe(mv, this.className, this.className.replaceAll("/", "."));
-			}
+			// if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
+			// logMe(mv, this.className, this.className.replaceAll("/", "."));
+			// }
 
 			mv.visitLabel(ok);
 			mv.visitFrame(Opcodes.F_FULL, 1, new Object[] { className }, 1,
@@ -288,18 +283,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					// USE A MATCHER HERE
-					// String patternString = "_hide";
-					// Pattern pattern = Pattern.compile(patternString);
-					// Matcher matcher = pattern.matcher(fn.name);
-
-					// if (matcher.matches()) {
-					// fn is the DEP_INFO
-					// Enable logging
-
-					if (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO", ""))) {
-						logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
-					}
+					// if
+					// (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO",
+					// ""))) {
+					// logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
+					// }
 
 					// Finally store the value in the field
 					mv.visitFieldInsn(Opcodes.PUTFIELD, className, fn.name, Type.getDescriptor(DependencyInfo.class));
@@ -313,7 +301,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, FieldNode fn, String msg) {
-		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + fn.name);
+		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
+		// Enabling LOG for " + fn.name);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);
@@ -322,7 +311,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, String className, String msg) {
-		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + className);
+		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
+		// Enabling LOG for " + className);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);
