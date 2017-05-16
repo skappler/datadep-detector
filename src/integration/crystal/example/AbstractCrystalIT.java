@@ -75,7 +75,7 @@ public class AbstractCrystalIT {
 		// TODO Potential Alternatives - help debugging
 		Assert.fail("Missing dep: " + depName + " -- " + testName + " in " + depsData);
 	}
-	
+
 	/**
 	 * Fails if we find the specified dependency
 	 * 
@@ -143,7 +143,8 @@ public class AbstractCrystalIT {
 		List<Entry<String, String>> deps = new ArrayList<Entry<String, String>>();
 		// Extract root dep
 		deps.add(new AbstractMap.SimpleEntry<String, String>(
-				(getTypeName(sf.field.getDeclaringClass()) + "." + sf.field.getName()), sf.depTestName));
+				(getTypeName(sf.field.getDeclaringClass()) + "." + sf.field.getName()),
+				HeapWalker.testNumToTestClass.get(sf.depGen) + "." + HeapWalker.testNumToMethod.get(sf.depGen)));
 
 		// Extract deps on values
 		String xmlValue = sf.value;
@@ -163,10 +164,11 @@ public class AbstractCrystalIT {
 			XPathExpression<Element> xpe = XPathFactory.instance().compile(query, Filters.element());
 			for (Element urle : xpe.evaluate(document)) {
 
-				String[] depAttrs = urle.getAttribute("dependsOn").getValue().split(",");
+				// String[] depAttrs =
+				// urle.getAttribute("dependsOn").getValue().split(",");
+				String depAttr = urle.getAttribute("dependsOn").getValue();
 
-				Entry<String, String> dep = new AbstractMap.SimpleEntry<String, String>(urle.getName(),
-						depAttrs[depAttrs.length - 1]);
+				Entry<String, String> dep = new AbstractMap.SimpleEntry<String, String>(urle.getName(), depAttr);
 				deps.add(dep);
 			}
 
