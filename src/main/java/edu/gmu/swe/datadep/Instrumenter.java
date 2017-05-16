@@ -61,9 +61,9 @@ public class Instrumenter {
 				// Ignore string type
 				|| owner.equals("java/lang/String")
 				//
-				|| Enumerations.get().contains( owner.replaceAll("/", "."))
-				//
-				;
+				|| Enumerations.get().contains(owner.replaceAll("/", "."))
+		//
+		;
 	}
 
 	public static boolean isMockedClass(String owner) {

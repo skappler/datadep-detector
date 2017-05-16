@@ -56,9 +56,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public boolean isConflict() {
-		if (logMe && conflict) {
-			System.out.println(this.logMeName + " is in Conflict !");
-		}
+		// if (logMe && conflict) {
+		// System.out.println(this.logMeName + " is in Conflict !");
+		// }
 		return conflict;
 	}
 
@@ -107,6 +107,14 @@ public final class DependencyInfo implements Serializable {
 	 */
 	public void write() {
 
+		if (IN_CAPTURE) {
+			return;
+		}
+
+		if (ignored) {
+			return;
+		}
+
 		if (logMe) {
 			System.out.println(
 					this.logMeName + " write() Before write " + writeGen + " after write " + CURRENT_TEST_COUNT);
@@ -115,24 +123,40 @@ public final class DependencyInfo implements Serializable {
 			// ex.printStackTrace();
 		}
 
-		try {
-			// By adding this we lose deps on repoKind ?
-			if (IN_CAPTURE || ignored || conflict) {
-				return;
-			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
-				handleTheConflict("DependencyInfo-Write");
+		if (conflict) {
+			if (logMe) {
+				System.out.println(this.logMeName + " Already in conflict or NOT IN CAPTURE or IGNORED");
 			}
-		} finally {
-			// This must always run
-			writeGen = CURRENT_TEST_COUNT;
+		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+			handleTheConflict("DependencyInfo-Write");
+			if (logMe) {
+				System.out.println("DependencyInfo.write() Conflict and Last written " + writeGen);
+			}
+		} else {
+			if (logMe) {
+				System.out.println("DependencyInfo.write() No conflict Last written " + writeGen);
+			}
 		}
+		writeGen = CURRENT_TEST_COUNT;
 	}
 
 	public void read() {
+
+		if (IN_CAPTURE) {
+			return;
+		}
+
+		if (ignored) {
+			return;
+		}
+
 		if (logMe) {
 			System.out.println(this.logMeName + " read(): last written " + writeGen);
 		}
-		if (IN_CAPTURE || ignored || conflict) {
+		if (conflict) {
+			if (logMe) {
+				System.out.println("DependencyInfo.read() Already in conflict " + this.logMeName);
+			}
 			return;
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			handleTheConflict("DependencyInfo-Read-");
@@ -142,7 +166,7 @@ public final class DependencyInfo implements Serializable {
 	private void handleTheConflict(String msg) {
 		conflict = true;
 		if (logMe) {
-			System.out.println(">>>>> " + this.logMeName + " read(): Conflict ! ");
+			System.out.println(">>>>> " + this.logMeName + " " + msg + ": Conflict ! ");
 		}
 		// Why this should be repeated for all the sf ?
 		if (xmlEl != null) {

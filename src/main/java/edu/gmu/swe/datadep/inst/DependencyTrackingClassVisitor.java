@@ -192,15 +192,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public void visitEnd() {
 		// Logging
-		List<String> fieldsLogged = Arrays.asList(new String[] {});
-		// "crystal.model.DataSource",
-		// //
-		//
-		// "_a_primitive_int", "_hide", "_enabled", "_shortName",
-		// "_cloneString", "_repoKind", "_parent",
-		// "_oldHistory", "_history", "_testCommand", "_a_second_testCommand",
-		// "_a_fifth_testCommand",
-		// "_remoteCmd", "_compileCommand" });
+		List<String> fieldsLogged = Arrays
+				.asList(new String[] { "_parent", "_repoKind", "_shortName", "_cloneString", "_remoteCmd" });
 
 		// Register the synthetic fields with the class
 		for (Entry<FieldNode, Type> e : moreFields) {

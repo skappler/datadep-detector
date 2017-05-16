@@ -52,7 +52,9 @@ public class Crystal_2_IT extends AbstractCrystalIT {
 
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetParent");
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetKind");
+		
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testSetCloneString");
+
 		depsData = runTestAndGetDeps(DataSourceTest.class, "testToString");
 
 		has(depsData, "crystal.model.DataSourceTest.testSetCloneString", "__cloneString");

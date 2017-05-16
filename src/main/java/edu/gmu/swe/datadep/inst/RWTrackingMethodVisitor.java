@@ -34,6 +34,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		this.patchLDCClass = patchLDCClass;
 		this.clazz = className;
 		this.methodName = methodName;
+		//
 		this.inUninitializedSuper = "<init>".equals(methodName);
 		this.inStaticUninitializedSuper = "<clinit>".equals(methodName);
 	}
@@ -124,13 +125,17 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 	@Override
 	public void visitFieldInsn(int opcode, String owner, String name, String desc) {
+
+		// If the container class is ignored, we ignore the field
 		if (Instrumenter.isIgnoredClass(owner)) {
 			super.visitFieldInsn(opcode, owner, name, desc);
 			return;
 		}
+
 		switch (opcode) {
 		case GETFIELD: // On FIELD read/access
 
+			// Not sure what happens for primitives ?
 			// [ objectref ] -->
 			super.visitInsn(DUP);
 			// [ objectref, objectref ] -->
@@ -268,31 +273,59 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 				if (Enumerations.get().contains(t.getClassName().replaceAll("/", "."))
 						|| String.class.getName().equals(t.getClassName().replaceAll("/", ".")) //
 				) {
-					// [objectref, value]
-					super.visitInsn(DUP);
-					// [objectref, value, value]
-					Label l1 = new Label();
-					super.visitJumpInsn(IFNULL, l1);
-					// IF BRANCH == NOT NULL >> Value is not null
-					// [objectref, value]
-					super.visitInsn(SWAP);
-					// [value, objectref]
-					super.visitInsn(DUP);
-					// [value, objectref, objectref]
-					super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
-							Type.getDescriptor(DependencyInfo.class));
-					// [value, objectref, value2 ]
-					super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
-							"(Ljava/lang/Object;)V", false);
-					// [value, objectref ]
-					super.visitInsn(SWAP);
-					// [value, objectref ]
-					// ELSE BRANCH --> OBJECT IS NULL ?! Do nothing
-					super.visitLabel(l1);
 
-					// [objectref, value ] -->
-					super.visitFieldInsn(opcode, owner, name, desc);
-					// []
+					// There are two cases, the null is in the initialization ->
+					// we do not care about it
+					// the null was explicitly set -> we care about that
+
+					if ("<init>".equals(methodName) || "<clinit>".equals(methodName)) {
+						// System.out
+						// .println("RWTrackingMethodVisitor.visitFieldInsn()
+						// Process NULL During initialization");
+						// [objectref, value]
+						super.visitInsn(DUP);
+						// [objectref, value, value]
+						Label l1 = new Label();
+						super.visitJumpInsn(IFNULL, l1);
+						// IF BRANCH == NOT NULL >> Value is not null
+						// [objectref, value]
+						super.visitInsn(SWAP);
+						// [value, objectref]
+						super.visitInsn(DUP);
+						// [value, objectref, objectref]
+						super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+								Type.getDescriptor(DependencyInfo.class));
+						// [value, objectref, value2 ]
+						super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
+								"(Ljava/lang/Object;)V", false);
+						// [value, objectref ]
+						super.visitInsn(SWAP);
+						// [value, objectref ]
+						// ELSE BRANCH --> OBJECT IS NULL ?! Do nothing
+						super.visitLabel(l1);
+
+						// [objectref, value ] -->
+						super.visitFieldInsn(opcode, owner, name, desc);
+						// []
+
+					} else { // This propagates the write to objects despite
+								// their value
+						// [objectref, value]
+						super.visitInsn(SWAP);
+						// [value, objectref]
+						super.visitInsn(DUP);
+						// [value, objectref, objectref]
+						super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
+								Type.getDescriptor(DependencyInfo.class));
+						// [value, objectref, value-of-dep ]
+						super.visitMethodInsn(INVOKESTATIC, Type.getInternalName(DependencyInfo.class), "write",
+								"(Ljava/lang/Object;)V", false);
+						// [value, objectref ]
+						super.visitInsn(SWAP);
+						// [objectref, value ] -->
+						super.visitFieldInsn(opcode, owner, name, desc);
+						// []
+					}
 
 				} else {
 
