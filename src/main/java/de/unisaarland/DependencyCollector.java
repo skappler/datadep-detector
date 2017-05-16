@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -32,9 +35,17 @@ public class DependencyCollector {
 		JUnitCore core = new JUnitCore();
 
 		final Map<Description, Failure> failedTests = new HashMap<Description, Failure>();
+		int totalTests = 0;
+
+		///
+		final List<DataDependency> dataDependencies = new ArrayList<DataDependency>();
+		final Set<CompactDataDependency> compactDataDependencies = new LinkedHashSet<CompactDataDependency>();
 
 		// TODO Check PreparingTestListener
 		core.addListener(new RunListener() {
+
+			private int depsBefore;
+
 			// TODO Use matchers and patterns
 			@Override
 			public void testStarted(Description description) throws Exception {
@@ -42,11 +53,9 @@ public class DependencyCollector {
 				String testClass = d[1];
 				String testMethod = d[0];
 
-				System.out.println("Start " + testClass + "." + testMethod);
-				// System.out.println("testStarted() " + testClass + "." +
-				// testMethod);
-
+				System.out.println("EXECUTING: " + testClass + "." + testMethod);
 				DataDepEventHandler.instanceOf().beforeTestExecution(testClass, testMethod);
+
 			}
 
 			@Override
@@ -61,24 +70,46 @@ public class DependencyCollector {
 				String testClass = d[1];
 				String testMethod = d[0];
 				if (failedTests.containsKey(description)) {
-					System.out.println("Fail >>>> " + testClass + "." + testMethod);
-					// failedTests.get(description).getException().getCause().printStackTrace(System.out);
+					System.out.println("TEST " + testClass + "." + testMethod + " FAILED");
 				} else {
-					System.out.println("End " + testClass + "." + testMethod);
-
+					System.out.println("TEST " + testClass + "." + testMethod + " PASSED");
 				}
 				DataDepEventHandler.instanceOf().afterTestExecution();
+
+				//
+				compactDataDependencies.addAll(DataDepEventHandler.instanceOf().getDataDependencies());
+				//
+				// Missing Recheability from Starting Static Field !
+				System.out.println("Found " + (compactDataDependencies.size() - depsBefore) + " deps for " + testClass
+						+ "." + testMethod);
+				depsBefore = compactDataDependencies.size();
+				//
+				if (!parsedInputs.isCompact()) {
+					for (DataDependency dep : DataDepEventHandler.instanceOf().getLastDataDependencies()) {
+						System.out.println(" ---> " + dep.getFieldName() + " with " + dep.getSourceTest() + " "
+								+ dep.getTargetTest());
+						// System.out.println(" ---> " + dep.getFieldName() +
+						// "(" + dep.getFieldOwner() + "."
+						// + dep.getFieldName() + ")");
+					}
+				}
 			}
 
 		});
 		for (Request request : parsedInputs.getTestRequests()) {
 			core.run(request);
-			// TODO What about exceptions inside the test ?!
+			totalTests++;
 		}
 
-		///
-		List<DataDependency> dataDependencies = DataDepEventHandler.instanceOf().getDataDependencies();
-		Set<CompactDataDependency> compactDataDependencies = new LinkedHashSet<CompactDataDependency>(dataDependencies);
+		// Output failed tests
+		for (Failure failure : failedTests.values()) {
+			// FAILING TEST:
+			// testNullInputConstructor(crystal.model.RelationshipTest)
+			System.out.println("FAILING TEST " + failure.getDescription());
+			failure.getException().printStackTrace(System.out);
+		}
+
+		dataDependencies.addAll(DataDepEventHandler.instanceOf().getDataDependencies());
 		//
 		System.out.println(
 				"Found " + dataDependencies.size() + " data dependencies (" + compactDataDependencies.size() + ")");
@@ -90,20 +121,39 @@ public class DependencyCollector {
 
 		// Abstract and remove duplicates
 		// Remove duplicated
+
 		try (BufferedWriter bw = new BufferedWriter(new FileWriter(outputFile));) {
 
-			if (parsedInputs.isCompact()) {
+			// if (parsedInputs.isCompact()) {
+			List<CompactDataDependency> orderedDeps = new ArrayList<CompactDataDependency>(compactDataDependencies);
+			Collections.sort(orderedDeps, new Comparator<CompactDataDependency>() {
+				@Override
+				public int compare(CompactDataDependency o1, CompactDataDependency o2) {
+					if (o1.getTargetTest().compareTo(o2.getTargetTest()) == 0) {
+						return o1.getSourceTest().compareTo(o2.getSourceTest());
+					} else {
+						return o1.getTargetTest().compareTo(o2.getTargetTest());
+					}
+				}
+			});
 
-				for (CompactDataDependency d : compactDataDependencies) {
-					bw.write(d.getSourceTest() + "," + d.getTargetTest() + "\n");
-				}
-			} else {
-				for (DataDependency d : dataDependencies) {
-					bw.write(d.getSourceTest() + "," + d.getTargetTest() + "," + d.getFieldOwner() + ","
-							+ d.getFieldName() + "\n");
-				}
+			for (CompactDataDependency d : orderedDeps) {
+				bw.write(d.getTargetTest() + "," + d.getSourceTest() + "\n");
 			}
+			// } else {
+			// for (DataDependency d : dataDependencies) {
+			// bw.write(d.getTargetTest() + "," + d.getSourceTest() + "," +
+			// d.getFieldOwner() + ","
+			// + d.getFieldName() + "\n");
+			// }
+			// }
 		}
+
+		System.out.println("########################################");
+		System.out.println("\tSuccessful Tests:\t" + (totalTests - failedTests.size()));
+		System.out.println("\tFailing Tests:\t\t" + failedTests.size());
+		System.out.println("\tAll Tests:\t\t" + totalTests);
+		System.out.println("########################################");
 
 		// Explicit shutdown ?!
 		System.exit(0);

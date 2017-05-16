@@ -23,7 +23,8 @@ public class DataDepEventHandler {
 	private String tempFieldOwner;
 	private String tempFieldName;
 
-	private List<DataDependency> dataDependencies;
+	final private List<DataDependency> dataDependencies;
+	final private List<DataDependency> lastDataDependencies;
 
 	private static DataDepEventHandler INSTANCE;
 
@@ -33,6 +34,7 @@ public class DataDepEventHandler {
 	private DataDepEventHandler() {
 		conflicts = new HashSet<DependencyInfo>();
 		dataDependencies = new ArrayList<DataDependency>();
+		lastDataDependencies = new ArrayList<DataDependency>();
 	}
 
 	public static synchronized DataDepEventHandler instanceOf() {
@@ -93,6 +95,7 @@ public class DataDepEventHandler {
 						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
+				lastDataDependencies.add(dataDependency);
 				// Print out the Conflict data
 				// // __log.debug(dataDependency);
 			}
@@ -155,7 +158,8 @@ public class DataDepEventHandler {
 						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
-				// Print out the Conflict data
+				lastDataDependencies.add(dataDependency); // Print out the
+															// Conflict data
 				// // __log.debug(dataDependency);
 			}
 		} else {
@@ -199,7 +203,8 @@ public class DataDepEventHandler {
 						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
-				// Print out the Conflict data
+				lastDataDependencies.add(dataDependency); // Print out the
+															// Conflict data
 				// // __log.debug(dataDependency);
 			}
 
@@ -258,7 +263,8 @@ public class DataDepEventHandler {
 						testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
 								+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 				dataDependencies.add(dataDependency);
-				// Print out the Conflict data
+				lastDataDependencies.add(dataDependency); // Print out the
+															// Conflict data
 				// // __log.debug(dataDependency);
 			}
 		}
@@ -311,7 +317,8 @@ public class DataDepEventHandler {
 							testNumToTestClass.get(DependencyInfo.CURRENT_TEST) + "."
 									+ testNumToMethod.get(DependencyInfo.CURRENT_TEST));
 					dataDependencies.add(dataDependency);
-					// Print out the Conflict data
+					lastDataDependencies.add(dataDependency); // Print out the
+																// Conflict data
 					// // __log.debug(dataDependency);
 				}
 				// Reset temp
@@ -433,6 +440,8 @@ public class DataDepEventHandler {
 		testNumToTestClass.put(DependencyInfo.CURRENT_TEST, testClass);
 		testNumToMethod.put(DependencyInfo.CURRENT_TEST, testMethod);
 
+		lastDataDependencies.clear();
+
 	}
 
 	public void afterTestExecution() {
@@ -443,9 +452,15 @@ public class DataDepEventHandler {
 		conflicts.clear();
 	}
 
+	// Why a list and not a SET? How is it even possible that the same elements
+	// appear over and over ?!
 	public List<DataDependency> getDataDependencies() {
 		// TODO Make a copy out of it ...
 		return dataDependencies;
+	}
+
+	public List<DataDependency> getLastDataDependencies() {
+		return lastDataDependencies;
 	}
 
 }

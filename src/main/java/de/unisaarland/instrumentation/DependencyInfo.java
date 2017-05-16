@@ -59,39 +59,52 @@ public final class DependencyInfo implements Serializable {
 	 * @param testID
 	 */
 	public boolean write() {
-		// System.out.println("DependencyInfo.write() " + IN_CAPTURE + " " +
-		// ignored + " " + conflict + " LW " + lastWrite
-		// + " CURRENT TEST " + CURRENT_TEST);
-		if (!IN_CAPTURE || ignored || conflict) {
-			// System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
+		if (!IN_CAPTURE) {
 			return false;
-		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) { // Probably <
-			// System.out.println("DependencyInfo.write() Conflict between " +
-			// lastWrite + " and " + CURRENT_TEST);
+		}
+		if (ignored) {
+			return false;
+		}
+
+		if (conflict) {
+			System.out.println("write() Already in conflict ");
+			lastWrite = CURRENT_TEST;
+			return false;
+		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
+			System.out.println("DependencyInfo.write() Conflict between " + lastWrite + " and " + CURRENT_TEST);
 			conflict = true;
 			lastWrite = CURRENT_TEST;
 			return true;
 		} else {
+			// What's this ?!
 			lastWrite = CURRENT_TEST;
 			return false;
 		}
 
 	}
 
+	// TODO However, both IN_CAPTURE and IGNORED might
+	// be obsolete. Note that ignored is set by blackList and visitIgnoredField
+	// !
 	public boolean read() {
-		// System.out.println("DependencyInfo.read() " + IN_CAPTURE + " " +
-		// ignored + " " + conflict + " LR " + lastRead
-		// + " CURRENT TEST " + CURRENT_TEST);
-		if (!IN_CAPTURE || ignored || conflict) {
-			// System.out.println("DependencyInfo.read() ALREADY CONFLICT !");
+		if (!IN_CAPTURE) {
+			return false;
+		}
+		if (ignored) {
+			return false;
+		}
+
+		if (conflict) {
+			System.out.println("read() Already in conflict ");
+			lastRead = CURRENT_TEST;
 			return false;
 		} else if (lastWrite != 0 && lastWrite != CURRENT_TEST) {
-			// System.out.println("DependencyInfo.read() Conflict between " +
-			// lastWrite + " and " + CURRENT_TEST);
+			System.out.println("DependencyInfo.read() Conflict between " + lastWrite + " and " + CURRENT_TEST);
 			lastRead = CURRENT_TEST;
 			conflict = true;
 			return true;
 		} else {
+			// What's this ?
 			lastRead = CURRENT_TEST;
 			return false;
 		}

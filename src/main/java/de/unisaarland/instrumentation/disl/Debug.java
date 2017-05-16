@@ -3,7 +3,7 @@ package de.unisaarland.instrumentation.disl;
 import ch.usi.dag.disl.annotation.Before;
 import ch.usi.dag.disl.dynamiccontext.DynamicContext;
 import ch.usi.dag.disl.marker.BytecodeMarker;
-import de.unisaarland.instrumentation.guard.GetGuard;
+import de.unisaarland.instrumentation.disl.guard.NoGuard;
 
 /**
  * Instrumentation class for observing data flow across test execution through
@@ -26,9 +26,9 @@ import de.unisaarland.instrumentation.guard.GetGuard;
 public class Debug {
 
 	/** GETFIELD **/
-	@Before(marker = BytecodeMarker.class, args = "getfield", guard = GetGuard.class)
+	@Before(marker = BytecodeMarker.class, args = "getfield", guard = NoGuard.class)
 	public static void beforeGetField(DynamicContext dc) {
-		System.out.println("Debug.beforeGetField() ");
+		System.out.println("Debug.beforeGetField()");
 	}
 
 }

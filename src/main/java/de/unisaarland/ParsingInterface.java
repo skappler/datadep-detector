@@ -46,7 +46,7 @@ public class ParsingInterface {
 
 	// TODO Comma separated value ?... not sure how to specify this
 	@Option(longName = "tests", defaultToNull = true)
-	public void setCompact(String testsList) {
+	public void setTests(String testsList) {
 		if (testsList != null) {
 			this.manuallySpecifiedTests.addAll(Arrays.asList(testsList.split(",")));
 		}
