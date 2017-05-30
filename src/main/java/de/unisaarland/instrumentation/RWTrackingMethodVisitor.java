@@ -57,17 +57,19 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			super.visitMethodInsn(INVOKEVIRTUAL, clazz, "__initPrimDepInfo", "()V", false);
 		}
 		if (this.isStaticInitializer) {
+
+			System.out.println("RWTrackingMethodVisitor.onMethodEnter() Static Initializer for " + this.clazz);
+			
 			// Add the code before to invoke all the static field.. probably
 			// this can be optimized otherwise the byte of this method grows too
 			// much
 			for (FieldNode fn : moreFields) {
 				if ((fn.access & Opcodes.ACC_STATIC) != 0) {
-					__log.debug("RWTrackingMethodVisitor.onMethodEnter() Adding static initialization of DepInfo () for "
-							+ fn.name + " in " + clazz);
+					// Static 
+					__log.debug(
+							"RWTrackingMethodVisitor.onMethodEnter() Adding static initialization of DepInfo () for "
+									+ fn.name + " in " + clazz);
 
-					Label l0 = new Label();
-					super.visitLabel(l0);
-					super.visitLineNumber(7, l0);
 					super.visitTypeInsn(Opcodes.NEW, Type.getInternalName(DependencyInfo.class));
 					super.visitInsn(Opcodes.DUP);
 					super.visitMethodInsn(Opcodes.INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>",

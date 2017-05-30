@@ -1,0 +1,1 @@
+Not sure who depends on asm-debug-all-5.0.3.jar
