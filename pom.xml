@@ -247,6 +247,7 @@
 								<configuration>
 									<testIncludes>
 										<testInclude>**/*IT.java</testInclude>
+										<testInclude>**/data/*.java</testInclude>
 									</testIncludes>
 									<outputDirectory>${out.it.directory}</outputDirectory>
 								</configuration>

@@ -2,6 +2,7 @@ package edu.gmu.swe.datadep.inst;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -25,7 +26,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	private boolean patchLDCClass;
 	private String clazz;
 	private boolean inUninitializedSuper = false;
-	private boolean inStaticUninitializedSuper = false;
+	//
+	private boolean isStaticInitializer = false;
 	private String methodName;
 
 	public RWTrackingMethodVisitor(MethodVisitor mv, boolean patchLDCClass, String className, int acc,
@@ -36,7 +38,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		this.methodName = methodName;
 		//
 		this.inUninitializedSuper = "<init>".equals(methodName);
-		this.inStaticUninitializedSuper = "<clinit>".equals(methodName);
+		this.isStaticInitializer = "<clinit>".equals(methodName);
 	}
 
 	@Override
@@ -135,7 +137,20 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		switch (opcode) {
 		case GETFIELD: // On FIELD read/access
 
-			// Not sure what happens for primitives ?
+			if (isStaticInitializer) {
+				// super.visitFieldInsn(PUTFIELD, "java/lang/System", "out",
+				// "Ljava/io/PrintStream;");
+				// super.visitLdcInsn(
+				// "<clinit> Forbid write to " + owner.replaceAll("/", ".") +
+				// "." + name + " in clinit");
+				// super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream",
+				// "println", "(Ljava/lang/String;)V",
+				// false);
+				super.visitFieldInsn(opcode, owner, name, desc);
+				return;
+			}
+
+			// Not sure what happens for primitives, Strings, and Enums ??
 			// [ objectref ] -->
 			super.visitInsn(DUP);
 			// [ objectref, objectref ] -->
@@ -147,12 +162,10 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			switch (t.getSort()) {
 			case Type.ARRAY:
 			case Type.OBJECT:
-				// deal with String as well. Read from the declaring class the
-				// corresponding dep info data
-				if (desc.equals("Ljava/lang/String;") || // The PUTFIELD does
-															// not use this one
-															// ?!
-						Enumerations.get().contains(t.getClassName().replaceAll("/", "."))) {
+
+				// Plain fields are taken care of already
+				if (desc.equals("Ljava/lang/String;")
+						|| Enumerations.get().contains(t.getClassName().replaceAll("/", "."))) {
 					super.visitInsn(DUP);
 					super.visitFieldInsn(opcode, owner, name + "__DEPENDENCY_INFO",
 							Type.getDescriptor(DependencyInfo.class));
@@ -191,59 +204,50 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			}
 
 			break;
-		case GETSTATIC: // All static fields inside a class are managed via an
-						// external DEP_INFO data
-			super.visitFieldInsn(opcode, owner, name, desc);
-
-			// If the class which contains this
-
-			if (!Instrumenter.isIgnoredClass(owner)) {
-
-				super.visitFieldInsn(opcode, owner, name + "__DEPENDENCY_INFO",
-						Type.getDescriptor(DependencyInfo.class));
-
-				Label ok = new Label();
-				super.visitJumpInsn(IFNONNULL, ok);
-				super.visitTypeInsn(NEW, Type.getInternalName(DependencyInfo.class));
-				super.visitInsn(DUP);
-				super.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V",
-						false);
-				super.visitFieldInsn(PUTSTATIC, owner, name + "__DEPENDENCY_INFO",
-						Type.getDescriptor(DependencyInfo.class));
-				if (an != null) {
-					Object[] locals = removeLongsDoubleTopVal(an.locals);
-					Object[] stack = removeLongsDoubleTopVal(an.stack);
-					super.visitLabel(ok);
-					super.visitFrame(Opcodes.F_NEW, locals.length, locals, stack.length, stack);
-				} else
-					super.visitLabel(ok);
-				super.visitFieldInsn(opcode, owner, name + "__DEPENDENCY_INFO",
-						Type.getDescriptor(DependencyInfo.class));
-				super.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "read", "()V", false);
-			} else {
-				System.out.println("GETSTATIC IGNORE " + name);
-			}
-			break;
-		case PUTSTATIC: // All static fields inside a class are managed via an
-						// external DEP_INFO data
-			super.visitFieldInsn(opcode, owner, name, desc);
+		// [] -> [value]
+		case GETSTATIC:
+			//
+			// [] ->
+			super.visitFieldInsn(GETSTATIC, owner, name, desc);
+			// [ value ] ->
 
 			if (!Instrumenter.isIgnoredClass(owner)) {
+
+				// [ value ] ->
 				super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
 						Type.getDescriptor(DependencyInfo.class));
+				// [ value, value of taint ] ->
 				Label ok = new Label();
 				super.visitJumpInsn(IFNONNULL, ok);
+				// [ value of name ] ->
 				super.visitTypeInsn(NEW, Type.getInternalName(DependencyInfo.class));
+				// // [ value of name, objectref taint ] ->
 				super.visitInsn(DUP);
-				// super.visitLdcInsn(Type.getObjectType(owner));
-				// super.visitLdcInsn(name);
-				// super.visitMethodInsn(INVOKESPECIAL,
-				// Type.getInternalName(DependencyInfo.class), "<init>",
-				// "(Ljava/lang/Class;Ljava/lang/String;)V", false);
+				// [ value of name, objectref taint, objectref taint] ->
 				super.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V",
 						false);
+				// [ value of name, objectref taint, value taint ] ->
 				super.visitFieldInsn(PUTSTATIC, owner, name + "__DEPENDENCY_INFO",
 						Type.getDescriptor(DependencyInfo.class));
+				// [ value of name, objectref taint ] ->
+
+				// Not sure why this does not start only with value...
+				// [] ->
+
+				for (Pattern p : DependencyTrackingClassVisitor.fieldsLogged) {
+					if (p.matcher(name).matches()) {
+						// [] ->
+						super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
+								Type.getDescriptor(DependencyInfo.class));
+						// [new-value-dep-info (initialized) ] ->
+						super.visitLdcInsn(name);
+						// [new-value-dep-info (initialized), msg ] ->
+						super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class),
+								"logMe", "(Ljava/lang/String;)V", false);
+						// [] ->
+					}
+				}
+
 				if (an != null) {
 					Object[] locals = removeLongsDoubleTopVal(an.locals);
 					Object[] stack = removeLongsDoubleTopVal(an.stack);
@@ -253,9 +257,101 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					super.visitLabel(ok);
 				}
 
+				if (isStaticInitializer) {
+					// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+					// "out", "Ljava/io/PrintStream;");
+					// super.visitLdcInsn(
+					// "<clinit> Forbid read to " + owner.replaceAll("/", ".") +
+					// "." + name + " in clinit");
+					// super.visitMethodInsn(INVOKEVIRTUAL,
+					// "java/io/PrintStream", "println",
+					// "(Ljava/lang/String;)V",
+					// false);
+
+				} else {
+					// [ value of name, objectref taint ] ->
+					super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
+							Type.getDescriptor(DependencyInfo.class));
+					// [ value of name, objectref taint, value of taint ] ->
+					super.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "read", "()V",
+							false);
+					// [ value of name, objectref taint] ->
+				}
+
+			} else {
+				System.out.println("GETSTATIC IGNORE " + name);
+			}
+			break;
+
+		// [ value ] -> []
+		case PUTSTATIC: // All static fields inside a class are managed via an
+						// external DEP_INFO data
+			// [ value-of-field ] -> []
+			super.visitFieldInsn(opcode, owner, name, desc);
+
+			if (!Instrumenter.isIgnoredClass(owner)) {
+				// []
 				super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
 						Type.getDescriptor(DependencyInfo.class));
-				super.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write", "()V", false);
+				// [ value-dep-info ]
+				Label ok = new Label();
+				super.visitJumpInsn(IFNONNULL, ok);
+				// [] ->
+				super.visitTypeInsn(NEW, Type.getInternalName(DependencyInfo.class));
+				// [new-value-dep-info] ->
+				super.visitInsn(DUP);
+				// [new-value-dep-info, new-value-dep-info] ->
+				// objectref, [arg1, [arg2 ...]] ->
+				super.visitMethodInsn(INVOKESPECIAL, Type.getInternalName(DependencyInfo.class), "<init>", "()V",
+						false);
+				// [new-value-dep-info (initialized) ] ->
+				super.visitFieldInsn(PUTSTATIC, owner, name + "__DEPENDENCY_INFO",
+						Type.getDescriptor(DependencyInfo.class));
+				// [] ->
+				for (Pattern p : DependencyTrackingClassVisitor.fieldsLogged) {
+					if (p.matcher(name).matches()) {
+						// [] ->
+						super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
+								Type.getDescriptor(DependencyInfo.class));
+						// [new-value-dep-info (initialized) ] ->
+						super.visitLdcInsn(name);
+						// [new-value-dep-info (initialized), msg ] ->
+						super.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class),
+								"logMe", "(Ljava/lang/String;)V", false);
+						// [] ->
+					}
+				}
+
+				// No idea what's this... but this close the if
+				if (an != null) {
+					Object[] locals = removeLongsDoubleTopVal(an.locals);
+					Object[] stack = removeLongsDoubleTopVal(an.stack);
+					super.visitLabel(ok);
+					super.visitFrame(Opcodes.F_NEW, locals.length, locals, stack.length, stack);
+				} else {
+					super.visitLabel(ok);
+				}
+
+				if (isStaticInitializer) {
+					// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+					// "out", "Ljava/io/PrintStream;");
+					// super.visitLdcInsn(
+					// "<clinit> Forbid write to " + owner.replaceAll("/", ".")
+					// + "." + name + " in clinit");
+					// super.visitMethodInsn(INVOKEVIRTUAL,
+					// "java/io/PrintStream", "println",
+					// "(Ljava/lang/String;)V",
+					// false);
+
+				} else {
+					// [] ->
+					super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
+							Type.getDescriptor(DependencyInfo.class));
+					// [ value of taint ] ->
+					super.visitMethodInsn(INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write", "()V",
+							false);
+					// [ ] ->
+				}
 
 			} else {
 				System.out.println("PUTSTATIC IGNORE " + name);
@@ -268,6 +364,21 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 				super.visitFieldInsn(opcode, owner, name, desc);
 				return;
 			}
+
+			if (isStaticInitializer) {
+				// super.visitFieldInsn(PUTFIELD, "java/lang/System", "out",
+				// "Ljava/io/PrintStream;");
+				// super.visitLdcInsn(
+				// "<clinit> Forbid write to " + owner.replaceAll("/", ".") +
+				// "." + name + " in clinit");
+				// super.visitMethodInsn(INVOKEVIRTUAL, "java/io/PrintStream",
+				// "println", "(Ljava/lang/String;)V",
+				// false);
+
+				super.visitFieldInsn(opcode, owner, name, desc);
+				return;
+			}
+
 			if (t.getSort() == Type.ARRAY || t.getSort() == Type.OBJECT) {
 
 				if (Enumerations.get().contains(t.getClassName().replaceAll("/", "."))
@@ -278,7 +389,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					// we do not care about it
 					// the null was explicitly set -> we care about that
 
-					if ("<init>".equals(methodName) || "<clinit>".equals(methodName)) {
+					if ("<init>".equals(methodName)) {
 						// System.out
 						// .println("RWTrackingMethodVisitor.visitFieldInsn()
 						// Process NULL During initialization");

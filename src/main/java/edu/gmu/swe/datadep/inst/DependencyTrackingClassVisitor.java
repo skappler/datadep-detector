@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -22,6 +23,10 @@ import edu.gmu.swe.datadep.Enumerations;
 import edu.gmu.swe.datadep.Instrumenter;
 
 public class DependencyTrackingClassVisitor extends ClassVisitor {
+
+	// Logging
+	public final static List<Pattern> fieldsLogged = Arrays.asList(new Pattern[] { Pattern.compile(".*crystal.*") });
+
 	boolean skipFrames = false;
 
 	public DependencyTrackingClassVisitor(ClassVisitor _cv, boolean skipFrames) {
@@ -109,6 +114,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public FieldVisitor visitField(int access, String name, String desc, String signature, Object value) {
+
 		Type t = Type.getType(desc);
 
 		boolean isStatic = (access & Opcodes.ACC_STATIC) != 0;
@@ -124,6 +130,15 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 		boolean isEnumElement = isEnum
 				&& t.getClassName().replace("/", ",").equals(this.className.replaceAll("/", "."));
 
+		// Blacklisted fields - This cause problems:
+		// Exception in thread "Thread-1" java.lang.NoSuchFieldError:
+		// $assertionsDisabled__DEPENDENCY_INFO
+		// at crystal.server.TestConstants.<clinit>(TestConstants.java:10)
+		//
+		// if( isPrimitive && isFinal && ( name.equals("$assertionsDisabled") ||
+		// name.equals("serialVersionUID"))){
+		// return super.visitField(access, name, desc, signature, value);
+		// }
 		// System.out.println("DependencyTrackingClassVisitor.visitField() " +
 		// this.className + "." + name);
 
@@ -142,6 +157,9 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 		} else if (isStatic) {
 
+			// System.out.println(
+			// "DependencyTrackingClassVisitor.visitField() " + className + "."
+			// + name + "__DEPENDENCY_INFO");
 			moreFields.add(new AbstractMap.SimpleEntry<FieldNode, Type>(new FieldNode(access,
 					name + "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class), null, null), t));
 		} else {
@@ -191,9 +209,6 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	@Override
 	public void visitEnd() {
-		// Logging
-		List<String> fieldsLogged = Arrays
-				.asList(new String[] { "_parent", "_repoKind", "_shortName", "_cloneString", "_remoteCmd" });
 
 		// Register the synthetic fields with the class
 		for (Entry<FieldNode, Type> e : moreFields) {
@@ -206,6 +221,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				super.visitField(Opcodes.ACC_PUBLIC, "__DEPENDENCY_INFO", Type.getDescriptor(DependencyInfo.class),
 						null, null);
 			}
+
 			// Implement the getDEPENDENCY_INFO method. Initialize the object if
 			// null
 			MethodVisitor mv = super.visitMethod(Opcodes.ACC_PUBLIC, "getDEPENDENCY_INFO",
@@ -229,8 +245,12 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 			mv.visitFieldInsn(Opcodes.PUTFIELD, className, "__DEPENDENCY_INFO",
 					Type.getDescriptor(DependencyInfo.class));
 
-			if (fieldsLogged.contains(this.className.replaceAll("/", "."))) {
-				logMe(mv, this.className, this.className.replaceAll("/", "."));
+			// LOG THE DEP INFO FOR THIS CLASS
+			for (Pattern p : fieldsLogged) {
+				if (p.matcher(this.className).matches()) {
+					logMe(mv, this.className, this.className.replaceAll("/", "."));
+					break;
+				}
 			}
 
 			mv.visitLabel(ok);
@@ -248,6 +268,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 				FieldNode fn = e.getKey();
 				Type t = e.getValue();
 
+				// Non static fields inside __initPrimeDepInfo
 				if ((fn.access & Opcodes.ACC_STATIC) == 0) {
 
 					// Create Taint data
@@ -278,8 +299,11 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					if (fieldsLogged.contains(fn.name.replace("__DEPENDENCY_INFO", ""))) {
-						logMe(mv, fn, fn.name.replace("__DEPENDENCY_INFO", ""));
+					// Moving this around causes JVM to Crash
+					for (Pattern p : fieldsLogged) {
+						if (p.matcher(this.className).matches()) {
+							logMe(mv, fn, this.className + "." + fn.name.replace("__DEPENDENCY_INFO", ""));
+						}
 					}
 
 					// Finally store the value in the field

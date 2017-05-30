@@ -1,13 +1,41 @@
 package example;
 
+import java.util.Collection;
+import java.util.LinkedList;
+import java.util.Map.Entry;
+
+import org.junit.Assert;
+import org.junit.Test;
+
+import crystal.model.LocalStateResultTest;
+import edu.gmu.swe.datadep.HeapWalker;
+import edu.gmu.swe.datadep.StaticFieldDependency;
+
 /**
  * @author gambi
  *
  */
 public class Crystal_3_IT extends AbstractCrystalIT {
 
-	// @Test
-	// public void testEmptySetKindAfterRead() {
+	@Test
+	public void testMapd() {
+		// crystal.model.LocalStateResultTest.testToString
+		// crystal.model.LocalStateResultTest.testGetLastAction/
+		LinkedList<StaticFieldDependency> deps;
+		Collection<Entry<String, String>> depsData;
+
+		executeTest(LocalStateResultTest.class, "testToString");
+
+		// This writes to several part
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", "testToString");
+		depsData = extractAllDepValues(deps);
+		Assert.assertTrue(depsData.isEmpty());
+
+		//
+		executeTest(LocalStateResultTest.class, "testGetLastAction");
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", "testGetLastAction");
+		depsData = extractAllDepValues(deps);
+	}
 	//
 	// LinkedList<StaticFieldDependency> deps;
 	// Collection<Entry<String, String>> depsData;

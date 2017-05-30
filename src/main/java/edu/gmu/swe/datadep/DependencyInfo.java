@@ -77,6 +77,7 @@ public final class DependencyInfo implements Serializable {
 	public void logMe(String name) {
 		this.logMe = true;
 		this.logMeName = name;
+		System.out.println("Enabling logMe for " + name);
 	}
 
 	public static boolean IN_CAPTURE = false;
@@ -125,16 +126,16 @@ public final class DependencyInfo implements Serializable {
 
 		if (conflict) {
 			if (logMe) {
-				System.out.println(this.logMeName + " Already in conflict or NOT IN CAPTURE or IGNORED");
+				System.out.println(this.logMeName + " Already in conflict");
 			}
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
 			handleTheConflict("DependencyInfo-Write");
 			if (logMe) {
-				System.out.println("DependencyInfo.write() Conflict and Last written " + writeGen);
+				System.out.println(this.logMeName + " write() Conflict and Last written " + writeGen);
 			}
 		} else {
 			if (logMe) {
-				System.out.println("DependencyInfo.write() No conflict Last written " + writeGen);
+				System.out.println(this.logMeName + " write() No conflict Last written " + writeGen);
 			}
 		}
 		writeGen = CURRENT_TEST_COUNT;

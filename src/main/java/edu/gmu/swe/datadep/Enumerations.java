@@ -49,8 +49,12 @@ public class Enumerations {
 				"org.jdom2.input.sax.XMLReaders$DTDSingleton", //
 				"org.jdom2.input.sax.XMLReaders$XSDSingleton", //
 				//
-				"org.junit.internal.runners.rules.RuleFieldValidator",
-
+				"org.junit.internal.runners.rules.RuleFieldValidator", //
+				"java.util.zip.ZipConstants", //
+				"org.apache.maven.surefire.booter.ForkedBooter", //
+				"org.apache.maven.surefire.booter.BooterConstants", //
+				"org.apache.maven.surefire.util.RunOrder",//
+				"org.apache.maven.surefire.booter.ForkingRunListener"
 		}));
 
 		// JRE Level

@@ -81,6 +81,7 @@ public class HeapWalker {
 	}
 
 	protected static boolean shouldCaptureStaticField(Field f) {
+
 		//
 		if (f.getDeclaringClass().getName().startsWith("java") || f.getDeclaringClass().getName().startsWith("sun")
 				|| f.getDeclaringClass().getName().startsWith("edu.gmu.swe.datadep."))
@@ -109,8 +110,11 @@ public class HeapWalker {
 		}
 
 		if (whiteList.isEmpty()) {
+			System.out.println("HeapWalker.shouldCaptureStaticField() White list is empty");
 			return true;
 		}
+
+		// Why not blacklisted "com.sun.proxy.
 
 		// FIXME TODO Use pattern matching here !
 
@@ -122,8 +126,12 @@ public class HeapWalker {
 					continue;
 				if (s.trim().length() == 0)
 					continue;
-				if (pkg.startsWith(s.trim()))
+				if (pkg.startsWith(s.trim())) {
+					// System.out.println(
+					// "HeapWalker.shouldCaptureStaticField() " +
+					// f.getDeclaringClass() + "." + f.getName());
 					return true;
+				}
 			}
 		}
 
@@ -535,7 +543,8 @@ public class HeapWalker {
 				//
 				StaticFieldDependency dep = new StaticFieldDependency();
 				dep.depGen = sf.dependsOn;
-				dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "." + testNumToMethod.get(sf.dependsOn);
+				// dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "."
+				// + testNumToMethod.get(sf.dependsOn);
 				//
 				dep.field = sf.field;
 				// Calling getValue results in draining the content... ?
@@ -864,13 +873,18 @@ public class HeapWalker {
 	static void visitField(StaticField root, Field _field, Object obj, boolean alreadyInConflict) {
 		// This is called both for static fields and regular fields
 
+		// How is this possible ?!
+		if (_field == null) {
+			return;
+		}
 		// Black list also fields inside the instances non only static fields
+		// Why _field or _field.getName() are null ?
 		if (_field.getName().contains("serialVersionUID")) {
 			return;
 		}
 
 		// XXX Field can be null if this objects belong to an array !!
-		// System.out.println("HeapWalker.visitField() " +
+		// System.out.println("HeapWalker.visitField() " + _field);
 		// _field.getDeclaringClass() + "." + _field.getName()
 		// + " from SF " + root.field + " value " + obj);
 
@@ -901,7 +915,8 @@ public class HeapWalker {
 						continue;
 
 					if (root == inf.fields[i]) {
-						System.out.println("HeapWalker.visitField() Alias FOUND ");
+						// System.out.println("HeapWalker.visitField() Alias
+						// FOUND ");
 						aliasFound = true;
 					} else if (root.field.equals(inf.fields[i].field)) {
 						// remote duplicate

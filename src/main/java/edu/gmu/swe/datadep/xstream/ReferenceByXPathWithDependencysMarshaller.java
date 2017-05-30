@@ -67,9 +67,9 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 										+ HeapWalker.testNumToTestClass.size());
 							} else {
 
-								// System.out.println("ReferenceByXPathWithDependencysMarshaller:
-								// found CONFLICT "
-								// + inf.isConflict());
+								System.out.println("ReferenceByXPathWithDependencysMarshaller: found CONFLICT for "
+										+ inf.printMe());
+								///
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
 								writer.addAttribute("dependsOnId", "" + inf.getWriteGen());
@@ -78,6 +78,8 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							}
 						}
 
+						// Special code to treat Map... probably it should be
+						// collections in general
 						if (source instanceof Map) {
 							try {
 								Map m = (Map) source;
@@ -90,8 +92,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 									try {
 										finf = source.getClass().getDeclaredField("size__DEPENDENCY_INFO");
 									} catch (NoSuchFieldException e) {
-										// System.out.println("NoSuchFieldException
-										// for map type " + source.getClass());
+										System.out.println("NoSuchFieldException for map type " + source.getClass());
 										finf = null;
 									}
 								}
@@ -100,6 +101,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 								if (finf != null) {
 									finf.setAccessible(true);
 									writer.addAttribute("size", "" + m.size());
+									//
 									inf = (DependencyInfo) finf.get(source);
 									if (inf != null && inf.isConflict()) {
 										if (HeapWalker.testNumToTestClass.get(inf.getWriteGen()) == null) {
@@ -161,7 +163,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 						WrappedPrimitive wP = (WrappedPrimitive) source;
 
 						if (inf != null) {///
-							String prettyPrint = getValue(wr.recentNode);
+							// String prettyPrint = getValue(wr.recentNode);
 							// System.out.println("ReferenceByXPathWithDependencysMarshaller:
 							// Recent node for " + wP.prim
 							// + " " + prettyPrint + " for " + inf + " source is
