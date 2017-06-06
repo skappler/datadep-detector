@@ -41,6 +41,10 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		this.isStaticInitializer = "<clinit>".equals(methodName);
 	}
 
+	// TODO: most likely this patch to deal with clinit must be made
+	// contextual... we do not want to disable/re-enable IN_CAPTURE if this is
+	// already enables/disabled. Probably we shall add another state variable
+	// with a countlatch for nested clinit....
 	@Override
 	protected void onMethodEnter() {
 		if (this.inUninitializedSuper) {
@@ -49,8 +53,25 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			super.visitMethodInsn(INVOKEVIRTUAL, clazz, "__initPrimDepInfo", "()V", false);
 		}
 		this.inUninitializedSuper = false;
-		// TODO How to handle clinit ?
-		//
+
+		if (this.isStaticInitializer) {
+			// TODO Disable collection while inside this method, might not work
+			// for multi-threaded !
+			super.visitInsn(ICONST_1);
+			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+
+	}
+
+	@Override
+	protected void onMethodExit(int opcode) {
+		if (this.isStaticInitializer) {
+			// TODO Disable collection while inside this method, might not work
+			// for multi-threaded !
+			super.visitInsn(ICONST_0);
+			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+		super.onMethodExit(opcode);
 	}
 
 	public void visitLdcInsn(Object cst) {
@@ -344,6 +365,17 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					// false);
 
 				} else {
+					//
+					// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+					// "out", "Ljava/io/PrintStream;");
+					// super.visitLdcInsn(
+					// "<clinit> Calling write to " + owner.replaceAll("/", ".")
+					// + "." + name + " in clinit");
+					// super.visitMethodInsn(INVOKEVIRTUAL,
+					// "java/io/PrintStream", "println",
+					// "(Ljava/lang/String;)V",
+					// false);
+					//
 					// [] ->
 					super.visitFieldInsn(GETSTATIC, owner, name + "__DEPENDENCY_INFO",
 							Type.getDescriptor(DependencyInfo.class));
@@ -401,6 +433,19 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 						// IF BRANCH == NOT NULL >> Value is not null
 						// [objectref, value]
 						super.visitInsn(SWAP);
+						//
+						//
+						// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+						// "out", "Ljava/io/PrintStream;");
+						// super.visitLdcInsn(
+						// "<clinit> Calling write to " + owner.replaceAll("/",
+						// ".") + "." + name + " in init");
+						// super.visitMethodInsn(INVOKEVIRTUAL,
+						// "java/io/PrintStream", "println",
+						// "(Ljava/lang/String;)V",
+						// false);
+						//
+						//
 						// [value, objectref]
 						super.visitInsn(DUP);
 						// [value, objectref, objectref]
@@ -423,6 +468,18 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 								// their value
 						// [objectref, value]
 						super.visitInsn(SWAP);
+						//
+						//
+						// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+						// "out", "Ljava/io/PrintStream;");
+						// super.visitLdcInsn("<clinit> Calling write to " +
+						// owner.replaceAll("/", ".") + "." + name);
+						// super.visitMethodInsn(INVOKEVIRTUAL,
+						// "java/io/PrintStream", "println",
+						// "(Ljava/lang/String;)V",
+						// false);
+						//
+						//
 						// [value, objectref]
 						super.visitInsn(DUP);
 						// [value, objectref, objectref]
@@ -457,6 +514,18 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 				switch (t.getSize()) {
 				case 1:
 					super.visitInsn(SWAP);
+					//
+					//
+					// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+					// "out", "Ljava/io/PrintStream;");
+					// super.visitLdcInsn("<clinit> Calling write to " +
+					// owner.replaceAll("/", ".") + "." + name);
+					// super.visitMethodInsn(INVOKEVIRTUAL,
+					// "java/io/PrintStream", "println",
+					// "(Ljava/lang/String;)V",
+					// false);
+					//
+					///
 					super.visitInsn(DUP);
 					super.visitFieldInsn(Opcodes.GETFIELD, owner, name + "__DEPENDENCY_INFO",
 							Type.getDescriptor(DependencyInfo.class));
@@ -466,6 +535,18 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					super.visitFieldInsn(opcode, owner, name, desc);
 					break;
 				case 2:
+					//
+					//
+					// super.visitFieldInsn(GETSTATIC, "java/lang/System",
+					// "out", "Ljava/io/PrintStream;");
+					// super.visitLdcInsn("<clinit> Calling write to " +
+					// owner.replaceAll("/", ".") + "." + name);
+					// super.visitMethodInsn(INVOKEVIRTUAL,
+					// "java/io/PrintStream", "println",
+					// "(Ljava/lang/String;)V",
+					// false);
+					//
+					///
 					super.visitInsn(DUP2_X1);
 					super.visitInsn(POP2);
 					super.visitInsn(DUP);
@@ -480,6 +561,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 							"(Ljava/lang/Object;)V", false);
 					super.visitInsn(DUP_X2);
 					super.visitInsn(POP);
+
 					super.visitFieldInsn(opcode, owner, name, desc);
 					break;
 				}
