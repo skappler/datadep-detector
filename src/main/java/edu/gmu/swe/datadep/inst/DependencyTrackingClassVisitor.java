@@ -295,6 +295,19 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						// True Primitives are initialized by default the moment
 						// they are declared, hence, they are written
 
+						///
+						//
+						//
+						// mv.visitFieldInsn(Opcodes.GETSTATIC,
+						// "java/lang/System", "out", "Ljava/io/PrintStream;");
+						// mv.visitLdcInsn("Calling write to " +
+						// className.replaceAll("/", ".") + "." + fn.name);
+						// mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL,
+						// "java/io/PrintStream", "println",
+						// "(Ljava/lang/String;)V", false);
+						//
+						///
+						//
 						mv.visitInsn(Opcodes.DUP);
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
@@ -318,7 +331,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, FieldNode fn, String msg) {
-		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + fn.name);
+		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
+		// Enabling LOG for " + fn.name);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);
@@ -327,7 +341,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, String className, String msg) {
-		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + className);
+		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
+		// Enabling LOG for " + className);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);

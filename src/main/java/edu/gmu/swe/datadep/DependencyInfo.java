@@ -77,7 +77,7 @@ public final class DependencyInfo implements Serializable {
 	public void logMe(String name) {
 		this.logMe = true;
 		this.logMeName = name;
-		System.out.println("Enabling logMe for " + name);
+		// System.out.println("Enabling logMe for " + name);
 	}
 
 	public static boolean IN_CAPTURE = false;
@@ -117,8 +117,7 @@ public final class DependencyInfo implements Serializable {
 		}
 
 		if (logMe) {
-			System.out.println(
-					this.logMeName + " write() Before write " + writeGen + " after write " + CURRENT_TEST_COUNT);
+			System.out.println(this.logMeName + " write() during test " + CURRENT_TEST_COUNT);
 			/// This is the only way to really debug this code
 			// Exception ex = new RuntimeException();
 			// ex.printStackTrace();
@@ -129,6 +128,7 @@ public final class DependencyInfo implements Serializable {
 				System.out.println(this.logMeName + " Already in conflict");
 			}
 		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+			// This sets the conflict flag
 			handleTheConflict("DependencyInfo-Write");
 			if (logMe) {
 				System.out.println(this.logMeName + " write() Conflict and Last written " + writeGen);
@@ -152,7 +152,8 @@ public final class DependencyInfo implements Serializable {
 		}
 
 		if (logMe) {
-			System.out.println(this.logMeName + " read(): last written " + writeGen);
+			System.out.println(
+					this.logMeName + " read() during test " + CURRENT_TEST_COUNT + " last written " + writeGen);
 		}
 		if (conflict) {
 			if (logMe) {

@@ -68,7 +68,7 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 							} else {
 
 								System.out.println("ReferenceByXPathWithDependencysMarshaller: found CONFLICT for "
-										+ inf.printMe());
+										+ inf.printMe() + " " + inf.getWriteGen() );
 								///
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
