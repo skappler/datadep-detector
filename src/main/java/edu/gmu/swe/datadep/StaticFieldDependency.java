@@ -13,6 +13,6 @@ public class StaticFieldDependency {
 
 	@Override
 	public String toString() {
-		return field.toString() + ", dependsOn " /* + depTestName */ + "(" + depGen + ")" + ", value: " + value;
+		return field.toString() + ", dependsOn " /* + depTestName */ + "(" + depGen + ")" + ", XML value: \n " + value;
 	}
 }

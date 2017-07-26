@@ -28,6 +28,9 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	private boolean inUninitializedSuper = false;
 	//
 	private boolean isStaticInitializer = false;
+	//
+	private boolean isBlackListed = false;
+
 	private String methodName;
 
 	public RWTrackingMethodVisitor(MethodVisitor mv, boolean patchLDCClass, String className, int acc,
@@ -47,6 +50,13 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 	// with a countlatch for nested clinit....
 	@Override
 	protected void onMethodEnter() {
+		if (this.isStaticInitializer) {
+			// TODO Disable collection while inside this method, might not work
+			// for multi-threaded !
+			super.visitInsn(ICONST_1);
+			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+		//
 		if (this.inUninitializedSuper) {
 			this.inUninitializedSuper = false;
 			super.visitVarInsn(ALOAD, 0);
@@ -54,11 +64,9 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		}
 		this.inUninitializedSuper = false;
 
-		if (this.isStaticInitializer) {
-			// TODO Disable collection while inside this method, might not work
-			// for multi-threaded !
-			super.visitInsn(ICONST_1);
-			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		if (this.isBlackListed) {
+			System.out
+					.println("RWTrackingMethodVisitor.onMethodEnter() BlackListed method " + clazz + "." + methodName);
 		}
 
 	}
@@ -70,6 +78,10 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			// for multi-threaded !
 			super.visitInsn(ICONST_0);
 			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+
+		if (this.isBlackListed) {
+			System.out.println("RWTrackingMethodVisitor.onMethodExit() BlackListed method " + clazz + "." + methodName);
 		}
 		super.onMethodExit(opcode);
 	}
@@ -91,6 +103,28 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 	int tmpLField = -1;
 	int tmpDField = -1;
+
+	@Override
+	public void visitMethodInsn(int opcode, String owner, String name, String desc, boolean itf) {
+		//
+		if (name.contains("keySet")) {
+			// System.out
+			// .println("RWTrackingMethodVisitor.visitMethodInsn() Disable
+			// collection for " + owner + "." + name);
+			// Disable collection
+			super.visitInsn(ICONST_1);
+			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+		super.visitMethodInsn(opcode, owner, name, desc, itf);
+		if (name.contains("keySet")) {
+			// System.out.println("RWTrackingMethodVisitor.visitMethodInsn()
+			// Reenable collection " + owner + "." + name);
+			// Disable collection
+			super.visitInsn(ICONST_0);
+			super.visitFieldInsn(PUTSTATIC, "edu/gmu/swe/datadep/DependencyInfo", "IN_CAPTURE", "Z");
+		}
+
+	}
 
 	@Override
 	public void visitInsn(int opcode) {
@@ -154,7 +188,6 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 			super.visitFieldInsn(opcode, owner, name, desc);
 			return;
 		}
-
 		switch (opcode) {
 		case GETFIELD: // On FIELD read/access
 

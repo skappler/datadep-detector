@@ -60,7 +60,15 @@ public class Instrumenter {
 				|| owner.startsWith("java/lang/Double") || owner.startsWith("java/lang/Long") //
 				// Ignore string type
 				|| owner.equals("java/lang/String")
-				//
+				// Those should be shaded - Anyway it seems that I cannot find
+				// enums for them...
+				// FIXME: Or at least I should be able to configure ignored
+				// class as well
+				// || owner.startsWith("com/lexicalscope")//
+				// || owner.startsWith("de/unisaarland")//
+				// || owner.startsWith("org/jdom2")//
+				// FIXME: Get those might be tricky, Ignore all the registered
+				// ENUMS
 				|| Enumerations.get().contains(owner.replaceAll("/", "."))
 		//
 		;

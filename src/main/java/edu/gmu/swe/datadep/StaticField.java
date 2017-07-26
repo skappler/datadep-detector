@@ -64,39 +64,50 @@ public class StaticField implements Serializable {
 
 	public void markConflictAndSerialize(int writeGen) {
 
-		// System.out.println("\n\nStaticField.markConflictAndSerialize() SF " +
-		// System.identityHashCode(this) + " -- "
-		// + field.getName() + " Write Gen " + writeGen);
-
-		conflict = true;
-		// Update the write of the first conflicting test
-		if (writeGen > dependsOn) {
-			dependsOn = writeGen;
-		}
-		// if (value != null)
-		// return;
+		boolean previousValue = DependencyInfo.IN_CAPTURE;
 		try {
+			System.out.println("StaticField.markConflictAndSerialize() SF " + field.getDeclaringClass() + "."
+					+ field.getName() + " Write Gen " + writeGen);
+			System.out.println("StaticField.markConflictAndSerialize() Disable COLLECTION");
 
-			// TODO Here we can prevent SF to be stored, or at least we can ONLY
-			// store the relevant parts, i.e., dependsOn
-			// but this might be tricky since the dependsOn might be nested down
-			// somewhere !
+			DependencyInfo.IN_CAPTURE = true;
+			conflict = true;
+			// Update the write of the first conflicting test
+			if (writeGen > dependsOn) {
+				dependsOn = writeGen;
+			}
+			try {
 
-			field.setAccessible(true);
-			//
-			value = HeapWalker.serialize(
-					// How is this treated ?!
-					field.get(null)); // This invoke the shared XStream stuff
-										// which is configured to
-		} catch (IllegalArgumentException | IllegalAccessException e) {
-			e.printStackTrace();
+				// TODO Here we can prevent SF to be stored, or at least we can
+				// ONLY
+				// store the relevant parts, i.e., dependsOn
+				// but this might be tricky since the dependsOn might be nested
+				// down
+				// somewhere !
+
+				field.setAccessible(true);
+
+				//
+				value = HeapWalker.serialize(
+						// How is this treated ?!
+						field.get(null)); // This invoke the shared XStream
+											// stuff
+											// which is configured to
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				e.printStackTrace();
+			}
+
+			// if (value == null) {
+			// System.out.println(
+			// "StaticField.markConflictAndSerialize() Value is null for " +
+			// field +
+			// " in write gen " + writeGen);
+			// }
+		} finally {
+			DependencyInfo.IN_CAPTURE = previousValue;
+			System.out
+					.println("StaticField.markConflictAndSerialize() Reset INCAPTURE to " + DependencyInfo.IN_CAPTURE);
 		}
-
-		// if (value == null) {
-		// System.out.println(
-		// "StaticField.markConflictAndSerialize() Value is null for " + field +
-		// " in write gen " + writeGen);
-		// }
 	}
 
 	public String getValue() {

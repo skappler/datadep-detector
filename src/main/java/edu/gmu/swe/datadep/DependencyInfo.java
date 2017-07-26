@@ -56,9 +56,9 @@ public final class DependencyInfo implements Serializable {
 	}
 
 	public boolean isConflict() {
-		// if (logMe && conflict) {
-		// System.out.println(this.logMeName + " is in Conflict !");
-		// }
+		if (logMe && conflict) {
+			System.out.println(this.logMeName + " is in Conflict !");
+		}
 		return conflict;
 	}
 
@@ -77,7 +77,7 @@ public final class DependencyInfo implements Serializable {
 	public void logMe(String name) {
 		this.logMe = true;
 		this.logMeName = name;
-		// System.out.println("Enabling logMe for " + name);
+		System.out.println("Enabling logMe for " + name);
 	}
 
 	public static boolean IN_CAPTURE = false;
@@ -108,60 +108,76 @@ public final class DependencyInfo implements Serializable {
 	 */
 	public void write() {
 
-		if (IN_CAPTURE) {
-			return;
-		}
+		try {
+			///
 
-		if (ignored) {
-			return;
-		}
+			if (IN_CAPTURE) {
+				return;
+			}
 
-		if (logMe) {
-			System.out.println(this.logMeName + " write() during test " + CURRENT_TEST_COUNT);
-			/// This is the only way to really debug this code
-			// Exception ex = new RuntimeException();
-			// ex.printStackTrace();
-		}
+			if (ignored) {
+				return;
+			}
 
-		if (conflict) {
 			if (logMe) {
-				System.out.println(this.logMeName + " Already in conflict");
+				System.out.println(this.logMeName + " write() during test " + CURRENT_TEST_COUNT);
+				/// This is the only way to really debug this code
+				// Exception ex = new RuntimeException();
+				// ex.printStackTrace();
 			}
-		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
-			// This sets the conflict flag
-			handleTheConflict("DependencyInfo-Write");
-			if (logMe) {
-				System.out.println(this.logMeName + " write() Conflict and Last written " + writeGen);
+
+			if (conflict) {
+				if (logMe) {
+					System.out.println(this.logMeName + " Already in conflict");
+				}
+			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+				// This sets the conflict flag
+				handleTheConflict("DependencyInfo-Write");
+				if (logMe) {
+					System.out.println(this.logMeName + " write() Conflict and Last written " + writeGen);
+				}
+			} else {
+				if (logMe) {
+					System.out.println(this.logMeName + " write() No conflict Last written " + writeGen);
+				}
 			}
-		} else {
+			writeGen = CURRENT_TEST_COUNT;
+		} finally {
 			if (logMe) {
-				System.out.println(this.logMeName + " write() No conflict Last written " + writeGen);
+				System.out.println(this.logMeName + " After invoking write(): IN_CAPTURE = " + IN_CAPTURE
+						+ " ignored = " + ignored + " writeGen " + writeGen + " conflict " + conflict);
 			}
 		}
-		writeGen = CURRENT_TEST_COUNT;
 	}
 
 	public void read() {
 
-		if (IN_CAPTURE) {
-			return;
-		}
-
-		if (ignored) {
-			return;
-		}
-
-		if (logMe) {
-			System.out.println(
-					this.logMeName + " read() during test " + CURRENT_TEST_COUNT + " last written " + writeGen);
-		}
-		if (conflict) {
-			if (logMe) {
-				System.out.println("DependencyInfo.read() Already in conflict " + this.logMeName);
+		try {
+			if (IN_CAPTURE) {
+				return;
 			}
-			return;
-		} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
-			handleTheConflict("DependencyInfo-Read-");
+
+			if (ignored) {
+				return;
+			}
+
+			if (logMe) {
+				System.out.println(
+						this.logMeName + " read() during test " + CURRENT_TEST_COUNT + " last written " + writeGen);
+			}
+			if (conflict) {
+				if (logMe) {
+					System.out.println("DependencyInfo.read() Already in conflict " + this.logMeName);
+				}
+				return;
+			} else if (writeGen != 0 && writeGen != CURRENT_TEST_COUNT) {
+				handleTheConflict("DependencyInfo-Read");
+			}
+		} finally {
+			if (logMe) {
+				System.out.println(this.logMeName + " After invoking read (): IN_CAPTURE = " + IN_CAPTURE
+						+ " ignored = " + ignored + " writeGen " + writeGen + " conflict " + conflict);
+			}
 		}
 	}
 

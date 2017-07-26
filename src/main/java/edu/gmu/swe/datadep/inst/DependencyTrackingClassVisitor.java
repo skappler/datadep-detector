@@ -1,7 +1,7 @@
 package edu.gmu.swe.datadep.inst;
 
 import java.util.AbstractMap;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
@@ -25,7 +25,9 @@ import edu.gmu.swe.datadep.Instrumenter;
 public class DependencyTrackingClassVisitor extends ClassVisitor {
 
 	// Logging
-	public final static List<Pattern> fieldsLogged = Arrays.asList(new Pattern[] { Pattern.compile(".*crystal.*") });
+	// public final static List<Pattern> fieldsLogged = Arrays.asList(new
+	// Pattern[] { Pattern.compile(".*crystal.*") });
+	public final static List<Pattern> fieldsLogged = new ArrayList<>();
 
 	boolean skipFrames = false;
 
@@ -192,11 +194,13 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	@Override
 	public MethodVisitor visitMethod(int access, String name, String desc, String signature, String[] exceptions) {
 		MethodVisitor mv = super.visitMethod(access, name, desc, signature, exceptions);
+
 		AnalyzerAdapter an = null;
 		if (!skipFrames) {
 			an = new AnalyzerAdapter(className, access, name, desc, mv);
 			mv = an;
 		}
+
 		RWTrackingMethodVisitor rtmv = new RWTrackingMethodVisitor(mv, patchLDCClass, className, access, name, desc);
 		mv = rtmv;
 		if (!skipFrames) {
@@ -315,7 +319,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 					// Moving this around causes JVM to Crash
 					for (Pattern p : fieldsLogged) {
 						if (p.matcher(this.className).matches()) {
-							logMe(mv, fn, this.className + "." + fn.name.replace("__DEPENDENCY_INFO", ""));
+							logMe(mv, fn, this.className + "."
+									+ fn.name.replace("__DEPENDENCY_INFO", "").replaceAll("/", "."));
 						}
 					}
 
@@ -331,8 +336,7 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, FieldNode fn, String msg) {
-		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
-		// Enabling LOG for " + fn.name);
+		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + fn.name + " as " + msg);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);
@@ -341,8 +345,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, String className, String msg) {
-		// System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd()
-		// Enabling LOG for " + className);
+		System.out
+				.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + className + " as " + msg);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);

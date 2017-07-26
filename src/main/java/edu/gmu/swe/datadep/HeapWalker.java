@@ -71,12 +71,13 @@ public class HeapWalker {
 			}
 			return ret;
 		} else
-			throw new IllegalArgumentException("Provided whitelist file, " + f + ", does not exist");
+			throw new IllegalArgumentException(
+					"Provided whitelist file, " + new File(f).getAbsolutePath() + ", does not exist");
 	}
 
 	static {
 		whiteList = fileToSet(System.getProperties(), "whitelist");
-		// // System.out.println("Loaded whitelist");
+		// System.out.println("Loaded whitelist");
 		// ignores = fileToSet(System.getProperties(), "ignores");
 	}
 
@@ -487,10 +488,11 @@ public class HeapWalker {
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
 
-		// System.out.println("\n\n\n HeapWalker.walkAndFindDependencies()
-		// \n\n\n ");
+		System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() \n\n\n ");
 
+		// It seems this has no effect ...
 		DependencyInfo.IN_CAPTURE = true;
+
 		testNumToMethod.put(testCount, methodName);
 		testNumToTestClass.put(testCount, className);
 
@@ -504,11 +506,11 @@ public class HeapWalker {
 		// System.out.println("HeapWalker.walkAndFindDependencies() Last Gen
 		// Reach " + lastGenReachable.size());
 		for (WeakReference<DependencyInfo> inf : lastGenReachable) {
-			// System.out.println("HeapWalker.walkAndFindDependencies() Last Gen
-			// " + inf);
 			if (inf.get() != null) {
-				// System.out.println("HeapWalker.walkAndFindDependencies()
-				// Resetting Taint for :" + inf.get().printMe());
+				// inf.get().logMe("Not sure");
+				// System.out.println(
+				// "HeapWalker.walkAndFindDependencies() Last Gen " +
+				// inf.get().printMe() + " clear conflicts");
 				inf.get().clearSFs();
 				inf.get().clearConflict();
 			}
@@ -536,12 +538,11 @@ public class HeapWalker {
 		// SF " + sfPool.size());
 		for (StaticField sf : sfPool) {
 			if (sf.isConflict()) {
-				// System.out.println("HeapWalker.walkAndFindDependencies()
-				// Conflict for SF "
-				// + sf.field.getDeclaringClass() + "." + sf.field.getName() + "
-				// " + System.identityHashCode(sf));
+				System.out.println("HeapWalker.walkAndFindDependencies() Conflict for SF "
+						+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " " + System.identityHashCode(sf));
 				//
 				StaticFieldDependency dep = new StaticFieldDependency();
+				//
 				dep.depGen = sf.dependsOn;
 				// dep.depTestName = testNumToTestClass.get(sf.dependsOn) + "."
 				// + testNumToMethod.get(sf.dependsOn);
@@ -559,6 +560,9 @@ public class HeapWalker {
 				if (sf.dependsOn == DependencyInfo.CURRENT_TEST_COUNT) {
 					sf.clearConflict();
 				}
+			} else {
+				System.out.println("HeapWalker.walkAndFindDependencies() NO Conflict for SF "
+						+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " " + System.identityHashCode(sf));
 			}
 		}
 		// TODO - For the fun on it, remove the value from the sf objects before
@@ -574,6 +578,8 @@ public class HeapWalker {
 
 		// System.out.println("HeapWalker.walkAndFindDependencies() Walking the
 		// heap");
+
+		System.out.println("\n\n HeapWalker.walkAndFindDependencies() Rebuild sf POOL\n\n");
 
 		HashMap<String, StaticField> cache = new HashMap<String, StaticField>();
 		for (Class<?> c : PreMain.getInstrumentation().getAllLoadedClasses()) {
@@ -681,9 +687,12 @@ public class HeapWalker {
 							if ((origField.getType().isPrimitive() || origField.getType().isAssignableFrom(String.class)
 									|| origField.getType().isEnum())) {
 								//
-								// System.out.println("HeapWalker.walkAndFindDependencies()
-								// Adding SF to the Pool "
-								// + sf.field.getName());
+								System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
+										+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
+										+ System.identityHashCode(sf));
+								// System.out.println(
+								// "HeapWalker.walkAndFindDependencies() Is
+								// conflict ? " + sf.isConflict());
 								sfPool.add(sf);
 							}
 
@@ -704,6 +713,15 @@ public class HeapWalker {
 							StaticField sf = cache.get(fieldName);
 							f.setAccessible(true);
 							Object obj = f.get(null);
+
+							//
+							System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
+									+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
+									+ System.identityHashCode(sf));
+							//
+							// System.out.println("HeapWalker.walkAndFindDependencies()
+							// Is conflict ? " + sf.isConflict());
+							//
 							sfPool.add(sf);
 
 							// System.out.println(
@@ -733,6 +751,7 @@ public class HeapWalker {
 				}
 			}
 		}
+		System.out.println("\n\n HeapWalker.walkAndFindDependencies() End of Rebuild SF Pool \n");
 
 		DependencyInfo.CURRENT_TEST_COUNT++;
 		DependencyInfo.IN_CAPTURE = false;
@@ -831,26 +850,35 @@ public class HeapWalker {
 		// System.out.println(HeapWalker.serialize(hm));
 	}
 
+	// During Serialization we should NOT interfere by generating reads/writes !
 	public static synchronized Element serialize(Object obj) {
-		if (DependencyInfo.IN_CAPTURE)
-			return null;
+		// if (DependencyInfo.IN_CAPTURE)
+		// {
+		// return null;
+		// }
 		// if(obj != null &&
 		// obj.getClass().getName().contains("edu.columbia.cs.psl.testdepends"))
 		// return null;
+
+		boolean previousState = DependencyInfo.IN_CAPTURE;
+
+		System.out.println("HeapWalker.serialize() " + obj);
 		try {
+			// Disable conflict tracking
 			DependencyInfo.IN_CAPTURE = true;
 			Element root = new Element("root");
 			// FIXME Not sure what this is supposed to do ...
 			JDomHackWriter wr = new JDomHackWriter(root, SKIP_VALUES);
 			// getXStreamInstance().marshal(obj, new CompactWriter(sw));
 			getXStreamInstance().marshal(obj, wr);
-
-			DependencyInfo.IN_CAPTURE = false;
 			return root;
 		} catch (Throwable t) {
 			System.err.println("Unable to serialize object!");
 			t.printStackTrace();
 			return null;
+		} finally {
+			DependencyInfo.IN_CAPTURE = previousState;
+			System.out.println("HeapWalker.serialize() Resetting IN_CAPTURE TO " + DependencyInfo.IN_CAPTURE);
 		}
 	}
 
@@ -933,11 +961,15 @@ public class HeapWalker {
 			if (inf.isConflict()) {
 				inf.clearConflict();
 			}
-			// FIXME To not propagate this for objects that are not
+			// To not propagate this for objects that are not
 			// primitives os String or Enums!
-			if (inf.getWriteGen() == 0) {
-				// System.out.println("HeapWalker.visitField() Forcing write for
-				// " + inf.printMe() + " " + obj);
+			if (inf.getWriteGen() == 0 && //
+					(obj instanceof String || obj instanceof Enum<?>))
+			// If the object is null ?
+			// obj.getClass().isEnum()||
+			// Enum.class.isAssignableFrom(obj.getClass())))
+			{
+				System.out.println("HeapWalker.visitField() Forcing write for " + inf.printMe() + " " + obj);
 				inf.write();
 			}
 

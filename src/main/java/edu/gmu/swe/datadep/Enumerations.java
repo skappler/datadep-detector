@@ -1,5 +1,8 @@
 package edu.gmu.swe.datadep;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -15,8 +18,21 @@ public class Enumerations {
 	}
 
 	static {
+		System.out.println("Enumerations: build enumeration set");
 		e = new HashSet<String>();
-		// App specific
+		if (System.getProperty("enum-list") != null && new File(System.getProperty("enum-list")).exists()) {
+			try {
+				e.addAll(Files.readAllLines(new File(System.getProperty("enum-list")).toPath()));
+				System.out
+						.println("Enumerations READ ENUMS FROM " + new File(System.getProperty("enum-list")).toPath());
+			} catch (IOException e1) {
+				e1.printStackTrace();
+			}
+
+		} else {
+			System.out.println("Enumerations No Enum file specified");
+		}
+		///
 		e.addAll(Arrays.asList(new String[] { //
 				"crystal.model.DataSource$RepoKind", //
 				"crystal.model.RevisionHistory$When", //
@@ -25,6 +41,7 @@ public class Enumerations {
 				"crystal.model.RevisionHistory$Action",
 				//
 				"org.junit.runners.MethodSorters", //
+				//
 				"org.freehg.hgkit.FileStatus$Status", //
 				"org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$1", //
 				"org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$2", //
@@ -37,6 +54,7 @@ public class Enumerations {
 				"crystal.server.AbstractLogParser$CheckpointLabels", //
 
 		}));
+
 		// CUT/DATA-DEP specific
 		e.addAll(Arrays.asList(new String[] { //
 				"org.jdom2.Content$CType", //
@@ -50,14 +68,14 @@ public class Enumerations {
 				"org.jdom2.input.sax.XMLReaders$XSDSingleton", //
 				//
 				"org.junit.internal.runners.rules.RuleFieldValidator", //
+				//
 				"java.util.zip.ZipConstants", //
 				"org.apache.maven.surefire.booter.ForkedBooter", //
 				"org.apache.maven.surefire.booter.BooterConstants", //
-				"org.apache.maven.surefire.util.RunOrder",//
-				"org.apache.maven.surefire.booter.ForkingRunListener"
-		}));
+				"org.apache.maven.surefire.util.RunOrder", //
+				"org.apache.maven.surefire.booter.ForkingRunListener" }));
 
-		// JRE Level
+		// JRE/JVM Level
 		e.addAll(Arrays.asList(new String[] { "java.lang.Thread$State", "org.apache.derby.iapi.security.Securable",
 				"com.sun.deploy.ref.AppModel$SecurityMode", "com.sun.deploy.ref.AppModel$Type",
 				"com.sun.deploy.ref.AppRef$Type", "com.sun.deploy.security.ruleset.DRSResult$Type",
