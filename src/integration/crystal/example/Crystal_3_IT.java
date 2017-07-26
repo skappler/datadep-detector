@@ -24,17 +24,79 @@ public class Crystal_3_IT extends AbstractCrystalIT {
 		LinkedList<StaticFieldDependency> deps;
 		Collection<Entry<String, String>> depsData;
 
-		executeTest(LocalStateResultTest.class, "testToString");
+		String testName = "testToString";
+
+		//
+		executeTest(LocalStateResultTest.class, testName);
 
 		// This writes to several part
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", "testToString");
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
 		depsData = extractAllDepValues(deps);
 		Assert.assertTrue(depsData.isEmpty());
 
 		//
-		executeTest(LocalStateResultTest.class, "testGetLastAction");
-		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", "testGetLastAction");
+		testName = "testGetLastAction";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
 		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetName";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetNoErrorMessage";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetLastErrorMessage";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetLocalState";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetLastLocalState";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testErrorActionNameConstructor";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testGetAction";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
+		//
+		testName = "testStrangeActionName";
+		executeTest(LocalStateResultTest.class, testName);
+		deps = HeapWalker.walkAndFindDependencies("crystal.model.LocalStateResultTest", testName);
+		depsData = extractAllDepValues(deps);
+		System.out.println("Crystal_3_IT.testMapd() depsData " + depsData);
+
 	}
 	//
 	// LinkedList<StaticFieldDependency> deps;

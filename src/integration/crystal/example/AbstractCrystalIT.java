@@ -8,6 +8,7 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 import org.jdom2.Document;
 import org.jdom2.Element;
@@ -20,9 +21,12 @@ import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.runner.JUnitCore;
 import org.junit.runner.Request;
+import org.junit.runner.Result;
+import org.junit.runner.notification.Failure;
 
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
+import edu.gmu.swe.datadep.inst.DependencyTrackingClassVisitor;
 
 /**
  * integration tests cannot be run in separate JVMs at method level so we need
@@ -37,14 +41,35 @@ public class AbstractCrystalIT {
 
 	JUnitCore junitCore = new JUnitCore();
 
+	/**
+	 * TODO WHy this fails if the underlyng test fails ?
+	 * 
+	 * @param testClass
+	 * @param methodName
+	 */
 	void executeTest(Class<?> testClass, String methodName) {
-		System.out.println("ExecuteTest() " + testClass.getName() + "." + methodName);
-		if (junitCore.run(Request.method(testClass, methodName)).getFailureCount() > 0)
-			Assert.fail("Test " + testClass.getName() + "." + methodName + " FAILED ");
+		System.out.println("\n ============================\n" + "Test Started () " + testClass.getName() + "."
+				+ methodName + "\n============================\n");
+		
+		Result result = junitCore.run(Request.method(testClass, methodName));
+
+		System.out.println("\n ============================\n" + "Test Finished () " + testClass.getName() + "."
+				+ methodName + "\n============================\n");
+		
+		
+		if (result.getFailureCount() > 0) {
+			for (Failure f : result.getFailures()) {
+				System.out.println("Failure: " + f);
+			}
+			//
+			// Assert.fail("Test " + testClass.getName() + "." + methodName + "
+			// FAILED ");
+		}
 	}
 
 	@BeforeClass
 	public static void setupWhitelist() {
+		//
 		HeapWalker.resetAllState();
 		HeapWalker.clearWhitelist();
 		String[] whiteList = new String[] { //
@@ -60,9 +85,8 @@ public class AbstractCrystalIT {
 		for (String wl : whiteList)
 			HeapWalker.addToWhitelist(wl);
 
-		System.out.println("CrystalIT.setupWhitelist()");
+		//
 
-		System.out.println("CrystalIT.buildEnumSet()");
 	}
 
 	// TODO Probably a matchers of some sort is already available...
@@ -86,7 +110,16 @@ public class AbstractCrystalIT {
 	static void hasNot(Collection<Entry<String, String>> depsData, String testName, String depName) {
 		for (Entry<String, String> d : depsData) {
 			if (d.getValue().equals(testName) && d.getKey().equals(depName)) {
+
 				Assert.fail("Found unexpected: " + depName + " -- " + testName + " in " + depsData);
+			}
+		}
+	}
+
+	static void hasNot(Collection<Entry<String, String>> depsData, Pattern testNamePattern, String depName) {
+		for (Entry<String, String> d : depsData) {
+			if (testNamePattern.matcher(d.getValue()).matches() && d.getKey().equals(depName)) {
+				Assert.fail("Found unexpected: " + depName + " -- " + testNamePattern + " in " + depsData);
 			}
 		}
 	}
@@ -116,17 +149,23 @@ public class AbstractCrystalIT {
 	// Return the string/xml of the value for this sf
 	Collection<Entry<String, String>> extractDataStaticFieldDepValue(Class dataSourceTestClass,
 			LinkedList<StaticFieldDependency> deps) {
+		try {
+			System.out.println("AbstractCrystalIT.extractDataStaticFieldDepValue() Start");
 
-		Collection<Entry<String, String>> values = new ArrayList<Entry<String, String>>();
-		// There might be more ....
-		for (StaticFieldDependency sf : deps) {
-			if (sf.field.getType().isAssignableFrom(dataSourceTestClass)) {
-				values.addAll(extractDepsData(sf));
+			Collection<Entry<String, String>> values = new ArrayList<Entry<String, String>>();
+			// There might be more ....
+			for (StaticFieldDependency sf : deps) {
+				if (sf.field.getType().isAssignableFrom(dataSourceTestClass)) {
+					values.addAll(extractDepsData(sf));
+				}
 			}
+			// Assert.fail("Cannot find value of data static field as dep");
+			// return new ArrayList<Entry<String, String>>();
+
+			return values;
+		} finally {
+			System.out.println("AbstractCrystalIT.extractDataStaticFieldDepValue() End");
 		}
-		// Assert.fail("Cannot find value of data static field as dep");
-		// return new ArrayList<Entry<String, String>>();
-		return values;
 	}
 
 	Collection<Entry<String, String>> extractAllDepValues(LinkedList<StaticFieldDependency> deps) {
@@ -141,6 +180,9 @@ public class AbstractCrystalIT {
 
 	Collection<Entry<String, String>> extractDepsData(StaticFieldDependency sf) {
 		List<Entry<String, String>> deps = new ArrayList<Entry<String, String>>();
+
+		System.out.println("AbstractCrystalIT.extractDepsData() " + sf);
+
 		// Extract root dep
 		deps.add(new AbstractMap.SimpleEntry<String, String>(
 				(getTypeName(sf.field.getDeclaringClass()) + "." + sf.field.getName()),

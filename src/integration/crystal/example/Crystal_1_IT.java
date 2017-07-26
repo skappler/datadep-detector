@@ -55,6 +55,8 @@ public class Crystal_1_IT extends AbstractCrystalIT {
 		deps = HeapWalker.walkAndFindDependencies("crystal.model.DataSourceTest", "testSetRemoteCmd");
 		depsData = extractAllDepValues(deps);
 
+		System.out.println("Crystal_1_IT.testEmptySetKind() Deps Data " + depsData);
+
 		has(depsData, "crystal.model.DataSourceTest.testSetField", "crystal.model.DataSourceTest.data");
 
 		// This keeps buzzing here and there, not sure this is actually a
