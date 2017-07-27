@@ -63,8 +63,9 @@ public class Instrumenter {
 				// Those should be shaded - Anyway it seems that I cannot find
 				// enums for them...
 				// FIXME: Or at least I should be able to configure ignored
-				// class as well
-				// || owner.startsWith("com/lexicalscope")//
+				// class as well - For some reason, this will not work if ran
+				// with DD
+				|| owner.startsWith("com/lexicalscope")//
 				// || owner.startsWith("de/unisaarland")//
 				// || owner.startsWith("org/jdom2")//
 				// FIXME: Get those might be tricky, Ignore all the registered

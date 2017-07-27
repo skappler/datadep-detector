@@ -316,11 +316,14 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 						mv.visitMethodInsn(Opcodes.INVOKEVIRTUAL, Type.getInternalName(DependencyInfo.class), "write",
 								"()V", false);
 					}
-					// Moving this around causes JVM to Crash
+
+					// Check if the complete name of the fields matches !
+					String fieldFQN = this.className.replaceAll("/", ".") + "."
+							+ fn.name.replace("__DEPENDENCY_INFO", "");
+
 					for (Pattern p : fieldsLogged) {
-						if (p.matcher(this.className).matches()) {
-							logMe(mv, fn, this.className + "."
-									+ fn.name.replace("__DEPENDENCY_INFO", "").replaceAll("/", "."));
+						if (p.matcher(fieldFQN).matches()) {
+							logMe(mv, fn, fieldFQN);
 						}
 					}
 
@@ -336,7 +339,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, FieldNode fn, String msg) {
-		System.out.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + fn.name + " as " + msg);
+		System.out.println(
+				">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for FN " + fn.name + " as " + msg);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);
@@ -345,8 +349,8 @@ public class DependencyTrackingClassVisitor extends ClassVisitor {
 	}
 
 	private void logMe(MethodVisitor mv, String className, String msg) {
-		System.out
-				.println(">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for " + className + " as " + msg);
+		System.out.println(
+				">>>> DependencyTrackingClassVisitor.visitEnd() Enabling LOG for  Class " + className + " as " + msg);
 		mv.visitInsn(Opcodes.DUP);
 		// Input to next method invocation
 		mv.visitLdcInsn(msg);

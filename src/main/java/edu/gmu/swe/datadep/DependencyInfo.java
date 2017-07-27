@@ -77,7 +77,7 @@ public final class DependencyInfo implements Serializable {
 	public void logMe(String name) {
 		this.logMe = true;
 		this.logMeName = name;
-		System.out.println("Enabling logMe for " + name);
+		System.out.println("DependencyInfo.logMe() Enabled for " + name);
 	}
 
 	public static boolean IN_CAPTURE = false;

@@ -28,6 +28,9 @@ import edu.gmu.swe.datadep.xstream.ReferenceByXPathWithDependencysMarshaller;
 import edu.gmu.swe.datadep.xstream.WrappedPrimitiveConverter;
 
 public class HeapWalker {
+
+	private static final boolean debug = Boolean.getBoolean("debug");
+
 	protected static String getFieldFQN(Field f) {
 		String clz = f.getDeclaringClass().getName();
 		String fld = f.getName();
@@ -36,7 +39,7 @@ public class HeapWalker {
 
 	public static Object loggerSingleton;
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
-	private static final Set<String> whiteList;
+	private static /* final */ Set<String> whiteList;
 
 	public static boolean SKIP_VALUES = true;
 
@@ -75,9 +78,11 @@ public class HeapWalker {
 					"Provided whitelist file, " + new File(f).getAbsolutePath() + ", does not exist");
 	}
 
-	static {
+	public static void loadWhitelist() {
 		whiteList = fileToSet(System.getProperties(), "whitelist");
-		// System.out.println("Loaded whitelist");
+		if (debug) {
+			System.out.println("Loaded whitelist");
+		}
 		// ignores = fileToSet(System.getProperties(), "ignores");
 	}
 
@@ -487,9 +492,10 @@ public class HeapWalker {
 
 	public static synchronized LinkedList<StaticFieldDependency> walkAndFindDependencies(String className,
 			String methodName) {
-
-		System.out.println("\n\n\n HeapWalker.walkAndFindDependencies() \n\n\n ");
-
+		if (debug) {
+			System.out.println(
+					"\n\n\n HeapWalker.walkAndFindDependencies() for " + className + "." + methodName + "\n\n\n ");
+		}
 		// It seems this has no effect ...
 		DependencyInfo.IN_CAPTURE = true;
 
@@ -538,8 +544,11 @@ public class HeapWalker {
 		// SF " + sfPool.size());
 		for (StaticField sf : sfPool) {
 			if (sf.isConflict()) {
-				System.out.println("HeapWalker.walkAndFindDependencies() Conflict for SF "
-						+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " " + System.identityHashCode(sf));
+				if (debug) {
+					System.out.println(
+							"HeapWalker.walkAndFindDependencies() Conflict for SF " + sf.field.getDeclaringClass() + "."
+									+ sf.field.getName() + " " + System.identityHashCode(sf));
+				}
 				//
 				StaticFieldDependency dep = new StaticFieldDependency();
 				//
@@ -561,8 +570,11 @@ public class HeapWalker {
 					sf.clearConflict();
 				}
 			} else {
-				System.out.println("HeapWalker.walkAndFindDependencies() NO Conflict for SF "
-						+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " " + System.identityHashCode(sf));
+				if (debug) {
+					System.out.println(
+							"HeapWalker.walkAndFindDependencies() NO Conflict for SF " + sf.field.getDeclaringClass()
+									+ "." + sf.field.getName() + " " + System.identityHashCode(sf));
+				}
 			}
 		}
 		// TODO - For the fun on it, remove the value from the sf objects before
@@ -578,8 +590,9 @@ public class HeapWalker {
 
 		// System.out.println("HeapWalker.walkAndFindDependencies() Walking the
 		// heap");
-
-		System.out.println("\n\n HeapWalker.walkAndFindDependencies() Rebuild sf POOL\n\n");
+		if (debug) {
+			System.out.println("\n\n HeapWalker.walkAndFindDependencies() Rebuild sf POOL\n\n");
+		}
 
 		HashMap<String, StaticField> cache = new HashMap<String, StaticField>();
 		for (Class<?> c : PreMain.getInstrumentation().getAllLoadedClasses()) {
@@ -603,10 +616,6 @@ public class HeapWalker {
 
 			for (Field f : allFields) {
 				String fieldName = getFieldFQN(f);
-
-				if (c.getClass().getName().equals("crystal.model.DataSource")) {
-					System.out.println(">>>>   Processing Field " + fieldName);
-				}
 
 				if (!Modifier.isStatic(f.getModifiers())) {
 					continue;
@@ -687,9 +696,11 @@ public class HeapWalker {
 							if ((origField.getType().isPrimitive() || origField.getType().isAssignableFrom(String.class)
 									|| origField.getType().isEnum())) {
 								//
-								System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
-										+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
-										+ System.identityHashCode(sf));
+								if (debug) {
+									System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
+											+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
+											+ System.identityHashCode(sf));
+								}
 								// System.out.println(
 								// "HeapWalker.walkAndFindDependencies() Is
 								// conflict ? " + sf.isConflict());
@@ -715,9 +726,11 @@ public class HeapWalker {
 							Object obj = f.get(null);
 
 							//
-							System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
-									+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
-									+ System.identityHashCode(sf));
+							if (debug) {
+								System.out.println("HeapWalker.walkAndFindDependencies() Adding SF to the Pool "
+										+ sf.field.getDeclaringClass() + "." + sf.field.getName() + " == "
+										+ System.identityHashCode(sf));
+							}
 							//
 							// System.out.println("HeapWalker.walkAndFindDependencies()
 							// Is conflict ? " + sf.isConflict());
@@ -751,7 +764,13 @@ public class HeapWalker {
 				}
 			}
 		}
-		System.out.println("\n\n HeapWalker.walkAndFindDependencies() End of Rebuild SF Pool \n");
+		if (debug) {
+			System.out.println("\n\n HeapWalker.walkAndFindDependencies() End of Rebuild SF Pool \n");
+		}
+
+		// Print relevant statistics. Others are: number of class and fields
+		// inspected
+		System.out.println("HeapWalker.walkAndFindDependencies() Size of SF Pool: " + sfPool.size());
 
 		DependencyInfo.CURRENT_TEST_COUNT++;
 		DependencyInfo.IN_CAPTURE = false;

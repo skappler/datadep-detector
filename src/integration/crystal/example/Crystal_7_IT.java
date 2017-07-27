@@ -13,7 +13,6 @@ import crystal.model.DataSourceTest;
 import edu.gmu.swe.datadep.DependencyInfo;
 import edu.gmu.swe.datadep.HeapWalker;
 import edu.gmu.swe.datadep.StaticFieldDependency;
-import edu.gmu.swe.datadep.inst.DependencyTrackingClassVisitor;
 
 /**
  * @author gambi
@@ -23,11 +22,11 @@ public class Crystal_7_IT extends AbstractCrystalIT {
 
 	@BeforeClass
 	public static void debug() {
-//		DependencyTrackingClassVisitor.fieldsLogged.add(Pattern.compile("crystal.model.DataSource"));
+		// DependencyTrackingClassVisitor.fieldsLogged.add(Pattern.compile("crystal.model.DataSource"));
 		// Not sure why this does not work... Maybe those fields are simply not
 		// processed unless they are static
 		// DependencyTrackingClassVisitor.fieldsLogged.add(Pattern.compile("crystal.*_repoKind"));
-		//		DependencyTrackingClassVisitor.fieldsLogged.add(Pattern.compile(".*"));
+		// DependencyTrackingClassVisitor.fieldsLogged.add(Pattern.compile(".*"));
 	}
 
 	/**
