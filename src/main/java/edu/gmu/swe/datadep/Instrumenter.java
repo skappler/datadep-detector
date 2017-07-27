@@ -66,7 +66,8 @@ public class Instrumenter {
 				// class as well - For some reason, this will not work if ran
 				// with DD
 				|| owner.startsWith("com/lexicalscope")//
-				// || owner.startsWith("de/unisaarland")//
+				|| owner.contains("shaded")// --> This is important
+				|| owner.startsWith("de/unisaarland/cs/st/cut")//
 				// || owner.startsWith("org/jdom2")//
 				// FIXME: Get those might be tricky, Ignore all the registered
 				// ENUMS
