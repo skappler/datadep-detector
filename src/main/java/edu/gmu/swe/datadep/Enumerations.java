@@ -33,27 +33,27 @@ public class Enumerations {
 			System.out.println("Enumerations No Enum file specified");
 		}
 		///
-		e.addAll(Arrays.asList(new String[] { //
-				"crystal.model.DataSource$RepoKind", //
-				"crystal.model.RevisionHistory$When", //
-				"crystal.model.RevisionHistory$Capable", //
-				"crystal.model.RevisionHistory$Ease", //
-				"crystal.model.RevisionHistory$Action",
-				//
-				"org.junit.runners.MethodSorters", //
-				//
-				"org.freehg.hgkit.FileStatus$Status", //
-				"org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$1", //
-				"org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$2", //
-				"org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax", //
-				"crystal.model.DataSource$RepoKind", //
-				"crystal.model.RevisionHistory$Action", //
-				"crystal.model.RevisionHistory$Capable", //
-				"crystal.model.RevisionHistory$Ease", //
-				"crystal.model.RevisionHistory$When", //
-				"crystal.server.AbstractLogParser$CheckpointLabels", //
-
-		}));
+		// e.addAll(Arrays.asList(new String[] { //
+		// "crystal.model.DataSource$RepoKind", //
+		// "crystal.model.RevisionHistory$When", //
+		// "crystal.model.RevisionHistory$Capable", //
+		// "crystal.model.RevisionHistory$Ease", //
+		// "crystal.model.RevisionHistory$Action",
+		// //
+		// "org.junit.runners.MethodSorters", //
+		// //
+		// "org.freehg.hgkit.FileStatus$Status", //
+		// "org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$1", //
+		// "org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax$2", //
+		// "org.freehg.hgkit.core.Ignore$ExistingIgnore$Syntax", //
+		// "crystal.model.DataSource$RepoKind", //
+		// "crystal.model.RevisionHistory$Action", //
+		// "crystal.model.RevisionHistory$Capable", //
+		// "crystal.model.RevisionHistory$Ease", //
+		// "crystal.model.RevisionHistory$When", //
+		// "crystal.server.AbstractLogParser$CheckpointLabels", //
+		//
+		// }));
 
 		// CUT/DATA-DEP specific
 		e.addAll(Arrays.asList(new String[] { //
@@ -68,12 +68,17 @@ public class Enumerations {
 				"org.jdom2.input.sax.XMLReaders$XSDSingleton", //
 				//
 				"org.junit.internal.runners.rules.RuleFieldValidator", //
+				"org.junit.runners.MethodSorters", //
 				//
 				"java.util.zip.ZipConstants", //
 				"org.apache.maven.surefire.booter.ForkedBooter", //
 				"org.apache.maven.surefire.booter.BooterConstants", //
 				"org.apache.maven.surefire.util.RunOrder", //
-				"org.apache.maven.surefire.booter.ForkingRunListener" }));
+				"org.apache.maven.surefire.booter.ForkingRunListener", //
+				//
+				"com.lexicalscope.jewel.cli.OptionOrder", "com.shaded.lexicalscope.jewel.cli.OptionOrder"
+
+		}));
 
 		// JRE/JVM Level
 		e.addAll(Arrays.asList(new String[] { "java.lang.Thread$State", "org.apache.derby.iapi.security.Securable",

@@ -24,12 +24,8 @@ public class WrappedPrimitiveConverter implements Converter {
 	@Override
 	public void marshal(Object source, HierarchicalStreamWriter writer, MarshallingContext context) {
 
-		// Does this triggers a read ?
-		System.out.println("WrappedPrimitiveConverter.marshal() 1 ");
 		DependencyInfo dep = ((WrappedPrimitive) source).inf;
-		System.out.println("WrappedPrimitiveConverter.marshal() 2 ");
-		
-		
+
 		if (dep != null && dep.isConflict()) {
 			if (HeapWalker.testNumToTestClass.get(dep.getWriteGen()) == null) {
 				System.out.println("FOUND NULL WP " + dep.getWriteGen() + " " + HeapWalker.testNumToTestClass.size()

@@ -655,9 +655,18 @@ public class HeapWalker {
 								// versin of the JDK, so ignore
 							}
 						} else {
-							f.setAccessible(true);
-							Object obj = f.get(null);
-							visitFieldForIgnore(obj);
+							try {
+								// In some cases, e.g. Debian server no X11
+								// sun.mic this fails and breaks everything
+								f.setAccessible(true);
+								Object obj = f.get(null);
+								visitFieldForIgnore(obj);
+							} catch (Throwable t) {
+								if (debug) {
+									System.out.println(
+											"HeapWalker.walkAndFindDependencies() Failed visitFiledForIgnore on " + f);
+								}
+							}
 						}
 					} else if (shouldCaptureStaticField(f)) {
 
