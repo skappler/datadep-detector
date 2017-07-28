@@ -1690,8 +1690,20 @@ public class Enumerations {
 				"com.sun.tools.visualvm.core.ui.DataSourceView$Alert", //
 				"com.sun.tools.visualvm.modules.appui.options.NetworkOptionsModel$TestingStatus", //
 				"com.sun.tools.visualvm.sampler.SamplerImpl$State", //
-				"com.sun.tools.visualvm.tools.jmx.JmxModel$ConnectionState"
+				"com.sun.tools.visualvm.tools.jmx.JmxModel$ConnectionState" }));
 
+		e.addAll(Arrays.asList(new String[] { //
+				"org.classpath.icedtea.pulseaudio.Stream$Format", //
+				"org.classpath.icedtea.pulseaudio.Debug$DebugLevel" //
+		}));
+		e.addAll(Arrays.asList(new String[] { //
+				"sun.awt.X11.XTextAreaPeer$JavaMouseEventHandler$Pointer$Type", //
+				"sun.nio.ch.sctp.SctpChannelImpl$ChannelState", //
+				"sun.nio.ch.sctp.SctpMultiChannelImpl$ChannelState", //
+				"sun.nio.ch.sctp.SctpServerChannelImpl$ChannelState", //
+				"sun.security.util.DisabledAlgorithmConstraints$KeySizeConstraint$Operator", //
+				"sun.awt.X11.XBaseWindow$InitialiseState", //
+				"com.sun.deploy.net.proxy.MSystemProxyHandler$ProxyEnvVars" //
 		}));
 	}
 
