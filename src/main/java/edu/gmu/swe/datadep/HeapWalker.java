@@ -39,7 +39,7 @@ public class HeapWalker {
 
 	public static Object loggerSingleton;
 	private static final LinkedList<StaticField> sfPool = new LinkedList<StaticField>();
-	private static /* final */ Set<String> whiteList;
+	private static /* final */ Set<String> whiteList = new HashSet<String>();
 
 	public static boolean SKIP_VALUES = true;
 
@@ -79,10 +79,10 @@ public class HeapWalker {
 	}
 
 	public static void loadWhitelist() {
-		whiteList = fileToSet(System.getProperties(), "whitelist");
-		if (debug) {
-			System.out.println("Loaded whitelist");
-		}
+		whiteList.addAll(fileToSet(System.getProperties(), "whitelist"));
+		// if (debug) {
+		System.out.println("Loaded whitelist from " + System.getProperty("whitelist"));
+		// }
 		// ignores = fileToSet(System.getProperties(), "ignores");
 	}
 
@@ -658,6 +658,7 @@ public class HeapWalker {
 							try {
 								// In some cases, e.g. Debian server no X11
 								// sun.mic this fails and breaks everything
+								// Shoud this be propagated anyway ?!
 								f.setAccessible(true);
 								Object obj = f.get(null);
 								visitFieldForIgnore(obj);
