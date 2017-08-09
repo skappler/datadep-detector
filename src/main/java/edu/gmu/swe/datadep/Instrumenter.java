@@ -118,6 +118,7 @@ public class Instrumenter {
 
 		Options options = new Options();
 		options.addOption(help);
+		options.addOption(new Option("e", "list-enumeration", false, ""));
 
 		CommandLineParser parser = new BasicParser();
 		CommandLine line = null;
@@ -130,23 +131,114 @@ public class Instrumenter {
 			System.err.println(exp.getMessage());
 			return;
 		}
-		if (line.hasOption("help") || line.getArgs().length != 2) {
+
+		// ||
+		if (line.hasOption("help")) {
 			HelpFormatter formatter = new HelpFormatter();
 			formatter.printHelp("java -jar testdepends.jar [OPTIONS] [input] [output]", options);
 			return;
 		}
 
-		PreMain.IS_RUNTIME_INST = false;
-		_main(line.getArgs());
+		if (line.hasOption("list-enumeration")) {
+			PreMain.IS_RUNTIME_INST = false;
+			enum_main(line.getArgs());
+		} else {
+			if (line.getArgs().length != 2) {
+				HelpFormatter formatter = new HelpFormatter();
+				formatter.printHelp("java -jar testdepends.jar [OPTIONS] [input] [output]", options);
+				return;
+			}
+			PreMain.IS_RUNTIME_INST = false;
+			_main(line.getArgs());
+		}
 		System.out.println("Done");
 
 	}
 
 	static File rootOutputDir;
 
-	public static void _main(String[] args) {
-
+	public static void enum_main(String[] args) {
 		String outputFolder = args[1];
+		rootOutputDir = new File(outputFolder);
+		if (!rootOutputDir.exists())
+			rootOutputDir.mkdir();
+		String applicationCP = args[0];
+
+		for (String cpEntry : applicationCP.split(File.pathSeparator)) {
+			if (cpEntry.trim().length() == 0)
+				continue;
+			// Process EACH Entry in the CP
+			System.out.println("Instrumenter.enum_main() PROCESSING " + cpEntry);
+
+			// Setup the class loader
+			final ArrayList<URL> urls = new ArrayList<URL>();
+			Path input = FileSystems.getDefault().getPath(cpEntry);
+			try {
+				if (Files.isDirectory(input)) {
+
+					Files.walkFileTree(input, new FileVisitor<Path>() {
+						public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+								throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+
+						public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+							if (file.getFileName().toString().endsWith(".jar"))
+								urls.add(file.toUri().toURL());
+							return FileVisitResult.CONTINUE;
+						}
+
+						public FileVisitResult visitFileFailed(Path file, IOException exc) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+
+						public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
+							return FileVisitResult.CONTINUE;
+						}
+					});
+				} else if (cpEntry.endsWith(".jar")) {
+					urls.add(new File(cpEntry).toURI().toURL());
+				}
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			try {
+				urls.add(new File(cpEntry).toURI().toURL());
+			} catch (MalformedURLException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			File f = new File(cpEntry);
+			if (!f.exists()) {
+				System.err.println("Unable to read path " + cpEntry);
+				System.exit(-1);
+			}
+			if (f.isDirectory())
+				processDirectory(f, rootOutputDir, true);
+			else if (cpEntry.endsWith(".jar") || cpEntry.endsWith(".war"))
+				processJar(f, rootOutputDir);
+			else if (cpEntry.endsWith(".class"))
+				try {
+					processClass(f.getName(), new FileInputStream(f), rootOutputDir);
+				} catch (FileNotFoundException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			else if (cpEntry.endsWith(".zip")) {
+				processZip(f, rootOutputDir);
+			} else {
+				System.err.println("Unknown type for path " + cpEntry);
+				System.exit(-1);
+			}
+		}
+
+	}
+
+	public static void _main(String[] args) {
+		String outputFolder = args[1];
+
 		rootOutputDir = new File(outputFolder);
 		if (!rootOutputDir.exists())
 			rootOutputDir.mkdir();

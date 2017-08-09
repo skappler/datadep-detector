@@ -32,6 +32,9 @@ import edu.gmu.swe.datadep.struct.WrappedPrimitive;
  *
  */
 public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathMarshaller {
+
+	private static final boolean debug = Boolean.getBoolean("debug");
+
 	public ReferenceByXPathWithDependencysMarshaller(HierarchicalStreamWriter writer, ConverterLookup converterLookup,
 			Mapper mapper, int mode) {
 		super(writer, converterLookup, mapper, mode);
@@ -67,8 +70,10 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 										+ HeapWalker.testNumToTestClass.size());
 							} else {
 
-								System.out.println("ReferenceByXPathWithDependencysMarshaller: found CONFLICT for "
-										+ inf.printMe() + " " + inf.getWriteGen() );
+								if (debug) {
+									System.out.println("ReferenceByXPathWithDependencysMarshaller: found CONFLICT for "
+											+ inf.printMe() + " " + inf.getWriteGen());
+								}
 								///
 								writer.addAttribute("dependsOn", HeapWalker.testNumToTestClass.get(inf.getWriteGen())
 										+ "." + HeapWalker.testNumToMethod.get(inf.getWriteGen()));
@@ -80,13 +85,20 @@ public class ReferenceByXPathWithDependencysMarshaller extends ReferenceByXPathM
 
 						// Special code to treat Map... probably it should be
 						// collections in general
+						// It does not work for:
+						/*
+						 * com.google.common.collect.RegularImmutableMap
+						 * java.util.concurrent.ConcurrentHashMap
+						 * java.util.LinkedHashMap java.util.Properties
+						 */
 						if (source instanceof Map) {
 							try {
 								Map m = (Map) source;
 								// Field f =
 								// source.getClass().getDeclaredField("size");
 								Field finf;
-								if (source.getClass().equals(Hashtable.class)) {
+								if (source.getClass().equals(Hashtable.class)
+										|| source.getClass().isAssignableFrom(Hashtable.class)) {
 									finf = source.getClass().getDeclaredField("count__DEPENDENCY_INFO");
 								} else {
 									try {
