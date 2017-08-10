@@ -86,6 +86,7 @@ public class HeapWalker {
 		// ignores = fileToSet(System.getProperties(), "ignores");
 	}
 
+	// This might be quite inefficient...
 	protected static boolean shouldCaptureStaticField(Field f) {
 
 		//
@@ -115,8 +116,11 @@ public class HeapWalker {
 			return false;
 		}
 
+		// Not sure about this one...
 		if (whiteList.isEmpty()) {
-			System.out.println("HeapWalker.shouldCaptureStaticField() White list is empty");
+			// if (debug)
+			// System.out.println("HeapWalker.shouldCaptureStaticField() White
+			// list is empty");
 			return true;
 		}
 
