@@ -23,7 +23,10 @@ import org.jdom2.xpath.XPathExpression;
 import org.jdom2.xpath.XPathFactory;
 
 public class StaticField implements Serializable {
+
 	private static final long serialVersionUID = 1L;
+	private static final boolean debug = Boolean.getBoolean("debug");
+
 	private boolean conflict;
 	public Element value;
 	public int dependsOn;
@@ -66,9 +69,11 @@ public class StaticField implements Serializable {
 
 		boolean previousValue = DependencyInfo.IN_CAPTURE;
 		try {
-			System.out.println("StaticField.markConflictAndSerialize() SF " + field.getDeclaringClass() + "."
-					+ field.getName() + " Write Gen " + writeGen);
-			System.out.println("StaticField.markConflictAndSerialize() Disable COLLECTION");
+			if (debug) {
+				System.out.println("StaticField.markConflictAndSerialize() SF " + field.getDeclaringClass() + "."
+						+ field.getName() + " Write Gen " + writeGen);
+				System.out.println("StaticField.markConflictAndSerialize() Disable COLLECTION");
+			}
 
 			DependencyInfo.IN_CAPTURE = true;
 			conflict = true;
@@ -105,8 +110,10 @@ public class StaticField implements Serializable {
 			// }
 		} finally {
 			DependencyInfo.IN_CAPTURE = previousValue;
-			System.out
-					.println("StaticField.markConflictAndSerialize() Reset INCAPTURE to " + DependencyInfo.IN_CAPTURE);
+			if (debug) {
+				System.out.println(
+						"StaticField.markConflictAndSerialize() Reset INCAPTURE to " + DependencyInfo.IN_CAPTURE);
+			}
 		}
 	}
 
@@ -121,9 +128,9 @@ public class StaticField implements Serializable {
 				out.setFormat(Format.getPrettyFormat());
 			} else {
 				if (value == null) {
-					System.out.println("StaticField.getValue() Null value for " + this);
+					System.out.println("WARN StaticField.getValue() Null value for " + this);
 				} else {
-					System.out.println("StaticField.getValue() Empty value for " + this);
+					System.out.println("WARN StaticField.getValue() Empty value for " + this);
 				}
 			}
 		} catch (IOException e) {

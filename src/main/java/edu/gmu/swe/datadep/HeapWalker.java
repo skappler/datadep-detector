@@ -895,7 +895,10 @@ public class HeapWalker {
 
 		boolean previousState = DependencyInfo.IN_CAPTURE;
 
-		System.out.println("HeapWalker.serialize() " + obj);
+		if (debug) {
+			System.out.println("HeapWalker.serialize() " + obj);
+		}
+		//
 		try {
 			// Disable conflict tracking
 			DependencyInfo.IN_CAPTURE = true;
@@ -906,12 +909,14 @@ public class HeapWalker {
 			getXStreamInstance().marshal(obj, wr);
 			return root;
 		} catch (Throwable t) {
-			System.err.println("Unable to serialize object!");
+			System.err.println("ERROR Unable to serialize object!");
 			t.printStackTrace();
 			return null;
 		} finally {
 			DependencyInfo.IN_CAPTURE = previousState;
-			System.out.println("HeapWalker.serialize() Resetting IN_CAPTURE TO " + DependencyInfo.IN_CAPTURE);
+			if (debug) {
+				System.out.println("HeapWalker.serialize() Resetting IN_CAPTURE TO " + DependencyInfo.IN_CAPTURE);
+			}
 		}
 	}
 
