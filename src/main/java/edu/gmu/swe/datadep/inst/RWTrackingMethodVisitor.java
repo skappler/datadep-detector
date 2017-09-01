@@ -603,18 +603,24 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 		}
 	}
 
+	// For togglz project this results in a NPE.
 	protected static Object[] removeLongsDoubleTopVal(List<Object> in) {
 		ArrayList<Object> ret = new ArrayList<Object>();
-		boolean lastWas2Word = false;
-		for (Object n : in) {
-			if (n == Opcodes.TOP && lastWas2Word) {
-				// nop
-			} else
-				ret.add(n);
-			if (n == Opcodes.DOUBLE || n == Opcodes.LONG)
-				lastWas2Word = true;
-			else
-				lastWas2Word = false;
+
+		if (in != null) {
+			boolean lastWas2Word = false;
+			for (Object n : in) {
+				if (n == Opcodes.TOP && lastWas2Word) {
+					// nop
+				} else
+					ret.add(n);
+				if (n == Opcodes.DOUBLE || n == Opcodes.LONG)
+					lastWas2Word = true;
+				else
+					lastWas2Word = false;
+			}
+		} else {
+			System.out.println("WARNING: null input in removeLongsDoubleTopVal()");
 		}
 		return ret.toArray();
 	}
