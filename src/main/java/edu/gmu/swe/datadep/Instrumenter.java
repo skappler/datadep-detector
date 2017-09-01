@@ -71,7 +71,8 @@ public class Instrumenter {
 				// || owner.startsWith("org/jdom2")//
 				// FIXME: Get those might be tricky, Ignore all the registered
 				// ENUMS
-				|| Enumerations.get().contains(owner.replaceAll("/", "."))
+				|| Enumerations.get().contains(owner.replaceAll("/", ".").replaceAll("\\$[0-9][0-9]*", ""))
+
 		//
 		;
 	}
