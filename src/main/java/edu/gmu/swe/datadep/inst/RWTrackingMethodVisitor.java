@@ -302,7 +302,8 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 					}
 				}
 
-				if (an != null) {
+				// Alessio: for togglz an.locals is null for a $$generated class
+				if (an != null && an.locals != null) {
 					Object[] locals = removeLongsDoubleTopVal(an.locals);
 					Object[] stack = removeLongsDoubleTopVal(an.stack);
 					super.visitLabel(ok);
@@ -605,6 +606,7 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 
 	// For togglz project this results in a NPE.
 	protected static Object[] removeLongsDoubleTopVal(List<Object> in) {
+
 		ArrayList<Object> ret = new ArrayList<Object>();
 
 		if (in != null) {
@@ -619,8 +621,6 @@ public class RWTrackingMethodVisitor extends AdviceAdapter implements Opcodes {
 				else
 					lastWas2Word = false;
 			}
-		} else {
-			System.out.println("WARNING: null input in removeLongsDoubleTopVal()");
 		}
 		return ret.toArray();
 	}
